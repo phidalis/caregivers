@@ -1,0 +1,432 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Family Portal | Mercy Senior Solutions</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;600;700&family=Lato:wght@300;400;700;900&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link rel="stylesheet" href="style.css">
+    <script src="https://upload-widget.cloudinary.com/global/all.js"></script>
+</head>
+<body class="portal-body">
+
+    <!-- SIDEBAR -->
+    <aside class="sidebar">
+        <a href="index.html" class="sidebar-logo">
+            <span class="logo-icon"><i class="fas fa-heart"></i></span>
+            <span class="logo-text">Mercy<span class="gold">Senior</span></span>
+        </a>
+        <nav class="sidebar-nav">
+            <a href="#dashboard" class="active" data-tab="dashboard"><i class="fas fa-th-large"></i> Dashboard</a>
+            <a href="#referrals" data-tab="referrals"><i class="fas fa-link"></i> My Referrals</a>
+            <a href="#new-referral" data-tab="new-referral"><i class="fas fa-plus-circle"></i> New Referral</a>
+            <a href="#saved" data-tab="saved"><i class="fas fa-heart"></i> Saved Communities</a>
+            <a href="#messages" data-tab="messages"><i class="fas fa-envelope"></i> Messages</a>
+            <a href="#tours" data-tab="tours"><i class="fas fa-calendar"></i> Schedule Tours</a>
+            <a href="#documents" data-tab="documents"><i class="fas fa-file-upload"></i> Upload Documents</a>
+            <a href="#notifications" data-tab="notifications"><i class="fas fa-bell"></i> Notifications</a>
+            <a href="#settings" data-tab="settings"><i class="fas fa-gear"></i> Settings</a>
+            <a href="login.html" class="sidebar-logout"><i class="fas fa-sign-out-alt"></i> Logout</a>
+        </nav>
+    </aside>
+
+    <!-- MAIN CONTENT -->
+    <div class="portal-main">
+        <div class="portal-header">
+            <button class="sidebar-toggle"><i class="fas fa-bars"></i></button>
+            <div class="portal-header-right">
+                <div class="portal-user">
+                    <div class="user-avatar-initials" id="familyAvatar" title="Click to upload photo"></div>
+                    <span id="familyUserName">Welcome</span>
+                </div>
+            </div>
+        </div>
+
+        <!-- ==================== DASHBOARD TAB ==================== -->
+        <div class="portal-tab active" id="tab-dashboard">
+            <h2 style="font-family: 'Playfair Display', serif; color: #081B3A; margin-bottom: 8px;">Family Dashboard</h2>
+            <p style="color: #6B7280; margin-bottom: 30px;">Track your care journey and manage your referrals.</p>
+
+            <div class="dashboard-cards">
+                <div class="dash-card">
+                    <div class="dash-card-icon blue"><i class="fas fa-link"></i></div>
+                    <div class="dash-card-info">
+                        <h3 id="familyActiveReferrals">--</h3>
+                        <p>Active Referrals</p>
+                    </div>
+                </div>
+                <div class="dash-card">
+                    <div class="dash-card-icon gold"><i class="fas fa-heart"></i></div>
+                    <div class="dash-card-info">
+                        <h3 id="familySavedCommunities">--</h3>
+                        <p>Saved Communities</p>
+                    </div>
+                </div>
+                <div class="dash-card">
+                    <div class="dash-card-icon green"><i class="fas fa-calendar-check"></i></div>
+                    <div class="dash-card-info">
+                        <h3 id="familyUpcomingTours">--</h3>
+                        <p>Upcoming Tours</p>
+                    </div>
+                </div>
+                <div class="dash-card">
+                    <div class="dash-card-icon blue"><i class="fas fa-envelope"></i></div>
+                    <div class="dash-card-info">
+                        <h3 id="familyUnreadMsgs">--</h3>
+                        <p>Unread Messages</p>
+                    </div>
+                </div>
+            </div>
+
+            <div class="dash-section">
+                <h3 style="font-family: 'Playfair Display', serif; color: #081B3A; margin-bottom: 20px;">Recent Activity</h3>
+                <div class="activity-list" id="familyActivityList">
+                    <div class="activity-item" style="text-align:center; padding:40px; color:#6B7280;">
+                        <p>No activity yet. Your referral updates will appear here.</p>
+                    </div>
+                </div>
+            </div>
+
+            <div class="dash-section">
+                <h3 style="font-family: 'Playfair Display', serif; color: #081B3A; margin-bottom: 20px;">Quick Actions</h3>
+                <div style="display: flex; gap: 16px; flex-wrap: wrap;">
+                    <button class="btn btn-primary portal-quick-action" data-tab="new-referral"><i class="fas fa-plus"></i> Submit New Referral</button>
+                    <button class="btn btn-gold portal-quick-action" data-tab="saved"><i class="fas fa-heart"></i> View Saved Communities</button>
+                    <button class="btn btn-outline portal-quick-action" data-tab="tours"><i class="fas fa-calendar"></i> Schedule a Tour</button>
+                </div>
+            </div>
+
+            <div class="dash-section">
+                <h3 style="font-family: 'Playfair Display', serif; color: #081B3A; margin-bottom: 20px;">My Referral Link</h3>
+                <div style="background: #F5F7FA; border-radius: 14px; padding: 24px;">
+                    <p style="color: #6B7280; margin-bottom: 12px;">Share your unique link. When someone signs up using it, you'll see them here.</p>
+                    <div style="display: flex; gap: 8px; align-items: center; margin-bottom: 16px;">
+                        <input type="text" id="familyReferralLink" readonly style="flex:1; padding: 10px 14px; border: 2px solid #E5E7EB; border-radius: 10px; font-size: 14px; background: #fff; color: #081B3A;">
+                        <button class="btn btn-gold" onclick="var el=document.getElementById('familyReferralLink'); el.select(); document.execCommand('copy'); this.innerHTML='<i class=\'fas fa-check\'></i> Copied!'; setTimeout(function(){this.innerHTML=\'<i class=\"fas fa-copy\"></i> Copy\';}.bind(this),2000);" style="white-space:nowrap;"><i class="fas fa-copy"></i> Copy</button>
+                    </div>
+                    <div style="display: flex; gap: 16px; flex-wrap: wrap;">
+                        <div class="dash-card" style="min-width:120px; padding:16px; margin:0;"><div class="dash-card-info"><h3 id="familyReferralCount">0</h3><p>Total Referrals</p></div></div>
+                    </div>
+                    <div id="familyReferralList" style="margin-top: 16px;"></div>
+                </div>
+            </div>
+        </div>
+
+        <!-- ==================== MY REFERRALS TAB ==================== -->
+        <div class="portal-tab" id="tab-referrals">
+            <h2 style="font-family: 'Playfair Display', serif; color: #081B3A; margin-bottom: 8px;">My Referrals</h2>
+            <p style="color: #6B7280; margin-bottom: 30px;">Track the status of your care referrals.</p>
+
+            <table class="dash-table">
+                <thead>
+                    <tr><th>Care Type</th><th>Provider</th><th>Budget</th><th>Submitted</th><th>Status</th><th>Notes</th></tr>
+                </thead>
+                <tbody id="familyReferralsTable">
+                    <tr><td colspan="6" style="text-align:center; padding:40px; color:#6B7280;">No referrals yet. Submit your first referral to get started.</td></tr>
+                </tbody>
+            </table>
+        </div>
+
+        <!-- ==================== NEW REFERRAL TAB ==================== -->
+        <div class="portal-tab" id="tab-new-referral">
+            <h2 style="font-family: 'Playfair Display', serif; color: #081B3A; margin-bottom: 8px;">Submit a Referral</h2>
+            <p style="color: #6B7280; margin-bottom: 30px;">Tell us about your loved one's care needs and we'll match them with the right provider.</p>
+
+            <div style="background: white; border-radius: 18px; padding: 40px; box-shadow: 0 10px 30px rgba(0,0,0,.06); max-width: 800px;">
+                <div id="referralSuccess" style="display:none; background:#F0FDF4; border:1px solid #BBF7D0; color:#166534; padding:16px 20px; border-radius:12px; margin-bottom:24px; font-size:14px;"></div>
+                <div id="referralError" style="display:none; background:#FEF2F2; border:1px solid #FECACA; color:#DC2626; padding:16px 20px; border-radius:12px; margin-bottom:24px; font-size:14px;"></div>
+
+                <form id="referralForm">
+                    <h4 style="color: #081B3A; margin-bottom: 20px; font-family: 'Playfair Display', serif;">Patient Information</h4>
+                    <div class="form-grid" style="grid-template-columns: 1fr 1fr; margin-bottom: 24px;">
+                        <div class="form-group">
+                            <label>Full Name *</label>
+                            <input type="text" id="refPatientName" required placeholder="Patient's full name">
+                        </div>
+                        <div class="form-group">
+                            <label>Age *</label>
+                            <input type="number" id="refPatientAge" required placeholder="Age" min="0" max="120">
+                        </div>
+                    </div>
+                    <div class="form-grid" style="grid-template-columns: 1fr 1fr; margin-bottom: 24px;">
+                        <div class="form-group">
+                            <label>Relationship *</label>
+                            <select id="refRelationship" required>
+                                <option value="">Select relationship</option>
+                                <option value="self">Self</option>
+                                <option value="spouse">Spouse</option>
+                                <option value="parent">Parent</option>
+                                <option value="sibling">Sibling</option>
+                                <option value="child">Child</option>
+                                <option value="grandparent">Grandparent</option>
+                                <option value="other">Other</option>
+                            </select>
+                        </div>
+                        <div class="form-group">
+                            <label>Phone</label>
+                            <input type="tel" id="refPhone" placeholder="(555) 123-4567">
+                        </div>
+                    </div>
+
+                    <h4 style="color: #081B3A; margin-bottom: 20px; font-family: 'Playfair Display', serif; margin-top: 32px;">Care Needs</h4>
+                    <div class="form-grid" style="grid-template-columns: 1fr 1fr; margin-bottom: 24px;">
+                        <div class="form-group">
+                            <label>Care Type *</label>
+                            <select id="refCareType" required>
+                                <option value="">Select care type</option>
+                                <option value="Independent Living">Independent Living</option>
+                                <option value="Assisted Living">Assisted Living</option>
+                                <option value="Memory Care">Memory Care</option>
+                                <option value="Skilled Nursing">Skilled Nursing</option>
+                                <option value="In-Home Care">In-Home Care</option>
+                                <option value="Respite Care">Respite Care</option>
+                                <option value="Hospice Care">Hospice Care</option>
+                            </select>
+                        </div>
+                        <div class="form-group">
+                            <label>Monthly Budget *</label>
+                            <select id="refBudget" required>
+                                <option value="">Select budget range</option>
+                                <option value="$2,000 - $3,000/mo">$2,000 - $3,000/mo</option>
+                                <option value="$3,000 - $4,000/mo">$3,000 - $4,000/mo</option>
+                                <option value="$4,000 - $5,000/mo">$4,000 - $5,000/mo</option>
+                                <option value="$5,000 - $6,000/mo">$5,000 - $6,000/mo</option>
+                                <option value="$6,000 - $8,000/mo">$6,000 - $8,000/mo</option>
+                                <option value="$8,000+/mo">$8,000+/mo</option>
+                            </select>
+                        </div>
+                    </div>
+                    <div class="form-grid" style="grid-template-columns: 1fr 1fr; margin-bottom: 24px;">
+                        <div class="form-group">
+                            <label>Preferred Location *</label>
+                            <input type="text" id="refLocation" required placeholder="City or zip code">
+                        </div>
+                        <div class="form-group">
+                            <label>Timeline *</label>
+                            <select id="refTimeline" required>
+                                <option value="">When do you need care?</option>
+                                <option value="Immediately">Immediately</option>
+                                <option value="Within 1 week">Within 1 week</option>
+                                <option value="Within 1 month">Within 1 month</option>
+                                <option value="Within 3 months">Within 3 months</option>
+                                <option value="Just exploring">Just exploring options</option>
+                            </select>
+                        </div>
+                    </div>
+
+                    <h4 style="color: #081B3A; margin-bottom: 20px; font-family: 'Playfair Display', serif; margin-top: 32px;">Additional Details</h4>
+                    <div class="form-group" style="margin-bottom: 24px;">
+                        <label>Medical Conditions</label>
+                        <input type="text" id="refConditions" placeholder="e.g. Dementia, Diabetes, Parkinson's (comma separated)">
+                    </div>
+                    <div class="form-group" style="margin-bottom: 24px;">
+                        <label>Special Requirements</label>
+                        <textarea id="refNotes" rows="4" placeholder="Any special care needs, preferences, or important details..."></textarea>
+                    </div>
+                    <div class="form-group" style="margin-bottom: 32px;">
+                        <label>Preferred Contact Method</label>
+                        <div style="display: flex; gap: 20px; margin-top: 8px;">
+                            <label style="display: flex; align-items: center; gap: 6px; cursor: pointer; font-size: 14px;">
+                                <input type="radio" name="refContactMethod" value="phone" checked> Phone
+                            </label>
+                            <label style="display: flex; align-items: center; gap: 6px; cursor: pointer; font-size: 14px;">
+                                <input type="radio" name="refContactMethod" value="email"> Email
+                            </label>
+                            <label style="display: flex; align-items: center; gap: 6px; cursor: pointer; font-size: 14px;">
+                                <input type="radio" name="refContactMethod" value="either"> Either
+                            </label>
+                        </div>
+                    </div>
+
+                    <button type="submit" class="btn btn-primary" id="referralSubmitBtn" style="padding: 16px 40px; font-size: 16px;">
+                        <i class="fas fa-paper-plane"></i> Submit Referral
+                    </button>
+                </form>
+            </div>
+        </div>
+
+        <!-- ==================== SAVED COMMUNITIES TAB ==================== -->
+        <div class="portal-tab" id="tab-saved">
+            <h2 style="font-family: 'Playfair Display', serif; color: #081B3A; margin-bottom: 8px;">Saved Communities</h2>
+            <p style="color: #6B7280; margin-bottom: 30px;">Communities you've saved for later review.</p>
+
+            <table class="dash-table">
+                <thead>
+                    <tr><th>Community</th><th>Location</th><th>Care Type</th><th>Monthly Cost</th><th>Status</th></tr>
+                </thead>
+                <tbody id="familySavedTable">
+                    <tr><td colspan="5" style="text-align:center; padding:40px; color:#6B7280;">No saved communities yet. Browse our services to find the right fit.</td></tr>
+                </tbody>
+            </table>
+        </div>
+
+        <!-- ==================== MESSAGES TAB ==================== -->
+        <div class="portal-tab" id="tab-messages">
+            <h2 style="font-family: 'Playfair Display', serif; color: #081B3A; margin-bottom: 8px;">Messages</h2>
+            <p style="color: #6B7280; margin-bottom: 30px;">Communicate with your care advisor.</p>
+
+            <div style="background: white; border-radius: 18px; box-shadow: 0 10px 30px rgba(0,0,0,.06); overflow: hidden;">
+                <div id="familyMessagesList" style="padding: 20px; min-height: 200px;">
+                    <div style="text-align:center; padding:40px; color:#6B7280;">
+                        <i class="fas fa-envelope" style="font-size: 32px; margin-bottom: 12px; display: block; color: #D4A33A;"></i>
+                        <p>No messages yet. Your advisor will reach out once your referral is processed.</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- ==================== SCHEDULE TOURS TAB ==================== -->
+        <div class="portal-tab" id="tab-tours">
+            <h2 style="font-family: 'Playfair Display', serif; color: #081B3A; margin-bottom: 8px;">Schedule Tours</h2>
+            <p style="color: #6B7280; margin-bottom: 30px;">Request tours at communities you're interested in.</p>
+
+            <div style="background: white; border-radius: 18px; padding: 40px; box-shadow: 0 10px 30px rgba(0,0,0,.06); max-width: 600px;">
+                <div id="tourSuccess" style="display:none; background:#F0FDF4; border:1px solid #BBF7D0; color:#166534; padding:16px 20px; border-radius:12px; margin-bottom:24px; font-size:14px;"></div>
+                <form id="tourForm">
+                    <div class="form-group">
+                        <label>Community Name *</label>
+                        <input type="text" id="tourCommunity" required placeholder="Which community would you like to tour?">
+                    </div>
+                    <div class="form-grid" style="grid-template-columns: 1fr 1fr;">
+                        <div class="form-group">
+                            <label>Preferred Date *</label>
+                            <input type="date" id="tourDate" required>
+                        </div>
+                        <div class="form-group">
+                            <label>Preferred Time *</label>
+                            <select id="tourTime" required>
+                                <option value="">Select time</option>
+                                <option value="9:00 AM">9:00 AM</option>
+                                <option value="10:00 AM">10:00 AM</option>
+                                <option value="11:00 AM">11:00 AM</option>
+                                <option value="12:00 PM">12:00 PM</option>
+                                <option value="1:00 PM">1:00 PM</option>
+                                <option value="2:00 PM">2:00 PM</option>
+                                <option value="3:00 PM">3:00 PM</option>
+                                <option value="4:00 PM">4:00 PM</option>
+                            </select>
+                        </div>
+                    </div>
+                    <div class="form-group">
+                        <label>Notes</label>
+                        <textarea id="tourNotes" rows="3" placeholder="Any questions or things you'd like to see during the tour?"></textarea>
+                    </div>
+                    <button type="submit" class="btn btn-primary" style="margin-top: 16px;"><i class="fas fa-calendar-check"></i> Request Tour</button>
+                </form>
+            </div>
+
+            <div class="dash-section" style="margin-top: 32px;">
+                <h3 style="font-family: 'Playfair Display', serif; color: #081B3A; margin-bottom: 20px;">Upcoming Tours</h3>
+                <table class="dash-table">
+                    <thead>
+                        <tr><th>Community</th><th>Date</th><th>Time</th><th>Status</th></tr>
+                    </thead>
+                    <tbody id="familyToursTable">
+                        <tr><td colspan="4" style="text-align:center; padding:30px; color:#6B7280;">No tours scheduled yet.</td></tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+
+        <!-- ==================== DOCUMENTS TAB ==================== -->
+        <div class="portal-tab" id="tab-documents">
+            <h2 style="font-family: 'Playfair Display', serif; color: #081B3A; margin-bottom: 8px;">Upload Documents</h2>
+            <p style="color: #6B7280; margin-bottom: 30px;">Upload medical records, insurance info, or other documents.</p>
+
+            <div style="background: white; border-radius: 18px; padding: 40px; box-shadow: 0 10px 30px rgba(0,0,0,.06); max-width: 600px;">
+                <div id="docUploadArea" style="border: 2px dashed #E5E7EB; border-radius: 14px; padding: 40px; text-align: center; cursor: pointer; transition: all 0.3s;" onmouseover="this.style.borderColor='#D4A33A'" onmouseout="this.style.borderColor='#E5E7EB'">
+                    <i class="fas fa-cloud-upload-alt" style="font-size: 36px; color: #D4A33A; margin-bottom: 12px; display: block;"></i>
+                    <p style="color: #6B7280; margin-bottom: 8px;">Click to upload or drag and drop</p>
+                    <p style="color: #9CA3AF; font-size: 13px;">PDF, JPG, PNG up to 10MB</p>
+                    <input type="file" id="docFileInput" accept=".pdf,.jpg,.jpeg,.png" style="display: none;">
+                </div>
+                <div id="docFileName" style="display: none; margin-top: 16px; padding: 12px 16px; background: #F5F7FA; border-radius: 10px; font-size: 14px; color: #1F2937;"></div>
+                <div class="form-group" style="margin-top: 16px;">
+                    <label>Document Type</label>
+                    <select id="docType">
+                        <option value="medical">Medical Records</option>
+                        <option value="insurance">Insurance Information</option>
+                        <option value="legal">Legal Documents</option>
+                        <option value="other">Other</option>
+                    </select>
+                </div>
+                <button class="btn btn-primary" id="docUploadBtn" style="margin-top: 16px; display: none;"><i class="fas fa-upload"></i> Upload</button>
+            </div>
+
+            <div class="dash-section" style="margin-top: 32px;">
+                <h3 style="font-family: 'Playfair Display', serif; color: #081B3A; margin-bottom: 20px;">Uploaded Documents</h3>
+                <table class="dash-table">
+                    <thead>
+                        <tr><th>File</th><th>Type</th><th>Uploaded</th><th>Action</th></tr>
+                    </thead>
+                    <tbody id="familyDocsTable">
+                        <tr><td colspan="4" style="text-align:center; padding:30px; color:#6B7280;">No documents uploaded yet.</td></tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+
+        <!-- ==================== NOTIFICATIONS TAB ==================== -->
+        <div class="portal-tab" id="tab-notifications">
+            <h2 style="font-family: 'Playfair Display', serif; color: #081B3A; margin-bottom: 8px;">Notifications</h2>
+            <p style="color: #6B7280; margin-bottom: 30px;">Stay updated on your referral status and community alerts.</p>
+
+            <div class="activity-list" id="familyNotificationsList">
+                <div class="activity-item" style="text-align:center; padding:40px; color:#6B7280;">
+                    <i class="fas fa-bell" style="font-size: 32px; margin-bottom: 12px; display: block; color: #D4A33A;"></i>
+                    <p>No notifications yet.</p>
+                </div>
+            </div>
+        </div>
+
+        <!-- ==================== SETTINGS TAB ==================== -->
+        <div class="portal-tab" id="tab-settings">
+            <h2 style="font-family: 'Playfair Display', serif; color: #081B3A; margin-bottom: 8px;">Account Settings</h2>
+            <p style="color: #6B7280; margin-bottom: 30px;">Manage your profile and preferences.</p>
+
+            <div style="background: white; border-radius: 18px; padding: 40px; box-shadow: 0 10px 30px rgba(0,0,0,.06); max-width: 600px;">
+                <div id="settingsSuccess" style="display:none; background:#F0FDF4; border:1px solid #BBF7D0; color:#166534; padding:16px 20px; border-radius:12px; margin-bottom:24px; font-size:14px;"></div>
+                <form id="settingsForm">
+                    <div class="form-grid" style="grid-template-columns: 1fr 1fr;">
+                        <div class="form-group">
+                            <label>First Name</label>
+                            <input type="text" id="settingsFirstName" placeholder="First name">
+                        </div>
+                        <div class="form-group">
+                            <label>Last Name</label>
+                            <input type="text" id="settingsLastName" placeholder="Last name">
+                        </div>
+                    </div>
+                    <div class="form-group">
+                        <label>Email</label>
+                        <input type="email" id="settingsEmail" disabled style="background: #F5F7FA;">
+                    </div>
+                    <div class="form-group">
+                        <label>Phone</label>
+                        <input type="tel" id="settingsPhone" placeholder="(555) 123-4567">
+                    </div>
+                    <button type="submit" class="btn btn-primary" style="margin-top: 16px;"><i class="fas fa-save"></i> Save Changes</button>
+                </form>
+
+                <hr style="margin: 32px 0; border: none; border-top: 1px solid #E5E7EB;">
+
+                <h4 style="color: #DC2626; margin-bottom: 12px;">Danger Zone</h4>
+                <button class="btn btn-outline" id="deleteAccountBtn" style="border-color: #DC2626; color: #DC2626;"><i class="fas fa-trash"></i> Delete Account</button>
+            </div>
+        </div>
+
+    </div>
+
+    <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-auth-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-storage-compat.js"></script>
+    <script src="firebase-config.js"></script>
+    <script src="cloudinary-config.js"></script>
+    <script src="firebase-services.js"></script>
+    <script src="main.js"></script>
+</body>
+</html>

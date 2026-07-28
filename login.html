@@ -1,0 +1,328 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Login | Mercy Senior Solutions</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;600;700&family=Lato:wght@300;400;700;900&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <div class="auth-page">
+        <div class="auth-left">
+            <div class="auth-left-content">
+                <a href="index.html" class="footer-logo" style="margin-bottom: 40px; display: inline-block;">
+                    <span class="logo-icon"><i class="fas fa-heart"></i></span>
+                    <span class="logo-text">Mercy<span class="gold">Senior</span></span>
+                </a>
+                <h2>Welcome Back</h2>
+                <p>Sign in to access your portal, manage care preferences, and connect with our team of senior care specialists.</p>
+                <div class="auth-features">
+                    <div class="auth-feature"><i class="fas fa-shield-halved"></i> Secure &amp; Private</div>
+                    <div class="auth-feature"><i class="fas fa-headset"></i> 24/7 Support</div>
+                    <div class="auth-feature"><i class="fas fa-clock"></i> Real-Time Updates</div>
+                </div>
+            </div>
+        </div>
+        <div class="auth-right">
+            <div class="auth-form-container">
+                <h2>Sign In</h2>
+                <p style="color: #6B7280; margin-bottom: 30px;">Enter your credentials to access your account.</p>
+                <div id="loginBanner" style="display:none; background:#EFF6FF; border:1px solid #BFDBFE; color:#1D4ED8; padding:12px 16px; border-radius:10px; margin-bottom:20px; font-size:14px; font-weight:600;"></div>
+                <div id="loginError" style="display:none; background:#FEF2F2; border:1px solid #FECACA; color:#DC2626; padding:12px 16px; border-radius:10px; margin-bottom:20px; font-size:14px;"></div>
+                <form id="loginForm">
+                    <div class="form-group">
+                        <label>Email Address</label>
+                        <input type="email" id="loginEmail" required placeholder="you@example.com">
+                    </div>
+                    <div class="form-group">
+                        <label>Password</label>
+                        <input type="password" id="loginPassword" required placeholder="Enter your password">
+                    </div>
+                    <div class="form-row" style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 24px;">
+                        <label class="checkbox-label"><input type="checkbox"> Remember me</label>
+                        <a href="#" id="forgotPassword" style="color: #D4A33A; font-size: 14px; text-decoration: none;">Forgot Password?</a>
+                    </div>
+                    <button type="submit" class="btn btn-primary btn-full" id="loginBtn"><i class="fas fa-sign-in-alt"></i> Sign In</button>
+                </form>
+                <p style="text-align: center; margin-top: 30px; color: #6B7280; font-size: 14px;">
+                    Don't have an account? <a href="register.html" style="color: #D4A33A; text-decoration: none; font-weight: 700;">Create Account</a>
+                </p>
+                <div class="auth-divider"><span>or continue with</span></div>
+                <div class="social-auth">
+                    <button class="social-auth-btn" id="googleLogin"><i class="fab fa-google"></i> Google</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-auth-compat.js"></script>
+    <script src="firebase-config.js"></script>
+    <script src="main.js"></script>
+    <script>
+    (function() {
+        var loginForm = document.getElementById('loginForm');
+        var loginError = document.getElementById('loginError');
+        var loginBtn = document.getElementById('loginBtn');
+        var forgotPassword = document.getElementById('forgotPassword');
+        var googleLogin = document.getElementById('googleLogin');
+        var isLoggingIn = false;
+        
+        var refParam = '';
+        var params = new URLSearchParams(window.location.search);
+        if (params.get('ref')) {
+            refParam = '?ref=' + params.get('ref');
+            db.collection('users').where('referralCode', '==', params.get('ref')).get().then(function(snap) {
+                if (!snap.empty) {
+                    var refName = snap.docs[0].data().name || 'a friend';
+                    var banner = document.getElementById('loginBanner');
+                    if (banner) { banner.style.display = 'block'; banner.textContent = 'You were invited by ' + refName + '! Create an account to get started.'; }
+                }
+            }).catch(function() {});
+            document.querySelectorAll('a[href="register.html"]').forEach(function(link) {
+                link.href = 'register.html' + refParam;
+            });
+        }
+
+        function showError(msg) {
+            loginError.textContent = msg;
+            loginError.style.display = 'block';
+            loginError.style.background = '#FEF2F2';
+            loginError.style.borderColor = '#FECACA';
+            loginError.style.color = '#DC2626';
+        }
+
+        function showSuccess(msg) {
+            loginError.textContent = msg;
+            loginError.style.display = 'block';
+            loginError.style.background = '#F0FDF4';
+            loginError.style.borderColor = '#BBF7D0';
+            loginError.style.color = '#166534';
+        }
+
+        function hideError() {
+            loginError.style.display = 'none';
+        }
+
+        function setLoading(loading) {
+            if (loading) {
+                loginBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Signing In...';
+                loginBtn.disabled = true;
+            } else {
+                loginBtn.innerHTML = '<i class="fas fa-sign-in-alt"></i> Sign In';
+                loginBtn.disabled = false;
+            }
+        }
+
+        function redirectByRole(role) {
+            var dest = 'family-portal.html';
+            if (role === 'admin') dest = 'admin.html';
+            else if (role === 'provider') dest = 'provider-portal.html';
+            else if (role === 'caregiver') dest = 'caregiver-portal.html';
+
+            showSuccess('Login successful! Redirecting...');
+            loginBtn.innerHTML = '<i class="fas fa-check"></i> Signed In';
+            loginBtn.style.background = '#2F7D4A';
+
+            setTimeout(function() {
+                window.location.href = dest;
+            }, 800);
+        }
+
+        // Email/password login
+        loginForm.addEventListener('submit', function(e) {
+            e.preventDefault();
+            hideError();
+
+            var email = document.getElementById('loginEmail').value.trim();
+            var password = document.getElementById('loginPassword').value;
+
+            if (!email) {
+                showError('Please enter your email address.');
+                return;
+            }
+            if (!password) {
+                showError('Please enter your password.');
+                return;
+            }
+
+            isLoggingIn = true;
+            setLoading(true);
+
+            auth.signInWithEmailAndPassword(email, password)
+                .then(function(cred) {
+                    return db.collection('users').doc(cred.user.uid).get().then(function(doc) {
+                        if (!doc.exists) {
+                            return auth.signOut().then(function() {
+                                isLoggingIn = false;
+                                showError('Account profile not found. Please register first.');
+                                setLoading(false);
+                            });
+                        }
+
+                        var userData = doc.data();
+                        
+                        if (userData.role === 'admin') {
+                            sessionStorage.setItem('adminCreds', JSON.stringify({ email: email, password: password }));
+                        }
+                        
+                        redirectByRole(userData.role);
+                    });
+                })
+                .catch(function(error) {
+                    isLoggingIn = false;
+                    setLoading(false);
+
+                    var message = '';
+                    switch(error.code) {
+                        case 'auth/user-not-found':
+                            message = 'No account found with this email. Please register first.';
+                            break;
+                        case 'auth/wrong-password':
+                            message = 'Incorrect password. Please try again.';
+                            break;
+                        case 'auth/invalid-email':
+                            message = 'Please enter a valid email address.';
+                            break;
+                        case 'auth/too-many-requests':
+                            message = 'Too many failed attempts. Please try again later or reset your password.';
+                            break;
+                        case 'auth/user-disabled':
+                            message = 'This account has been disabled. Please contact support.';
+                            break;
+                        case 'auth/network-request-failed':
+                            message = 'Network error. Check your connection and try again.';
+                            break;
+                        case 'auth/invalid-credential':
+                            message = 'Invalid email or password. Please try again.';
+                            break;
+                        default:
+                            message = 'Login failed: ' + error.message;
+                    }
+                    showError(message);
+                });
+        });
+
+        // Google login
+        if (googleLogin) {
+            googleLogin.addEventListener('click', function() {
+                hideError();
+                isLoggingIn = true;
+                setLoading(true);
+
+                var provider = new firebase.auth.GoogleAuthProvider();
+                auth.signInWithPopup(provider)
+                    .then(function(result) {
+                        var user = result.user;
+                        return db.collection('users').doc(user.uid).get().then(function(doc) {
+                        if (!doc.exists) {
+                            var refCode = params.get('ref') || '';
+                            var referrerUid = null;
+                            
+                            function createGoogleUser(rUid) {
+                                var code = (user.displayName || 'USER').replace(/[^a-zA-Z]/g, '').substring(0, 5).toUpperCase() + user.uid.substring(0, 4).toUpperCase();
+                                var userData = {
+                                    name: user.displayName || '',
+                                    firstName: (user.displayName || '').split(' ')[0],
+                                    lastName: (user.displayName || '').split(' ').slice(1).join(' '),
+                                    email: user.email,
+                                    phone: '',
+                                    role: 'family',
+                                    referralCode: code,
+                                    createdAt: firebase.firestore.FieldValue.serverTimestamp()
+                                };
+                                if (rUid) userData.referredBy = rUid;
+                                
+                                return db.collection('users').doc(user.uid).set(userData).then(function() {
+                                    if (rUid) {
+                                        return db.collection('referralSignups').add({
+                                            referredBy: rUid,
+                                            newUserId: user.uid,
+                                            newUserName: user.displayName || '',
+                                            newUserEmail: user.email,
+                                            newUserRole: 'family',
+                                            referralCode: refCode,
+                                            createdAt: firebase.firestore.FieldValue.serverTimestamp()
+                                        });
+                                    }
+                                });
+                            }
+                            
+                            if (refCode) {
+                                db.collection('users').where('referralCode', '==', refCode).get().then(function(snap) {
+                                    if (!snap.empty) referrerUid = snap.docs[0].id;
+                                    return createGoogleUser(referrerUid);
+                                }).then(function() { redirectByRole('family'); }).catch(function() { redirectByRole('family'); });
+                            } else {
+                                createGoogleUser(null).then(function() { redirectByRole('family'); }).catch(function() { redirectByRole('family'); });
+                            }
+                            }
+
+                            redirectByRole(doc.data().role);
+                        });
+                    })
+                    .catch(function(error) {
+                        isLoggingIn = false;
+                        setLoading(false);
+                        if (error.code === 'auth/popup-closed-by-user') {
+                            showError('Sign-in cancelled. Please try again.');
+                        } else {
+                            showError('Google sign-in failed: ' + error.message);
+                        }
+                    });
+            });
+        }
+
+        // Forgot password
+        if (forgotPassword) {
+            forgotPassword.addEventListener('click', function(e) {
+                e.preventDefault();
+                var email = document.getElementById('loginEmail').value.trim();
+                if (!email) {
+                    showError('Enter your email above, then click Forgot Password.');
+                    return;
+                }
+                auth.sendPasswordResetEmail(email)
+                    .then(function() {
+                        showSuccess('Password reset email sent to ' + email + '. Check your inbox.');
+                    })
+                    .catch(function(error) {
+                        var message = '';
+                        switch(error.code) {
+                            case 'auth/user-not-found':
+                                message = 'No account found with this email.';
+                                break;
+                            case 'auth/invalid-email':
+                                message = 'Please enter a valid email address.';
+                                break;
+                            default:
+                                message = 'Error: ' + error.message;
+                        }
+                        showError(message);
+                    });
+            });
+        }
+
+        // Redirect if already logged in
+        auth.onAuthStateChanged(function(user) {
+            if (user && !isLoggingIn) {
+                db.collection('users').doc(user.uid).get().then(function(doc) {
+                    if (doc.exists) {
+                        var role = doc.data().role;
+                        if (role === 'admin') window.location.href = 'admin.html';
+                        else if (role === 'provider') window.location.href = 'provider-portal.html';
+                        else if (role === 'caregiver') window.location.href = 'caregiver-portal.html';
+                        else window.location.href = 'family-portal.html';
+                    }
+                });
+            }
+        });
+    })();
+    </script>
+</body>
+</html>

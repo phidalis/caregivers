@@ -1,0 +1,319 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Resources &amp; Guides | Mercy Senior Solutions</title>
+    <meta name="description" content="Educational resources, guides, and tips for senior care, memory care, and caregiver support.">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;600;700&family=Lato:wght@300;400;700;900&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+    <!-- TOP BAR -->
+    <div class="top-bar">
+        <div class="top-bar-container">
+            <a href="index.html" class="top-bar-logo">
+                <span class="logo-icon"><i class="fas fa-heart"></i></span>
+                <span class="logo-text">Mercy<span class="gold">Senior</span> Solutions</span>
+            </a>
+            <div class="top-bar-right">
+                <a href="login.html" class="top-bar-link"><i class="fas fa-sign-in-alt"></i> Login</a>
+                <a href="register.html" class="btn btn-gold btn-sm">Sign Up</a>
+            </div>
+        </div>
+    </div>
+
+    <!-- MAIN NAVIGATION -->
+    <nav class="navbar">
+        <div class="nav-container">
+            <div class="nav-links-wrapper">
+                <div class="nav-scroll-indicator"><i class="fas fa-chevron-right"></i> <span>Scroll</span></div>
+                <div class="nav-links">
+                    <a href="index.html">Home</a>
+                    <div class="nav-dropdown">
+                        <a href="services.html">Services</a>
+                        <div class="nav-dropdown-menu">
+                            <a href="services.html"><i class="fas fa-search"></i> Find Care</a>
+                            <a href="senior-placement.html"><i class="fas fa-home"></i> Senior Placement</a>
+                            <a href="caregiver-services.html"><i class="fas fa-hands-holding-heart"></i> Caregiver Services</a>
+                            <a href="healthcare-consulting.html"><i class="fas fa-chart-line"></i> Healthcare Consulting</a>
+                        </div>
+                    </div>
+                    <a href="providers.html">Providers</a>
+                    <a href="caregiver-services.html">Caregivers</a>
+                    <a href="resources.html" class="active">Resources</a>
+                    <a href="careers.html">Careers</a>
+                    <a href="about.html">About</a>
+                    <a href="contact.html">Contact</a>
+                </div>
+            </div>
+            <div class="nav-buttons">
+                <a href="contact.html" class="btn btn-gold btn-nav">Schedule Consultation</a>
+                <a href="tel:+1341618979293" class="btn btn-primary btn-nav"><i class="fas fa-phone"></i> Talk to a Senior Advisor</a>
+            </div>
+            <button class="hamburger" aria-label="Toggle menu"><span></span><span></span><span></span></button>
+        </div>
+    </nav>
+    
+    <!-- Mobile Navigation -->
+    <div class="mobile-nav-overlay"></div>
+    <div class="mobile-nav">
+        <div class="mobile-nav-top">
+            <a href="login.html" class="mobile-nav-link"><i class="fas fa-sign-in-alt"></i> Login</a>
+            <a href="register.html" class="btn btn-gold btn-sm">Sign Up</a>
+        </div>
+        <a href="index.html">Home</a>
+        <a href="services.html">Services</a>
+        <a href="senior-placement.html">Senior Placement</a>
+        <a href="caregiver-services.html">Caregiver Services</a>
+        <a href="healthcare-consulting.html">Healthcare Consulting</a>
+        <a href="providers.html">Providers</a>
+        <a href="caregiver-services.html">Caregivers</a>
+        <a href="resources.html" class="active">Resources</a>
+        <a href="careers.html">Careers</a>
+        <a href="about.html">About</a>
+        <a href="contact.html">Contact</a>
+        <div class="mobile-nav-buttons">
+            <a href="contact.html" class="btn btn-gold btn-full">Schedule Consultation</a>
+            <a href="tel:+1341618979293" class="btn btn-primary btn-full"><i class="fas fa-phone"></i> Talk to a Senior Advisor</a>
+        </div>
+    </div>
+
+    <!-- PAGE HERO -->
+    <section class="page-hero">
+        <div class="container">
+            <h1 class="animate-on-scroll">Resources &amp; <span class="gold">Guides</span></h1>
+            <p class="animate-on-scroll">Educational content to help you make informed decisions about senior care.</p>
+        </div>
+    </section>
+
+    <!-- RESOURCES GRID -->
+    <section class="section">
+        <div class="container">
+            <div class="resource-filter-bar">
+                <button class="resource-filter-pill active" data-filter="all"><i class="fas fa-th-large"></i> All</button>
+                <button class="resource-filter-pill" data-filter="Planning"><i class="fas fa-clipboard-list"></i> Planning</button>
+                <button class="resource-filter-pill" data-filter="Guide"><i class="fas fa-book"></i> Guide</button>
+                <button class="resource-filter-pill" data-filter="Checklist"><i class="fas fa-list-check"></i> Checklist</button>
+                <button class="resource-filter-pill" data-filter="Tips"><i class="fas fa-lightbulb"></i> Tips</button>
+                <button class="resource-filter-pill" data-filter="Finance"><i class="fas fa-dollar-sign"></i> Finance</button>
+            </div>
+            <div class="resources-grid">
+                <div class="resource-card animate-on-scroll" data-modal="modal-discharge">
+                    <div class="resource-image"><img src="https://images.unsplash.com/photo-1516733725897-1aa73b87c8e8?w=800&h=500&fit=crop" alt="Hospital discharge planning" loading="lazy"></div>
+                    <div class="resource-content">
+                        <span class="badge badge-blue">Planning</span>
+                        <h3>Hospital Discharge Planning</h3>
+                        <p>Essential steps to ensure a smooth transition from hospital to home or care facility.</p>
+                    </div>
+                </div>
+                <div class="resource-card animate-on-scroll" data-modal="modal-memory">
+                    <div class="resource-image"><img src="https://images.unsplash.com/photo-1576091160550-2173dba999ef?w=800&h=500&fit=crop" alt="Memory care guide" loading="lazy"></div>
+                    <div class="resource-content">
+                        <span class="badge badge-gold">Guide</span>
+                        <h3>Memory Care Guide</h3>
+                        <p>Understanding memory care options and choosing the right community for a loved one.</p>
+                    </div>
+                </div>
+                <div class="resource-card animate-on-scroll" data-modal="modal-touring">
+                    <div class="resource-image"><img src="https://images.unsplash.com/photo-1559757148-5c350d0d3c56?w=800&h=500&fit=crop" alt="Questions before touring" loading="lazy"></div>
+                    <div class="resource-content">
+                        <span class="badge badge-green">Checklist</span>
+                        <h3>Questions Before Touring</h3>
+                        <p>The top 20 questions every family should ask when touring a senior living community.</p>
+                    </div>
+                </div>
+                <div class="resource-card animate-on-scroll" data-modal="modal-checklist">
+                    <div class="resource-image"><img src="https://images.unsplash.com/photo-1576765608535-5f04d1e3f289?w=800&h=500&fit=crop" alt="Senior living checklist" loading="lazy"></div>
+                    <div class="resource-content">
+                        <span class="badge badge-blue">Checklist</span>
+                        <h3>Senior Living Checklist</h3>
+                        <p>A comprehensive checklist to evaluate senior living communities during your search.</p>
+                    </div>
+                </div>
+                <div class="resource-card animate-on-scroll" data-modal="modal-caregiver">
+                    <div class="resource-image"><img src="https://images.unsplash.com/photo-1581579438747-1dc8d17bbce4?w=800&h=500&fit=crop" alt="Caregiver tips" loading="lazy"></div>
+                    <div class="resource-content">
+                        <span class="badge badge-gold">Tips</span>
+                        <h3>Caregiver Self-Care Tips</h3>
+                        <p>Essential self-care strategies for family caregivers to maintain their own health.</p>
+                    </div>
+                </div>
+                <div class="resource-card animate-on-scroll" data-modal="modal-finance">
+                    <div class="resource-image"><img src="https://images.unsplash.com/photo-1573497620053-ea5300f94f21?w=800&h=500&fit=crop" alt="Financial planning" loading="lazy"></div>
+                    <div class="resource-content">
+                        <span class="badge badge-green">Finance</span>
+                        <h3>Paying for Senior Care</h3>
+                        <p>Understanding Medicare, Medicaid, VA benefits, and other payment options available.</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- RESOURCE MODALS -->
+    <div class="resource-modal" id="modal-discharge">
+        <div class="resource-modal-overlay"></div>
+        <div class="resource-modal-content">
+            <button class="resource-modal-close"><i class="fas fa-times"></i></button>
+            <div class="resource-modal-body">
+                <div class="resource-modal-image">
+                    <img src="https://images.unsplash.com/photo-1516733725897-1aa73b87c8e8?w=1200&h=700&fit=crop" alt="Hospital discharge planning">
+                </div>
+                <div class="resource-modal-text">
+                    <span class="badge badge-blue">Planning</span>
+                    <h2>Hospital Discharge Planning</h2>
+                    <p>Essential steps to ensure a smooth transition from hospital to home or care facility. Learn what to ask and how to prepare.</p>
+                    <p>Discharge planning begins while your loved one is still in the hospital. It involves coordinating care, arranging services, and making sure the transition from hospital to home or a care facility is as smooth as possible.</p>
+                    <p>Key steps include understanding the discharge instructions, arranging follow-up appointments, ensuring medications are properly managed, and setting up any necessary home health services or equipment.</p>
+                    <p>Our senior care advisors can help guide you through the discharge planning process and connect you with the right resources to ensure a safe and successful transition.</p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="resource-modal" id="modal-memory">
+        <div class="resource-modal-overlay"></div>
+        <div class="resource-modal-content">
+            <button class="resource-modal-close"><i class="fas fa-times"></i></button>
+            <div class="resource-modal-body">
+                <div class="resource-modal-image">
+                    <img src="https://images.unsplash.com/photo-1576091160550-2173dba999ef?w=1200&h=700&fit=crop" alt="Memory care guide">
+                </div>
+                <div class="resource-modal-text">
+                    <span class="badge badge-gold">Guide</span>
+                    <h2>Memory Care Guide</h2>
+                    <p>Understanding memory care options and choosing the right community for a loved one with dementia or Alzheimer's.</p>
+                    <p>Memory care communities provide specialized care for individuals with memory-related conditions. These communities offer structured activities, secure environments, and staff trained in dementia and Alzheimer's care.</p>
+                    <p>When evaluating memory care options, consider the level of care needed, the community's approach to daily routines, safety features, and how they engage residents with meaningful activities.</p>
+                    <p>Our advisors can help you compare memory care communities in your area and find the best fit for your loved one's specific needs.</p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="resource-modal" id="modal-touring">
+        <div class="resource-modal-overlay"></div>
+        <div class="resource-modal-content">
+            <button class="resource-modal-close"><i class="fas fa-times"></i></button>
+            <div class="resource-modal-body">
+                <div class="resource-modal-image">
+                    <img src="https://images.unsplash.com/photo-1559757148-5c350d0d3c56?w=1200&h=700&fit=crop" alt="Questions before touring">
+                </div>
+                <div class="resource-modal-text">
+                    <span class="badge badge-green">Checklist</span>
+                    <h2>Questions Before Touring</h2>
+                    <p>The top 20 questions every family should ask when touring a senior living community for the first time.</p>
+                    <p>Touring a senior living community is one of the most important steps in finding the right care. Going prepared with the right questions can help you make an informed decision about your loved one's future.</p>
+                    <p>Key questions to ask include: What is the staff-to-resident ratio? What training does the staff receive? What is included in the monthly cost? How are medical emergencies handled? What activities are offered?</p>
+                    <p>Download our complete checklist of 20 essential questions to bring on your next community tour.</p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="resource-modal" id="modal-checklist">
+        <div class="resource-modal-overlay"></div>
+        <div class="resource-modal-content">
+            <button class="resource-modal-close"><i class="fas fa-times"></i></button>
+            <div class="resource-modal-body">
+                <div class="resource-modal-image">
+                    <img src="https://images.unsplash.com/photo-1576765608535-5f04d1e3f289?w=1200&h=700&fit=crop" alt="Senior living checklist">
+                </div>
+                <div class="resource-modal-text">
+                    <span class="badge badge-blue">Checklist</span>
+                    <h2>Senior Living Checklist</h2>
+                    <p>A comprehensive checklist to evaluate senior living communities during your search for the perfect fit.</p>
+                    <p>Finding the right senior living community requires careful evaluation of many factors. Our comprehensive checklist covers everything from safety features and staff qualifications to dining options and social activities.</p>
+                    <p>Use this checklist during your tours to ensure you are comparing communities on an equal basis and not overlooking any important details.</p>
+                    <p>Our senior care advisors can provide you with a personalized checklist based on your loved one's specific needs and preferences.</p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="resource-modal" id="modal-caregiver">
+        <div class="resource-modal-overlay"></div>
+        <div class="resource-modal-content">
+            <button class="resource-modal-close"><i class="fas fa-times"></i></button>
+            <div class="resource-modal-body">
+                <div class="resource-modal-image">
+                    <img src="https://images.unsplash.com/photo-1581579438747-1dc8d17bbce4?w=1200&h=700&fit=crop" alt="Caregiver tips">
+                </div>
+                <div class="resource-modal-text">
+                    <span class="badge badge-gold">Tips</span>
+                    <h2>Caregiver Self-Care Tips</h2>
+                    <p>Essential self-care strategies for family caregivers to maintain their own health while caring for loved ones.</p>
+                    <p>Caregiving is rewarding but can also be physically and emotionally demanding. Taking care of yourself is not selfish — it is essential to being able to provide the best care for your loved one.</p>
+                    <p>Key self-care strategies include setting boundaries, joining a support group, maintaining your own health appointments, taking regular breaks, and accepting help from others when it is offered.</p>
+                    <p>Private caregiver services can also provide respite care, giving family caregivers the time they need to rest and recharge.</p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="resource-modal" id="modal-finance">
+        <div class="resource-modal-overlay"></div>
+        <div class="resource-modal-content">
+            <button class="resource-modal-close"><i class="fas fa-times"></i></button>
+            <div class="resource-modal-body">
+                <div class="resource-modal-image">
+                    <img src="https://images.unsplash.com/photo-1573497620053-ea5300f94f21?w=1200&h=700&fit=crop" alt="Financial planning">
+                </div>
+                <div class="resource-modal-text">
+                    <span class="badge badge-green">Finance</span>
+                    <h2>Paying for Senior Care</h2>
+                    <p>Understanding Medicare, Medicaid, VA benefits, long-term care insurance, and other payment options.</p>
+                    <p>Senior care can be expensive, but there are many payment options and financial assistance programs available to help families manage the cost. Understanding your options is the first step.</p>
+                    <p>Medicare covers certain medical services but generally does not cover long-term custodial care. Medicaid may cover nursing home care for qualifying individuals. VA benefits can help veterans and their spouses pay for senior care.</p>
+                    <p>Our advisors can help you navigate the complex landscape of senior care financing and identify the options that best fit your family's situation.</p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- CTA -->
+    <section class="section cta-section">
+        <div class="container text-center animate-on-scroll">
+            <h2>Have Questions?</h2>
+            <p>Our senior care advisors are here to help you navigate every decision.</p>
+            <div class="hero-buttons" style="justify-content: center;">
+                <a href="contact.html" class="btn btn-gold"><i class="fas fa-calendar-check"></i> Schedule Consultation</a>
+                <a href="tel:+1341618979293" class="btn btn-primary"><i class="fas fa-phone"></i> Talk to an Advisor</a>
+            </div>
+        </div>
+    </section>
+
+    <!-- FOOTER -->
+    <footer class="footer">
+        <div class="container">
+            <div class="footer-grid">
+                <div class="footer-col">
+                    <a href="index.html" class="footer-logo"><span class="logo-icon"><i class="fas fa-heart"></i></span><span class="logo-text">Mercy<span class="gold">Senior</span></span></a>
+                    <p>Providing compassionate senior care solutions for families, healthcare providers, and private caregivers since 2020.</p>
+                    <form id="newsletterForm" class="newsletter-form"><input type="email" placeholder="Enter your email" required><button type="submit" class="btn btn-gold">Subscribe</button></form>
+                </div>
+                <div class="footer-col"><h4>Quick Links</h4><a href="index.html">Home</a><a href="about.html">About Us</a><a href="services.html">Services</a><a href="careers.html">Careers</a><a href="contact.html">Contact</a></div>
+                <div class="footer-col"><h4>Services</h4><a href="senior-placement.html">Senior Placement</a><a href="caregiver-services.html">Caregiver Services</a><a href="healthcare-consulting.html">Healthcare Consulting</a><a href="resources.html">Resources</a></div>
+                <div class="footer-col"><h4>Contact Info</h4><p><i class="fas fa-phone"></i> (341) 618-9792</p><p><i class="fas fa-envelope"></i> info@mercyseniorsolutions.com</p><div class="social-icons"><a href="#" aria-label="Facebook"><i class="fab fa-facebook-f"></i></a><a href="#" aria-label="Instagram"><i class="fab fa-instagram"></i></a><a href="#" aria-label="LinkedIn"><i class="fab fa-linkedin-in"></i></a><a href="#" aria-label="Twitter"><i class="fab fa-twitter"></i></a></div></div>
+            </div>
+            <div class="footer-bottom"><p>&copy; 2026 Mercy Senior Solutions. All rights reserved.</p><div class="footer-links"><a href="#">Privacy Policy</a><a href="#">Terms of Service</a></div></div>
+        </div>
+    </footer>
+
+    <div class="chat-widget">
+        <button class="chat-toggle" aria-label="Talk to a Senior Advisor"><i class="fas fa-comments"></i></button>
+        <div class="chat-popup">
+            <div class="chat-header"><div><h4>Talk to a Senior Advisor</h4><span class="chat-status">Online now</span></div><button class="chat-close"><i class="fas fa-times"></i></button></div>
+            <div class="chat-messages"><div class="chat-message received"><p>Welcome to Mercy Senior Solutions. How can we help you today?</p></div></div>
+            <form class="chat-form"><input type="text" class="chat-input" placeholder="Type your message..."><button type="submit" class="chat-send"><i class="fas fa-paper-plane"></i></button></form>
+        </div>
+    </div>
+
+    <script src="main.js"></script>
+</body>
+</html>

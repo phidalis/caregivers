@@ -1,0 +1,566 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Admin Panel | Mercy Senior Solutions</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;600;700&family=Lato:wght@300;400;700;900&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link rel="stylesheet" href="style.css">
+    <script src="https://upload-widget.cloudinary.com/global/all.js"></script>
+</head>
+<body class="portal-body">
+
+    <aside class="sidebar">
+        <a href="index.html" class="sidebar-logo">
+            <span class="logo-icon"><i class="fas fa-heart"></i></span>
+            <span class="logo-text">Mercy<span class="gold">Senior</span></span>
+        </a>
+        <nav class="sidebar-nav">
+            <a href="#" class="active" data-tab="dashboard"><i class="fas fa-th-large"></i> Dashboard</a>
+            <a href="#" data-tab="families"><i class="fas fa-users"></i> Families</a>
+            <a href="#" data-tab="providers"><i class="fas fa-hospital"></i> Providers</a>
+            <a href="#" data-tab="caregivers"><i class="fas fa-user-nurse"></i> Caregivers</a>
+            <a href="#" data-tab="communities"><i class="fas fa-building"></i> Communities</a>
+            <a href="#" data-tab="referrals"><i class="fas fa-link"></i> Referrals</a>
+            <a href="#" data-tab="appointments"><i class="fas fa-calendar-alt"></i> Appointments</a>
+            <a href="#" data-tab="resources"><i class="fas fa-newspaper"></i> Resources</a>
+            <a href="#" data-tab="applications"><i class="fas fa-file-alt"></i> Applications</a>
+            <a href="#" data-tab="shifts"><i class="fas fa-calendar-check"></i> Shifts</a>
+            <a href="#" data-tab="payments"><i class="fas fa-credit-card"></i> Payments</a>
+            <a href="#" data-tab="analytics"><i class="fas fa-chart-bar"></i> Analytics</a>
+            <a href="#" data-tab="reports"><i class="fas fa-file-chart-line"></i> Reports</a>
+            <a href="#" data-tab="media"><i class="fas fa-photo-film"></i> Media Library</a>
+            <a href="#" data-tab="content"><i class="fas fa-globe"></i> Website Content</a>
+            <a href="#" data-tab="settings"><i class="fas fa-gear"></i> Settings</a>
+            <a href="#" data-tab="admins"><i class="fas fa-user-shield"></i> Admins</a>
+            <a href="login.html" class="sidebar-logout"><i class="fas fa-sign-out-alt"></i> Logout</a>
+        </nav>
+    </aside>
+
+    <div class="portal-main">
+        <div class="portal-header">
+            <button class="sidebar-toggle"><i class="fas fa-bars"></i></button>
+            <div class="portal-header-right">
+                <div class="portal-user">
+                    <div class="user-avatar-initials" id="adminAvatar" title="Click to upload photo"></div>
+                    <span>Admin Dashboard</span>
+                </div>
+            </div>
+        </div>
+
+        <!-- ==================== DASHBOARD TAB ==================== -->
+        <div class="portal-tab active" id="tab-dashboard">
+            <h2 class="admin-tab-title">Admin Dashboard</h2>
+            <p class="admin-tab-subtitle">Overview of all platform activity and metrics.</p>
+
+            <div class="dashboard-cards" id="adminDashCards">
+                <div class="dash-card"><div class="dash-card-icon blue"><i class="fas fa-users"></i></div><div class="dash-card-info"><h3 id="adminTotalFamilies">--</h3><p>Total Families</p></div></div>
+                <div class="dash-card"><div class="dash-card-icon gold"><i class="fas fa-hospital"></i></div><div class="dash-card-info"><h3 id="adminTotalProviders">--</h3><p>Providers</p></div></div>
+                <div class="dash-card"><div class="dash-card-icon green"><i class="fas fa-user-nurse"></i></div><div class="dash-card-info"><h3 id="adminTotalCaregivers">--</h3><p>Caregivers</p></div></div>
+                <div class="dash-card"><div class="dash-card-icon blue"><i class="fas fa-link"></i></div><div class="dash-card-info"><h3 id="adminTotalReferrals">--</h3><p>Active Referrals</p></div></div>
+                <div class="dash-card"><div class="dash-card-icon gold"><i class="fas fa-file-alt"></i></div><div class="dash-card-info"><h3 id="adminPendingApps">--</h3><p>Pending Applications</p></div></div>
+                <div class="dash-card"><div class="dash-card-icon blue"><i class="fas fa-calendar-check"></i></div><div class="dash-card-info"><h3 id="adminTotalShifts">--</h3><p>Active Shifts</p></div></div>
+                <div class="dash-card"><div class="dash-card-icon green"><i class="fas fa-envelope"></i></div><div class="dash-card-info"><h3 id="adminUnreadMsgs">--</h3><p>Unread Messages</p></div></div>
+                <div class="dash-card"><div class="dash-card-icon blue"><i class="fas fa-dollar-sign"></i></div><div class="dash-card-info"><h3 id="adminRevenue">$--</h3><p>Revenue This Month</p></div></div>
+                <div class="dash-card"><div class="dash-card-icon gold"><i class="fas fa-chart-line"></i></div><div class="dash-card-info"><h3 id="adminGrowth">--</h3><p>Growth Rate</p></div></div>
+            </div>
+
+            <div class="dash-section">
+                <h3 class="admin-tab-title">Analytics Overview</h3>
+                <div class="admin-charts-grid">
+                    <div class="admin-chart-card">
+                        <h4>Referrals by Month</h4>
+                        <div id="adminReferralChart" class="admin-bar-chart"></div>
+                    </div>
+                    <div class="admin-chart-card">
+                        <h4>Revenue Trend</h4>
+                        <div id="adminRevenueChart" class="admin-bar-chart"></div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="dash-section">
+                <h3 class="admin-tab-title">Latest Activity</h3>
+                <div class="activity-list" id="adminActivityList">
+                    <div class="activity-item" style="text-align:center; padding:40px; color:#6B7280;">
+                        <p>No activity yet.</p>
+                    </div>
+                </div>
+            </div>
+
+            <div class="dash-section">
+                <h3 class="admin-tab-title">Pending Actions</h3>
+                <table class="admin-table">
+                    <thead><tr><th>Item</th><th>Type</th><th>Date</th><th>Priority</th><th>Action</th></tr></thead>
+                    <tbody id="adminPendingTable">
+                        <tr><td colspan="5" style="text-align:center; padding:30px; color:#6B7280;">No pending actions.</td></tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+
+        <!-- ==================== FAMILIES TAB ==================== -->
+        <div class="portal-tab" id="tab-families">
+            <div class="admin-tab-header">
+                <div><h2 class="admin-tab-title">Families</h2><p class="admin-tab-subtitle">Manage family member accounts.</p></div>
+            </div>
+            <div class="admin-search-bar">
+                <input type="text" id="familiesSearch" placeholder="Search families by name or email..." class="admin-search-input">
+            </div>
+            <table class="admin-table" id="familiesTable">
+                <thead><tr><th>Name</th><th>Email</th><th>Phone</th><th>Joined</th><th>Status</th><th>Actions</th></tr></thead>
+                <tbody id="familiesTableBody">
+                    <tr><td colspan="6" class="admin-loading">Loading families...</td></tr>
+                </tbody>
+            </table>
+        </div>
+
+        <!-- ==================== PROVIDERS TAB ==================== -->
+        <div class="portal-tab" id="tab-providers">
+            <div class="admin-tab-header">
+                <div><h2 class="admin-tab-title">Providers</h2><p class="admin-tab-subtitle">Manage healthcare provider accounts.</p></div>
+                <button class="btn btn-gold" id="addProviderBtn"><i class="fas fa-plus"></i> Add Provider</button>
+            </div>
+            <div class="admin-search-bar">
+                <input type="text" id="providersSearch" placeholder="Search providers by facility name or email..." class="admin-search-input">
+            </div>
+            <table class="admin-table" id="providersTable">
+                <thead><tr><th>Facility</th><th>Contact</th><th>Email</th><th>Phone</th><th>Joined</th><th>Status</th><th>Actions</th></tr></thead>
+                <tbody id="providersTableBody">
+                    <tr><td colspan="7" class="admin-loading">Loading providers...</td></tr>
+                </tbody>
+            </table>
+
+            <div class="admin-modal" id="providerCreateModal">
+                <div class="admin-modal-content">
+                    <div class="admin-modal-header">
+                        <h3>Create Provider Account</h3>
+                        <button class="admin-modal-close">&times;</button>
+                    </div>
+                    <form id="providerCreateForm">
+                        <div class="admin-form-grid">
+                            <div class="form-group"><label>First Name *</label><input type="text" name="firstName" required></div>
+                            <div class="form-group"><label>Last Name *</label><input type="text" name="lastName" required></div>
+                            <div class="form-group"><label>Email *</label><input type="email" name="email" required></div>
+                            <div class="form-group"><label>Phone</label><input type="tel" name="phone"></div>
+                            <div class="form-group"><label>Password *</label><input type="password" name="password" required minlength="6"></div>
+                            <div class="form-group"><label>Facility Name</label><input type="text" name="facilityName"></div>
+                            <div class="form-group"><label>City</label><input type="text" name="city"></div>
+                            <div class="form-group"><label>State</label><input type="text" name="state"></div>
+                        </div>
+                        <div class="admin-modal-actions">
+                            <button type="button" class="btn btn-outline admin-modal-close-btn">Cancel</button>
+                            <button type="submit" class="btn btn-gold"><i class="fas fa-plus"></i> Create Provider</button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+
+        <!-- ==================== CAREGIVERS TAB ==================== -->
+        <div class="portal-tab" id="tab-caregivers">
+            <div class="admin-tab-header">
+                <div><h2 class="admin-tab-title">Caregivers</h2><p class="admin-tab-subtitle">Manage private caregiver accounts.</p></div>
+                <button class="btn btn-gold" id="addCaregiverBtn"><i class="fas fa-plus"></i> Add Caregiver</button>
+            </div>
+            <div class="admin-search-bar">
+                <input type="text" id="caregiversSearch" placeholder="Search caregivers by name or email..." class="admin-search-input">
+            </div>
+            <table class="admin-table" id="caregiversTable">
+                <thead><tr><th>Name</th><th>Email</th><th>Phone</th><th>Availability</th><th>Joined</th><th>Status</th><th>Actions</th></tr></thead>
+                <tbody id="caregiversTableBody">
+                    <tr><td colspan="7" class="admin-loading">Loading caregivers...</td></tr>
+                </tbody>
+            </table>
+
+            <div class="admin-modal" id="caregiverCreateModal">
+                <div class="admin-modal-content">
+                    <div class="admin-modal-header">
+                        <h3>Create Caregiver Account</h3>
+                        <button class="admin-modal-close">&times;</button>
+                    </div>
+                    <form id="caregiverCreateForm">
+                        <div class="admin-form-grid">
+                            <div class="form-group"><label>First Name *</label><input type="text" name="firstName" required></div>
+                            <div class="form-group"><label>Last Name *</label><input type="text" name="lastName" required></div>
+                            <div class="form-group"><label>Email *</label><input type="email" name="email" required></div>
+                            <div class="form-group"><label>Phone</label><input type="tel" name="phone"></div>
+                            <div class="form-group"><label>Password *</label><input type="password" name="password" required minlength="6"></div>
+                        </div>
+                        <div class="admin-modal-actions">
+                            <button type="button" class="btn btn-outline admin-modal-close-btn">Cancel</button>
+                            <button type="submit" class="btn btn-gold"><i class="fas fa-plus"></i> Create Caregiver</button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+
+        <!-- ==================== COMMUNITIES TAB ==================== -->
+        <div class="portal-tab" id="tab-communities">
+            <div class="admin-tab-header">
+                <div><h2 class="admin-tab-title">Communities</h2><p class="admin-tab-subtitle">Manage senior living communities and facilities.</p></div>
+                <button class="btn btn-gold" id="addCommunityBtn"><i class="fas fa-plus"></i> Add Community</button>
+            </div>
+            <div class="admin-search-bar">
+                <input type="text" id="communitiesSearch" placeholder="Search communities by name or city..." class="admin-search-input">
+            </div>
+            <table class="admin-table" id="communitiesTable">
+                <thead><tr><th>Community</th><th>City</th><th>Care Types</th><th>From</th><th>Vacancies</th><th>Status</th><th>Actions</th></tr></thead>
+                <tbody id="communitiesTableBody">
+                    <tr><td colspan="7" class="admin-loading">Loading communities...</td></tr>
+                </tbody>
+            </table>
+
+            <div class="admin-modal" id="communityModal">
+                <div class="admin-modal-content admin-modal-lg">
+                    <div class="admin-modal-header">
+                        <h3 id="communityModalTitle">Add Community</h3>
+                        <button class="admin-modal-close">&times;</button>
+                    </div>
+                    <form id="communityForm">
+                        <div class="admin-form-grid">
+                            <div class="form-group"><label>Facility Name *</label><input type="text" name="facilityName" required></div>
+                            <div class="form-group"><label>Facility Type</label><select name="facilityType"><option value="">Select type</option><option>Assisted Living</option><option>Memory Care</option><option>Nursing Home</option><option>Independent Living</option><option>Continuing Care</option></select></div>
+                            <div class="form-group" style="grid-column: 1 / -1;"><label>Link to Provider (optional)</label><select name="providerId" id="communityProviderSelect"><option value="">-- No provider linked --</option></select></div>
+                            <div class="form-group"><label>Address</label><input type="text" name="address"></div>
+                            <div class="form-group"><label>City *</label><input type="text" name="city" required></div>
+                            <div class="form-group"><label>State *</label><input type="text" name="state" required></div>
+                            <div class="form-group"><label>ZIP</label><input type="text" name="zip"></div>
+                            <div class="form-group"><label>Phone</label><input type="tel" name="phone"></div>
+                            <div class="form-group"><label>Email</label><input type="email" name="email"></div>
+                            <div class="form-group"><label>Website</label><input type="url" name="website"></div>
+                            <div class="form-group"><label>Starting Price ($/mo)</label><input type="number" name="pricingFrom"></div>
+                            <div class="form-group"><label>Max Price ($/mo)</label><input type="number" name="pricingTo"></div>
+                            <div class="form-group"><label>Total Beds</label><input type="number" name="totalBeds"></div>
+                            <div class="form-group"><label>Available Vacancies</label><input type="number" name="vacancies"></div>
+                            <div class="form-group"><label>Care Types</label><select name="careTypes" multiple><option>Assisted Living</option><option>Memory Care</option><option>Skilled Nursing</option><option>Independent Living</option><option>Respite Care</option><option>Hospice</option></select></div>
+                        </div>
+                        <div class="admin-form-checks">
+                            <label class="admin-check"><input type="checkbox" name="petFriendly"> Pet Friendly</label>
+                            <label class="admin-check"><input type="checkbox" name="privateRooms"> Private Rooms</label>
+                            <label class="admin-check"><input type="checkbox" name="vaBenefits"> VA Benefits</label>
+                            <label class="admin-check"><input type="checkbox" name="memoryCare"> Memory Care</label>
+                        </div>
+                        <div class="form-group"><label>Description</label><textarea name="description" rows="4"></textarea></div>
+                        <input type="hidden" name="communityId" value="">
+                        <div class="admin-modal-actions">
+                            <button type="button" class="btn btn-outline admin-modal-close-btn">Cancel</button>
+                            <button type="submit" class="btn btn-gold">Save Community</button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+
+        <!-- ==================== REFERRALS TAB ==================== -->
+        <div class="portal-tab" id="tab-referrals">
+            <div class="admin-tab-header">
+                <div><h2 class="admin-tab-title">Referrals</h2><p class="admin-tab-subtitle">Track and manage all care referrals.</p></div>
+            </div>
+            <div class="admin-filter-bar">
+                <button class="admin-filter-btn active" data-filter="all">All</button>
+                <button class="admin-filter-btn" data-filter="new">New</button>
+                <button class="admin-filter-btn" data-filter="contacted">Contacted</button>
+                <button class="admin-filter-btn" data-filter="tour-scheduled">Tour Scheduled</button>
+                <button class="admin-filter-btn" data-filter="admitted">Admitted</button>
+            </div>
+            <table class="admin-table" id="referralsTable">
+                <thead><tr><th>Family</th><th>Patient</th><th>Care Type</th><th>Budget</th><th>Provider</th><th>Date</th><th>Status</th><th>Actions</th></tr></thead>
+                <tbody id="referralsTableBody">
+                    <tr><td colspan="8" class="admin-loading">Loading referrals...</td></tr>
+                </tbody>
+            </table>
+        </div>
+
+        <!-- ==================== APPOINTMENTS TAB ==================== -->
+        <div class="portal-tab" id="tab-appointments">
+            <div class="admin-tab-header">
+                <div><h2 class="admin-tab-title">Appointments</h2><p class="admin-tab-subtitle">Manage scheduled tours and appointments.</p></div>
+            </div>
+            <table class="admin-table" id="appointmentsTable">
+                <thead><tr><th>Family</th><th>Community</th><th>Date</th><th>Time</th><th>Status</th><th>Actions</th></tr></thead>
+                <tbody id="appointmentsTableBody">
+                    <tr><td colspan="6" class="admin-loading">Loading appointments...</td></tr>
+                </tbody>
+            </table>
+        </div>
+
+        <!-- ==================== RESOURCES TAB ==================== -->
+        <div class="portal-tab" id="tab-resources">
+            <div class="admin-tab-header">
+                <div><h2 class="admin-tab-title">Resources</h2><p class="admin-tab-subtitle">Manage blog posts, guides, and resources.</p></div>
+                <button class="btn btn-gold" id="addResourceBtn"><i class="fas fa-plus"></i> New Resource</button>
+            </div>
+            <table class="admin-table" id="resourcesTable">
+                <thead><tr><th>Title</th><th>Category</th><th>Status</th><th>Views</th><th>Created</th><th>Actions</th></tr></thead>
+                <tbody id="resourcesTableBody">
+                    <tr><td colspan="6" class="admin-loading">Loading resources...</td></tr>
+                </tbody>
+            </table>
+
+            <div class="admin-modal" id="resourceModal">
+                <div class="admin-modal-content admin-modal-lg">
+                    <div class="admin-modal-header">
+                        <h3 id="resourceModalTitle">New Resource</h3>
+                        <button class="admin-modal-close">&times;</button>
+                    </div>
+                    <form id="resourceForm">
+                        <div class="admin-form-grid">
+                            <div class="form-group" style="grid-column: 1 / -1;"><label>Title *</label><input type="text" name="title" required></div>
+                            <div class="form-group"><label>Category</label><select name="category"><option value="">Select</option><option>Planning</option><option>Guide</option><option>Checklist</option><option>Tips</option><option>Finance</option><option>News</option></select></div>
+                            <div class="form-group"><label>Status</label><select name="status"><option value="draft">Draft</option><option value="published">Published</option></select></div>
+                            <div class="form-group"><label>Featured Image URL</label><input type="url" name="image"></div>
+                            <div class="form-group"><label>Excerpt</label><textarea name="excerpt" rows="2"></textarea></div>
+                            <div class="form-group" style="grid-column: 1 / -1;"><label>Content</label><textarea name="content" rows="10"></textarea></div>
+                        </div>
+                        <input type="hidden" name="resourceId" value="">
+                        <div class="admin-modal-actions">
+                            <button type="button" class="btn btn-outline admin-modal-close-btn">Cancel</button>
+                            <button type="submit" class="btn btn-gold">Save Resource</button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+
+        <!-- ==================== APPLICATIONS TAB ==================== -->
+        <div class="portal-tab" id="tab-applications">
+            <div class="admin-tab-header">
+                <div><h2 class="admin-tab-title">Applications</h2><p class="admin-tab-subtitle">Review career and provider applications.</p></div>
+            </div>
+            <div class="admin-filter-bar">
+                <button class="admin-filter-btn active" data-filter="all">All</button>
+                <button class="admin-filter-btn" data-filter="pending">Pending</button>
+                <button class="admin-filter-btn" data-filter="approved">Approved</button>
+                <button class="admin-filter-btn" data-filter="rejected">Rejected</button>
+            </div>
+            <table class="admin-table" id="applicationsTable">
+                <thead><tr><th>Name</th><th>Type</th><th>Email</th><th>Phone</th><th>Date</th><th>Status</th><th>Actions</th></tr></thead>
+                <tbody id="applicationsTableBody">
+                    <tr><td colspan="7" class="admin-loading">Loading applications...</td></tr>
+                </tbody>
+            </table>
+        </div>
+
+        <!-- ==================== SHIFTS TAB ==================== -->
+        <div class="portal-tab" id="tab-shifts">
+            <div class="admin-tab-header">
+                <div><h2 class="admin-tab-title">Shifts</h2><p class="admin-tab-subtitle">Manage caregiver shifts and matching.</p></div>
+                <button class="btn btn-gold" id="addShiftBtn"><i class="fas fa-plus"></i> Create Shift</button>
+            </div>
+            <table class="admin-table" id="shiftsTable">
+                <thead><tr><th>Client</th><th>Caregiver</th><th>Date</th><th>Time</th><th>Type</th><th>Rate</th><th>Status</th><th>Actions</th></tr></thead>
+                <tbody id="shiftsTableBody">
+                    <tr><td colspan="8" class="admin-loading">Loading shifts...</td></tr>
+                </tbody>
+            </table>
+
+            <div class="admin-modal" id="shiftModal">
+                <div class="admin-modal-content">
+                    <div class="admin-modal-header">
+                        <h3>Create Shift</h3>
+                        <button class="admin-modal-close">&times;</button>
+                    </div>
+                    <form id="shiftForm">
+                        <div class="admin-form-grid">
+                            <div class="form-group"><label>Care Request *</label><select id="shiftCareRequest" required><option value="">Select a care request</option></select></div>
+                            <div class="form-group"><label>Caregiver *</label><select id="shiftCaregiver" required><option value="">Select a caregiver</option></select></div>
+                            <div class="form-group"><label>Date *</label><input type="date" name="date" required></div>
+                            <div class="form-group"><label>Start Time</label><input type="time" name="startTime" value="08:00"></div>
+                            <div class="form-group"><label>End Time</label><input type="time" name="endTime" value="16:00"></div>
+                            <div class="form-group"><label>Type</label><select name="type"><option>Daily Care</option><option>Night Care</option><option>Respite</option><option>Companionship</option><option>Medication Reminder</option></select></div>
+                            <div class="form-group"><label>Rate ($/hr)</label><input type="number" name="rate" value="25"></div>
+                        </div>
+                        <div class="admin-modal-actions">
+                            <button type="button" class="btn btn-outline admin-modal-close-btn">Cancel</button>
+                            <button type="submit" class="btn btn-gold"><i class="fas fa-plus"></i> Create Shift</button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+
+        <!-- ==================== PAYMENTS TAB ==================== -->
+        <div class="portal-tab" id="tab-payments">
+            <div class="admin-tab-header">
+                <div><h2 class="admin-tab-title">Payments</h2><p class="admin-tab-subtitle">Track payments and revenue.</p></div>
+            </div>
+            <div class="dashboard-cards" style="margin-bottom: 24px;">
+                <div class="dash-card"><div class="dash-card-icon green"><i class="fas fa-dollar-sign"></i></div><div class="dash-card-info"><h3 id="adminTotalRevenue">$0</h3><p>Total Revenue</p></div></div>
+                <div class="dash-card"><div class="dash-card-icon blue"><i class="fas fa-calendar-month"></i></div><div class="dash-card-info"><h3 id="adminMonthRevenue">$0</h3><p>This Month</p></div></div>
+                <div class="dash-card"><div class="dash-card-icon gold"><i class="fas fa-receipt"></i></div><div class="dash-card-info"><h3 id="adminTotalPayments">0</h3><p>Total Transactions</p></div></div>
+            </div>
+            <table class="admin-table" id="paymentsTable">
+                <thead><tr><th>From</th><th>Amount</th><th>Type</th><th>Date</th><th>Status</th></tr></thead>
+                <tbody id="paymentsTableBody">
+                    <tr><td colspan="5" class="admin-loading">Loading payments...</td></tr>
+                </tbody>
+            </table>
+        </div>
+
+        <!-- ==================== ANALYTICS TAB ==================== -->
+        <div class="portal-tab" id="tab-analytics">
+            <div class="admin-tab-header">
+                <div><h2 class="admin-tab-title">Analytics</h2><p class="admin-tab-subtitle">Platform metrics and insights.</p></div>
+            </div>
+            <div class="dashboard-cards" style="margin-bottom: 24px;">
+                <div class="dash-card"><div class="dash-card-icon blue"><i class="fas fa-users"></i></div><div class="dash-card-info"><h3 id="analyticsTotalUsers">0</h3><p>Total Users</p></div></div>
+                <div class="dash-card"><div class="dash-card-icon gold"><i class="fas fa-building"></i></div><div class="dash-card-info"><h3 id="analyticsTotalCommunities">0</h3><p>Communities</p></div></div>
+                <div class="dash-card"><div class="dash-card-icon green"><i class="fas fa-link"></i></div><div class="dash-card-info"><h3 id="analyticsTotalReferrals">0</h3><p>Total Referrals</p></div></div>
+                <div class="dash-card"><div class="dash-card-icon blue"><i class="fa-solid fa-newspaper"></i></div><div class="dash-card-info"><h3 id="analyticsTotalPosts">0</h3><p>Resources</p></div></div>
+                <div class="dash-card"><div class="dash-card-icon gold"><i class="fas fa-file-alt"></i></div><div class="dash-card-info"><h3 id="analyticsTotalApplications">0</h3><p>Applications</p></div></div>
+                <div class="dash-card"><div class="dash-card-icon green"><i class="fas fa-envelope"></i></div><div class="dash-card-info"><h3 id="analyticsTotalMessages">0</h3><p>Messages</p></div></div>
+                <div class="dash-card"><div class="dash-card-icon blue"><i class="fas fa-dollar-sign"></i></div><div class="dash-card-info"><h3 id="analyticsTotalPayments">0</h3><p>Payments</p></div></div>
+                <div class="dash-card"><div class="dash-card-icon gold"><i class="fas fa-calendar-check"></i></div><div class="dash-card-info"><h3 id="analyticsTotalShifts">0</h3><p>Open Shifts</p></div></div>
+            </div>
+            <div class="admin-charts-grid">
+                <div class="admin-chart-card"><h4>User Growth</h4><div id="analyticsUserChart" class="admin-bar-chart"></div></div>
+                <div class="admin-chart-card"><h4>Referrals Over Time</h4><div id="analyticsReferralChart" class="admin-bar-chart"></div></div>
+                <div class="admin-chart-card"><h4>Applications Over Time</h4><div id="analyticsApplicationChart" class="admin-bar-chart"></div></div>
+                <div class="admin-chart-card"><h4>Messages Over Time</h4><div id="analyticsMessageChart" class="admin-bar-chart"></div></div>
+            </div>
+        </div>
+
+        <!-- ==================== REPORTS TAB ==================== -->
+        <div class="portal-tab" id="tab-reports">
+            <div class="admin-tab-header">
+                <div><h2 class="admin-tab-title">Reports</h2><p class="admin-tab-subtitle">Real-time platform data breakdowns.</p></div>
+            </div>
+            <div class="admin-reports-grid">
+                <div class="admin-report-card">
+                    <div class="admin-report-icon blue"><i class="fas fa-users"></i></div>
+                    <h4>User Report</h4>
+                    <p>User breakdown by role and registration date.</p>
+                    <div id="reportUserBreakdown" class="report-content">Loading...</div>
+                </div>
+                <div class="admin-report-card">
+                    <div class="admin-report-icon gold"><i class="fas fa-link"></i></div>
+                    <h4>Referral Report</h4>
+                    <p>Referral pipeline, conversion rates, and outcomes.</p>
+                    <div id="reportReferralBreakdown" class="report-content">Loading...</div>
+                </div>
+                <div class="admin-report-card">
+                    <div class="admin-report-icon green"><i class="fas fa-file-alt"></i></div>
+                    <h4>Application Report</h4>
+                    <p>Career and provider application statistics.</p>
+                    <div id="reportApplicationBreakdown" class="report-content">Loading...</div>
+                </div>
+                <div class="admin-report-card">
+                    <div class="admin-report-icon blue"><i class="fas fa-dollar-sign"></i></div>
+                    <h4>Revenue Report</h4>
+                    <p>Payment history, monthly totals, and projections.</p>
+                    <div id="reportPaymentBreakdown" class="report-content">Loading...</div>
+                </div>
+                <div class="admin-report-card">
+                    <div class="admin-report-icon gold"><i class="fas fa-envelope"></i></div>
+                    <h4>Messages Report</h4>
+                    <p>Contact message volume and response times.</p>
+                    <div id="reportMessageBreakdown" class="report-content">Loading...</div>
+                </div>
+                <div class="admin-report-card">
+                    <div class="admin-report-icon green"><i class="fas fa-building"></i></div>
+                    <h4>Community Report</h4>
+                    <p>Community listings, occupancy, and availability.</p>
+                    <div id="reportCommunityBreakdown" class="report-content">Loading...</div>
+                </div>
+            </div>
+        </div>
+
+        <!-- ==================== MEDIA LIBRARY TAB ==================== -->
+        <div class="portal-tab" id="tab-media">
+            <div class="admin-tab-header">
+                <div><h2 class="admin-tab-title">Media Library</h2><p class="admin-tab-subtitle">Manage uploaded images and files.</p></div>
+                <button class="btn btn-gold" id="uploadMediaBtn"><i class="fas fa-cloud-arrow-up"></i> Upload Media</button>
+            </div>
+            <div class="admin-media-grid" id="mediaGrid">
+                <div class="admin-loading" style="grid-column: 1 / -1; text-align: center; padding: 40px;">Loading media...</div>
+            </div>
+        </div>
+
+        <!-- ==================== WEBSITE CONTENT TAB ==================== -->
+        <div class="portal-tab" id="tab-content">
+            <div class="admin-tab-header">
+                <div><h2 class="admin-tab-title">Website Content</h2><p class="admin-tab-subtitle">Edit all website sections, articles, and images. Changes save to Firestore and appear on the live site.</p></div>
+                <button class="btn btn-gold" id="seedContentBtn" title="First-time setup: populates Firestore with current website content"><i class="fas fa-seedling"></i> Seed Content to Firestore</button>
+            </div>
+            <div class="admin-content-sections" id="cmsSections">
+                <div style="text-align:center; padding:60px; color:#6B7280;"><i class="fas fa-spinner fa-spin" style="font-size:24px;"></i><p>Loading CMS editor...</p></div>
+            </div>
+        </div>
+
+        <!-- ==================== SETTINGS TAB ==================== -->
+        <div class="portal-tab" id="tab-settings">
+            <div class="admin-tab-header">
+                <div><h2 class="admin-tab-title">Settings</h2><p class="admin-tab-subtitle">Platform configuration and admin profile.</p></div>
+            </div>
+            <div class="admin-content-sections">
+                <div class="admin-content-card">
+                    <h4>Admin Profile</h4>
+                    <form id="adminProfileForm">
+                        <div class="admin-form-grid">
+                            <div class="form-group"><label>Full Name</label><input type="text" id="adminProfileName" name="name"></div>
+                            <div class="form-group"><label>Email</label><input type="email" id="adminProfileEmail" disabled></div>
+                            <div class="form-group"><label>Phone</label><input type="tel" id="adminProfilePhone" name="phone"></div>
+                        </div>
+                        <button type="submit" class="btn btn-gold"><i class="fas fa-save"></i> Save Profile</button>
+                    </form>
+                </div>
+                <div class="admin-content-card">
+                    <h4>Platform Settings</h4>
+                    <div class="admin-form-checks" style="margin-bottom: 16px;">
+                        <label class="admin-check"><input type="checkbox" id="settingMaintenance"> Maintenance Mode</label>
+                        <label class="admin-check"><input type="checkbox" id="settingChatEnabled" checked> Chat Widget Enabled</label>
+                        <label class="admin-check"><input type="checkbox" id="settingRegistration" checked> Public Registration</label>
+                    </div>
+                    <button class="btn btn-gold" id="savePlatformSettings"><i class="fas fa-save"></i> Save Settings</button>
+                </div>
+            </div>
+        </div>
+
+        <!-- ==================== ADMINS TAB ==================== -->
+        <div class="portal-tab" id="tab-admins">
+            <div class="admin-tab-header">
+                <div><h2 class="admin-tab-title">Admins</h2><p class="admin-tab-subtitle">Manage administrator accounts.</p></div>
+                <button class="btn btn-gold" id="addAdminBtn"><i class="fas fa-plus"></i> Add Admin</button>
+            </div>
+            <table class="admin-table" id="adminsTable">
+                <thead><tr><th>Name</th><th>Email</th><th>Role</th><th>Added</th><th>Status</th><th>Actions</th></tr></thead>
+                <tbody id="adminsTableBody">
+                    <tr><td colspan="6" class="admin-loading">Loading admins...</td></tr>
+                </tbody>
+            </table>
+
+            <div class="admin-modal" id="adminModal">
+                <div class="admin-modal-content">
+                    <div class="admin-modal-header">
+                        <h3>Admin Details</h3>
+                        <button class="admin-modal-close">&times;</button>
+                    </div>
+                    <form id="adminForm">
+                        <div class="form-group"><label>User ID</label><input type="text" name="uid" id="adminFormUid" required></div>
+                        <div class="form-group"><label>Role</label><select name="role"><option value="admin">Admin</option><option value="super-admin">Super Admin</option></select></div>
+                        <div class="admin-modal-actions">
+                            <button type="button" class="btn btn-outline admin-modal-close-btn">Cancel</button>
+                            <button type="submit" class="btn btn-gold">Save</button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+
+    </div>
+
+    <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-auth-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-storage-compat.js"></script>
+    <script src="firebase-config.js"></script>
+    <script src="cloudinary-config.js"></script>
+    <script src="firebase-services.js"></script>
+    <script src="main.js"></script>
+</body>
+</html>
