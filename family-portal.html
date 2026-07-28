@@ -8,17 +8,43 @@
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;600;700&family=Lato:wght@300;400;700;900&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-    <link rel="stylesheet" href="style.css">
+    <link rel="stylesheet" href="style.css?v=20260728">
+    <style>
+        @media (max-width: 768px) {
+            .sidebar-toggle {
+                display: flex !important;
+                align-items: center;
+                justify-content: center;
+                width: 44px;
+                height: 44px;
+                border-radius: 12px;
+                background: #081B3A;
+                color: #FFFFFF;
+                border: none;
+                cursor: pointer;
+                font-size: 18px;
+            }
+            .sidebar {
+                transform: translateX(-100%);
+            }
+            .sidebar.open {
+                transform: translateX(0);
+            }
+        }
+    </style>
     <script src="https://upload-widget.cloudinary.com/global/all.js"></script>
 </head>
 <body class="portal-body">
 
     <!-- SIDEBAR -->
     <aside class="sidebar">
-        <a href="index.html" class="sidebar-logo">
-            <span class="logo-icon"><i class="fas fa-heart"></i></span>
-            <span class="logo-text">Mercy<span class="gold">Senior</span></span>
-        </a>
+        <div class="sidebar-mobile-head">
+            <a href="index.html" class="sidebar-logo">
+                <span class="logo-icon"><i class="fas fa-heart"></i></span>
+                <span class="logo-text">Mercy<span class="gold">Senior</span></span>
+            </a>
+            <button type="button" class="sidebar-close" aria-label="Close menu"><i class="fas fa-times"></i></button>
+        </div>
         <nav class="sidebar-nav">
             <a href="#dashboard" class="active" data-tab="dashboard"><i class="fas fa-th-large"></i> Dashboard</a>
             <a href="#referrals" data-tab="referrals"><i class="fas fa-link"></i> My Referrals</a>
@@ -33,10 +59,12 @@
         </nav>
     </aside>
 
+    <div class="sidebar-overlay" aria-hidden="true"></div>
+
     <!-- MAIN CONTENT -->
     <div class="portal-main">
         <div class="portal-header">
-            <button class="sidebar-toggle"><i class="fas fa-bars"></i></button>
+            <button type="button" class="sidebar-toggle" aria-label="Toggle menu" aria-expanded="false"><i class="fas fa-bars"></i></button>
             <div class="portal-header-right">
                 <div class="portal-user">
                     <div class="user-avatar-initials" id="familyAvatar" title="Click to upload photo"></div>

@@ -2300,6 +2300,10 @@ input, textarea, select {
    Mobile Responsive (max-width: 768px)
    ============================================ */
 @media (max-width: 768px) {
+  body.portal-sidebar-open {
+    overflow: hidden;
+  }
+
   h1 {
     font-size: 36px;
   }
@@ -2309,16 +2313,46 @@ input, textarea, select {
   }
 
   .top-bar-container {
-    padding: 0 20px;
+    padding: 0 16px;
+  }
+
+  .top-bar-right {
+    gap: 10px;
   }
 
   .top-bar-logo .logo-text {
+    font-size: 16px;
+  }
+
+  .top-bar-logo .logo-icon {
     font-size: 18px;
   }
 
-  .btn-sm {
-    padding: 6px 16px;
+  .top-bar-link {
     font-size: 12px;
+  }
+
+  .btn-sm {
+    padding: 5px 12px;
+    font-size: 11px;
+  }
+
+  .navbar {
+    padding: 0 16px;
+    height: 54px;
+  }
+
+  .nav-logo a {
+    font-size: 17px;
+  }
+
+  .nav-links a {
+    font-size: 12px;
+    letter-spacing: 0;
+  }
+
+  .nav-links {
+    gap: 12px;
   }
 
   .sub-nav {
@@ -2335,72 +2369,73 @@ input, textarea, select {
   }
 
   .hero {
-    min-height: 70vh;
+    min-height: 60vh;
   }
 
   .hero-content {
-    padding: 90px 20px 50px;
+    padding: 80px 16px 40px;
   }
 
   .hero-content h1 {
-    font-size: 34px;
+    font-size: 28px;
   }
 
   .hero-content p {
-    font-size: 16px;
+    font-size: 15px;
   }
 
   .page-hero {
-    padding: 60px 20px 32px;
+    padding: 50px 16px 28px;
   }
 
   .page-hero h1 {
-    font-size: 34px;
+    font-size: 28px;
   }
 
   .page-hero p {
-    font-size: 16px;
+    font-size: 15px;
   }
 
   .section {
-    padding: 80px 0;
-    padding-left: 20px;
-    padding-right: 20px;
+    padding: 60px 0;
+    padding-left: 16px;
+    padding-right: 16px;
   }
 
   .section-header {
-    margin-bottom: 48px;
+    margin-bottom: 36px;
   }
 
   .section-header h2 {
-    font-size: 32px;
+    font-size: 28px;
   }
 
   .section-header p {
-    font-size: 16px;
+    font-size: 15px;
   }
 
   .services-grid {
     grid-template-columns: 1fr;
-    padding: 0 20px;
+    gap: 16px;
+    padding: 0 16px;
   }
 
   .service-card {
-    padding: 36px 28px;
+    padding: 28px 20px;
   }
 
   .hero-buttons {
-    gap: 10px;
+    gap: 8px;
   }
 
   .hero-buttons .btn {
-    padding: 12px 18px;
-    font-size: 13px;
+    padding: 10px 16px;
+    font-size: 12px;
   }
 
   .split-left h2,
   .split-right h2 {
-    font-size: 28px;
+    font-size: 26px;
   }
 
   .split-right img,
@@ -2424,26 +2459,28 @@ input, textarea, select {
   }
 
   .families-filter {
-    padding: 32px 24px;
+    padding: 24px 16px;
   }
 
   .families-text h2,
   .caregivers-text h2,
   .careers-text h2,
   .providers-text h2 {
-    font-size: 32px;
+    font-size: 28px;
   }
 
   .care-form-card {
-    padding: 36px 24px;
+    padding: 28px 16px;
   }
 
   .form-grid {
     grid-template-columns: 1fr;
+    gap: 14px;
   }
 
   .blog-grid {
     grid-template-columns: 1fr;
+    gap: 16px;
   }
 
   .blog-card-image {
@@ -2453,103 +2490,388 @@ input, textarea, select {
   .careers-form,
   .providers-form,
   .contact-form-area {
-    padding: 32px 24px;
+    padding: 28px 16px;
   }
 
   .footer-grid {
     grid-template-columns: 1fr;
-    gap: 32px;
-    padding: 0 20px;
+    gap: 28px;
+    padding: 0 16px;
   }
 
   .footer-bottom {
     flex-direction: column;
-    gap: 16px;
+    gap: 12px;
     text-align: center;
-    padding-left: 20px;
-    padding-right: 20px;
+    padding-left: 16px;
+    padding-right: 16px;
   }
 
   .container {
-    padding: 0 20px;
+    padding: 0 16px;
   }
 
   .chat-widget {
-    bottom: 20px;
-    right: 20px;
+    bottom: 16px;
+    right: 16px;
   }
 
   .chat-popup {
-    width: calc(100vw - 40px);
-    right: -10px;
-  }
-
-  .portal-sidebar {
-    transform: translateX(-100%);
-    transition: transform 0.3s ease;
-  }
-
-  .portal-sidebar.active {
-    transform: translateX(0);
+    width: calc(100vw - 32px);
+    right: -8px;
   }
 
   .portal-main {
     margin-left: 0;
-    padding: 20px;
+    padding: 12px;
+    min-height: 100dvh;
+    height: 100dvh;
+    overflow: hidden;
+  }
+
+  .portal-main > .portal-header {
+    flex-shrink: 0;
+  }
+
+  .portal-tab.active {
+    overflow-y: auto;
+    overflow-x: hidden;
+    flex: 1;
+    padding-bottom: 20px;
   }
 
   .portal-header {
-    flex-direction: column;
-    gap: 16px;
-    align-items: flex-start;
+    flex-direction: row;
+    gap: 12px;
+    align-items: center;
+    margin-bottom: 20px;
   }
 
   .dashboard-cards {
     grid-template-columns: 1fr;
+    gap: 16px;
   }
 
   .data-table {
-    font-size: 13px;
+    font-size: 12px;
   }
 
   .data-table th,
   .data-table td {
-    padding: 12px 14px;
+    padding: 10px 12px;
   }
 
-  .auth-layout {
+  .auth-layout,
+  .auth-page {
     flex-direction: column;
   }
 
   .auth-left {
-    padding: 40px 24px;
+    padding: 32px 20px;
     min-height: auto;
   }
 
   .auth-right {
-    padding: 40px 24px;
+    padding: 32px 20px;
   }
 
   .auth-left-content h2 {
-    font-size: 28px;
+    font-size: 26px;
   }
 
   .auth-form-card h2 {
-    font-size: 28px;
+    font-size: 26px;
   }
 
   .steps-container {
-    padding: 0 20px;
+    padding: 0 16px;
   }
 
   .care-form-container {
-    padding: 0 20px;
+    padding: 0 16px;
+  }
+
+  .sidebar {
+    transform: translateX(-100%);
+    transition: transform 0.3s ease;
+    z-index: 200;
+    width: 280px;
+  }
+
+  .sidebar.open {
+    transform: translateX(0);
+  }
+
+  .sidebar-toggle {
+    display: flex !important;
+    align-items: center;
+    justify-content: center;
+    width: 44px;
+    height: 44px;
+    border-radius: 12px;
+    background: #081B3A;
+    color: #FFFFFF;
+    border: none;
+    cursor: pointer;
+    font-size: 18px;
+    box-shadow: 0 8px 22px rgba(8,27,58,0.16);
+    flex-shrink: 0;
+  }
+
+  .portal-user span {
+    font-size: 14px;
+  }
+
+  .dashboard-cards {
+    gap: 12px;
+  }
+
+  .dash-card {
+    padding: 18px;
+  }
+
+  .dash-table,
+  .admin-table {
+    display: block;
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
   }
 }
 
 /* ============================================
-   ADDITIONAL STYLES - Matching HTML Classes
-   ============================================ */
+    Small Mobile (max-width: 480px)
+    ============================================ */
+@media (max-width: 480px) {
+  .top-bar-container {
+    padding: 0 12px;
+  }
+
+  .top-bar-logo .logo-text {
+    font-size: 14px;
+  }
+
+  .top-bar-right {
+    gap: 6px;
+  }
+
+  .top-bar-link {
+    font-size: 11px;
+  }
+
+  .navbar {
+    padding: 0 12px;
+    height: 48px;
+  }
+
+  .nav-logo a {
+    font-size: 15px;
+  }
+
+  .nav-links-wrapper {
+    display: none;
+  }
+
+  .hamburger {
+    display: flex;
+  }
+
+  .mobile-nav {
+    display: flex;
+  }
+
+  .section {
+    padding: 40px 0;
+    padding-left: 12px;
+    padding-right: 12px;
+  }
+
+  .container {
+    padding: 0 12px;
+  }
+
+  .hero-content {
+    padding: 70px 12px 30px;
+  }
+
+  .hero-content h1 {
+    font-size: 24px;
+  }
+
+  .hero-content p {
+    font-size: 14px;
+    margin-top: 16px;
+  }
+
+  .hero-buttons .btn {
+    padding: 8px 14px;
+    font-size: 11px;
+  }
+
+  .services-grid {
+    gap: 12px;
+    padding: 0 12px;
+  }
+
+  .service-card {
+    padding: 24px 16px;
+  }
+
+  .service-card h3 {
+    font-size: 20px;
+  }
+
+  .search-card {
+    padding: 24px 16px;
+  }
+
+  .form-card {
+    padding: 24px 16px;
+  }
+
+  .care-form-card {
+    padding: 24px 12px;
+  }
+
+  .section-header h2 {
+    font-size: 24px;
+  }
+
+  .split-layout,
+  .split-layout.reverse {
+    gap: 24px;
+  }
+
+  .dash-card {
+    padding: 20px;
+  }
+
+  .dashboard-cards {
+    gap: 12px;
+  }
+
+  .portal-main {
+    padding: 12px;
+    height: 100vh;
+    overflow: hidden;
+  }
+
+  .portal-tab.active {
+    overflow-y: auto;
+    flex: 1;
+    padding-bottom: 16px;
+  }
+
+  .portal-header h1 {
+    font-size: 24px;
+  }
+
+  .portal-header {
+    margin-bottom: 16px;
+  }
+
+  .sidebar-nav a {
+    padding: 12px 20px;
+    font-size: 14px;
+  }
+
+  .mobile-nav a {
+    font-size: 22px;
+  }
+
+  .mobile-nav-buttons {
+    width: 240px;
+  }
+
+  .mobile-nav-top {
+    width: 240px;
+  }
+
+  .resources-grid {
+    gap: 16px;
+  }
+
+  .resource-card .resource-content {
+    padding: 20px;
+  }
+
+  .contact-grid {
+    gap: 24px;
+  }
+
+  .contact-form-wrapper .form-card {
+    padding: 24px 16px;
+  }
+
+  .auth-page {
+    flex-direction: column;
+  }
+
+  .auth-left {
+    padding: 24px 16px;
+  }
+
+  .auth-left .footer-logo {
+    margin-bottom: 24px !important;
+  }
+
+  .auth-left-content h2 {
+    font-size: 22px;
+  }
+
+  .auth-left-content p {
+    font-size: 14px;
+  }
+
+  .auth-right {
+    padding: 24px 16px;
+  }
+
+  .auth-form-container {
+    max-width: 100%;
+  }
+
+  .auth-form-container h2 {
+    font-size: 24px;
+  }
+
+  .admin-charts-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .admin-chart-card {
+    padding: 20px;
+  }
+
+  .admin-table th,
+  .admin-table td {
+    padding: 10px 12px;
+    font-size: 12px;
+  }
+
+  .admin-tab-title {
+    font-size: 22px;
+  }
+
+  .activity-item {
+    padding: 14px 16px;
+  }
+
+  .admin-form-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .admin-modal-content {
+    padding: 24px 16px;
+  }
+
+  .admin-reports-grid {
+    grid-template-columns: 1fr;
+  }
+}
+
+/* ============================================
+    ADDITIONAL STYLES - Matching HTML Classes
+    ============================================ */
 
 /* Hero Left/Right - removed, hero uses background image */
 
@@ -3777,7 +4099,9 @@ input, textarea, select {
 .portal-body {
   max-width: none;
   display: flex;
-  min-height: 100vh;
+  width: 100%;
+  min-height: 100dvh;
+  overflow: hidden;
   background: #F5F7FA;
 }
 
@@ -3788,6 +4112,11 @@ input, textarea, select {
 .portal-tab.active {
   display: block;
   animation: fadeIn 0.3s ease;
+  overflow-y: auto;
+  overflow-x: hidden;
+  -webkit-overflow-scrolling: touch;
+  flex: 1;
+  padding: 0 0 40px;
 }
 
 @keyframes fadeIn {
@@ -3801,10 +4130,27 @@ input, textarea, select {
   color: #FFFFFF;
   position: fixed;
   height: 100vh;
+  height: 100dvh;
   overflow-y: auto;
   padding: 30px 0;
-  z-index: 100;
-  transition: width 0.3s ease;
+  z-index: 120;
+  transition: transform 0.3s ease, width 0.3s ease;
+  box-shadow: 0 18px 45px rgba(0,0,0,0.2);
+}
+
+.sidebar-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(8, 27, 58, 0.45);
+  opacity: 0;
+  pointer-events: none;
+  z-index: 110;
+  transition: opacity 0.3s ease;
+}
+
+.sidebar-overlay.active {
+  opacity: 1;
+  pointer-events: auto;
 }
 
 .sidebar-logo {
@@ -3812,8 +4158,28 @@ input, textarea, select {
   align-items: center;
   gap: 10px;
   padding: 0 24px;
-  margin-bottom: 40px;
+  margin-bottom: 0;
   text-decoration: none;
+}
+
+.sidebar-mobile-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0 12px 18px 0;
+  margin-bottom: 16px;
+}
+
+.sidebar-close {
+  display: none;
+  width: 40px;
+  height: 40px;
+  border: none;
+  border-radius: 10px;
+  background: rgba(255,255,255,0.1);
+  color: #FFFFFF;
+  font-size: 18px;
+  cursor: pointer;
 }
 
 .sidebar-logo .logo-text {
@@ -3866,7 +4232,15 @@ input, textarea, select {
   flex: 1;
   margin-left: 280px;
   padding: 30px 40px;
-  min-height: 100vh;
+  min-height: 100dvh;
+  height: 100vh;
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+}
+
+.portal-main > .portal-header {
+  flex-shrink: 0;
 }
 
 .portal-header {
@@ -3886,6 +4260,35 @@ input, textarea, select {
   border-radius: 12px;
   cursor: pointer;
   font-size: 18px;
+}
+
+@media (max-width: 768px) {
+  body.portal-body .portal-main .portal-header .sidebar-toggle {
+    display: flex !important;
+    visibility: visible !important;
+    opacity: 1 !important;
+  }
+
+  .sidebar-close {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+
+  .sidebar {
+    width: min(86vw, 320px);
+    padding: 18px 0 24px;
+    border-radius: 0 20px 20px 0;
+  }
+
+  .sidebar-logo {
+    padding: 0 12px;
+  }
+
+  .sidebar-nav a {
+    padding: 12px 20px;
+    font-size: 14px;
+  }
 }
 
 .portal-user {
