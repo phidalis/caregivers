@@ -2075,7 +2075,7 @@ input, textarea, select {
     -webkit-overflow-scrolling: touch;
     scrollbar-width: none;
     -ms-overflow-style: none;
-    gap: 24px;
+    gap: 18px;
     padding: 0 4px;
     flex: 1;
     mask-image: linear-gradient(to right, black 85%, transparent 100%);
@@ -2090,6 +2090,7 @@ input, textarea, select {
   .nav-dropdown > a {
     white-space: nowrap;
     flex-shrink: 0;
+    font-size: 13px;
   }
 
   .nav-dropdown-menu {
@@ -2102,10 +2103,6 @@ input, textarea, select {
 
   .hamburger {
     display: none;
-  }
-
-  .mobile-nav {
-    display: flex;
   }
 
   .top-bar-logo .logo-text {
@@ -2300,10 +2297,6 @@ input, textarea, select {
    Mobile Responsive (max-width: 768px)
    ============================================ */
 @media (max-width: 768px) {
-  body.portal-sidebar-open {
-    overflow: hidden;
-  }
-
   h1 {
     font-size: 36px;
   }
@@ -2347,12 +2340,12 @@ input, textarea, select {
   }
 
   .nav-links a {
-    font-size: 12px;
+    font-size: 11px;
     letter-spacing: 0;
   }
 
   .nav-links {
-    gap: 12px;
+    gap: 10px;
   }
 
   .sub-nav {
@@ -2521,37 +2514,6 @@ input, textarea, select {
     right: -8px;
   }
 
-  .portal-main {
-    margin-left: 0;
-    padding: 12px;
-    min-height: 100dvh;
-    height: 100dvh;
-    overflow: hidden;
-  }
-
-  .portal-main > .portal-header {
-    flex-shrink: 0;
-  }
-
-  .portal-tab.active {
-    overflow-y: auto;
-    overflow-x: hidden;
-    flex: 1;
-    padding-bottom: 20px;
-  }
-
-  .portal-header {
-    flex-direction: row;
-    gap: 12px;
-    align-items: center;
-    margin-bottom: 20px;
-  }
-
-  .dashboard-cards {
-    grid-template-columns: 1fr;
-    gap: 16px;
-  }
-
   .data-table {
     font-size: 12px;
   }
@@ -2591,51 +2553,6 @@ input, textarea, select {
     padding: 0 16px;
   }
 
-  .sidebar {
-    transform: translateX(-100%);
-    transition: transform 0.3s ease;
-    z-index: 200;
-    width: 280px;
-  }
-
-  .sidebar.open {
-    transform: translateX(0);
-  }
-
-  .sidebar-toggle {
-    display: flex !important;
-    align-items: center;
-    justify-content: center;
-    width: 44px;
-    height: 44px;
-    border-radius: 12px;
-    background: #081B3A;
-    color: #FFFFFF;
-    border: none;
-    cursor: pointer;
-    font-size: 18px;
-    box-shadow: 0 8px 22px rgba(8,27,58,0.16);
-    flex-shrink: 0;
-  }
-
-  .portal-user span {
-    font-size: 14px;
-  }
-
-  .dashboard-cards {
-    gap: 12px;
-  }
-
-  .dash-card {
-    padding: 18px;
-  }
-
-  .dash-table,
-  .admin-table {
-    display: block;
-    overflow-x: auto;
-    -webkit-overflow-scrolling: touch;
-  }
 }
 
 /* ============================================
@@ -2667,16 +2584,18 @@ input, textarea, select {
     font-size: 15px;
   }
 
-  .nav-links-wrapper {
-    display: none;
+  .nav-links {
+    gap: 8px;
   }
 
-  .hamburger {
-    display: flex;
+  .nav-links a,
+  .nav-dropdown > a {
+    font-size: 10px;
   }
 
-  .mobile-nav {
-    display: flex;
+  .nav-dropdown > a::after {
+    margin-left: 3px;
+    font-size: 9px;
   }
 
   .section {
@@ -2741,39 +2660,6 @@ input, textarea, select {
     gap: 24px;
   }
 
-  .dash-card {
-    padding: 20px;
-  }
-
-  .dashboard-cards {
-    gap: 12px;
-  }
-
-  .portal-main {
-    padding: 12px;
-    height: 100vh;
-    overflow: hidden;
-  }
-
-  .portal-tab.active {
-    overflow-y: auto;
-    flex: 1;
-    padding-bottom: 16px;
-  }
-
-  .portal-header h1 {
-    font-size: 24px;
-  }
-
-  .portal-header {
-    margin-bottom: 16px;
-  }
-
-  .sidebar-nav a {
-    padding: 12px 20px;
-    font-size: 14px;
-  }
-
   .mobile-nav a {
     font-size: 22px;
   }
@@ -2834,39 +2720,6 @@ input, textarea, select {
     font-size: 24px;
   }
 
-  .admin-charts-grid {
-    grid-template-columns: 1fr;
-  }
-
-  .admin-chart-card {
-    padding: 20px;
-  }
-
-  .admin-table th,
-  .admin-table td {
-    padding: 10px 12px;
-    font-size: 12px;
-  }
-
-  .admin-tab-title {
-    font-size: 22px;
-  }
-
-  .activity-item {
-    padding: 14px 16px;
-  }
-
-  .admin-form-grid {
-    grid-template-columns: 1fr;
-  }
-
-  .admin-modal-content {
-    padding: 24px 16px;
-  }
-
-  .admin-reports-grid {
-    grid-template-columns: 1fr;
-  }
 }
 
 /* ============================================
@@ -4262,35 +4115,6 @@ input, textarea, select {
   font-size: 18px;
 }
 
-@media (max-width: 768px) {
-  body.portal-body .portal-main .portal-header .sidebar-toggle {
-    display: flex !important;
-    visibility: visible !important;
-    opacity: 1 !important;
-  }
-
-  .sidebar-close {
-    display: flex;
-    align-items: center;
-    justify-content: center;
-  }
-
-  .sidebar {
-    width: min(86vw, 320px);
-    padding: 18px 0 24px;
-    border-radius: 0 20px 20px 0;
-  }
-
-  .sidebar-logo {
-    padding: 0 12px;
-  }
-
-  .sidebar-nav a {
-    padding: 12px 20px;
-    font-size: 14px;
-  }
-}
-
 .portal-user {
   display: flex;
   align-items: center;
@@ -5566,36 +5390,112 @@ input, textarea, select {
 }
 
 /* Responsive Admin */
+
+.portal-header-left {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+}
+
+/* Horizontal-scroll wrapper for wide admin tables. Only the table itself
+   scrolls sideways when it doesn't fit — the rest of the panel stays put. */
+.table-responsive {
+  overflow-x: auto;
+  -webkit-overflow-scrolling: touch;
+  border-radius: 18px;
+  box-shadow: 0 10px 30px rgba(0,0,0,.06);
+  margin-bottom: 0;
+}
+
+.table-responsive .admin-table,
+.table-responsive .dash-table {
+  box-shadow: none;
+  min-width: 640px;
+}
+
 @media (max-width: 1024px) {
-  .admin-charts-grid {
-    grid-template-columns: 1fr;
+  /* Sidebar becomes an off-canvas drawer instead of a fixed column */
+  .sidebar {
+    transform: translateX(-100%);
   }
-  
+
+  .sidebar.active {
+    transform: translateX(0);
+  }
+
+  .sidebar-close {
+    display: block;
+  }
+
+  .sidebar-toggle {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+  }
+
+  .portal-main {
+    margin-left: 0;
+    padding: 20px;
+    height: 100dvh;
+  }
+
+  .admin-charts-grid,
   .admin-form-grid {
     grid-template-columns: 1fr;
   }
-  
-  .admin-reports-grid {
-    grid-template-columns: 1fr 1fr;
+
+  .admin-tab-header {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 12px;
   }
-  
-  .admin-table {
-    display: block;
-    overflow-x: auto;
+
+  .dashboard-cards {
+    grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
+    gap: 16px;
   }
 }
 
 @media (max-width: 768px) {
-  .admin-reports-grid {
-    grid-template-columns: 1fr;
+  .portal-main {
+    padding: 16px;
   }
-  
-  .admin-tab-header {
-    flex-direction: column;
-    gap: 12px;
+
+  .dashboard-cards {
+    grid-template-columns: 1fr 1fr;
   }
-  
+
+  .admin-modal-content {
+    padding: 20px;
+    max-height: 85vh;
+  }
+
+  .admin-reports-grid,
   .admin-media-grid {
     grid-template-columns: repeat(auto-fill, minmax(140px, 1fr));
+  }
+
+  .report-stats {
+    flex-wrap: wrap;
+  }
+
+  /* Several portal forms set grid-template-columns inline (e.g. style="grid-template-columns: 1fr 1fr");
+     force single column on small screens since inline styles otherwise win over the stylesheet. */
+  .form-grid {
+    grid-template-columns: 1fr !important;
+  }
+}
+
+@media (max-width: 480px) {
+  .dashboard-cards {
+    grid-template-columns: 1fr;
+  }
+
+  .admin-tab-title {
+    font-size: 22px;
+  }
+
+  .admin-modal-content {
+    padding: 16px;
   }
 }

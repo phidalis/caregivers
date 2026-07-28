@@ -49,6 +49,43 @@ document.addEventListener('DOMContentLoaded', function() {
     mobileNavLinks.forEach(function(link) {
         link.addEventListener('click', toggleMobileNav);
     });
+
+    // ------------------------------------------
+    // ADMIN/PORTAL SIDEBAR (mobile drawer)
+    // ------------------------------------------
+
+    var portalSidebar = document.getElementById('sidebar');
+    var sidebarToggleBtn = document.getElementById('sidebarToggle');
+    var sidebarCloseBtn = document.getElementById('sidebarClose');
+    var sidebarOverlayEl = document.getElementById('sidebarOverlay');
+
+    function openSidebar() {
+        if (!portalSidebar) return;
+        portalSidebar.classList.add('active');
+        if (sidebarOverlayEl) sidebarOverlayEl.classList.add('active');
+        document.body.style.overflow = 'hidden';
+    }
+
+    function closeSidebar() {
+        if (!portalSidebar) return;
+        portalSidebar.classList.remove('active');
+        if (sidebarOverlayEl) sidebarOverlayEl.classList.remove('active');
+        document.body.style.overflow = '';
+    }
+
+    if (sidebarToggleBtn) {
+        sidebarToggleBtn.addEventListener('click', openSidebar);
+    }
+    if (sidebarCloseBtn) {
+        sidebarCloseBtn.addEventListener('click', closeSidebar);
+    }
+    if (sidebarOverlayEl) {
+        sidebarOverlayEl.addEventListener('click', closeSidebar);
+    }
+    // Close the drawer whenever a nav link/tab is selected on mobile
+    document.querySelectorAll('.sidebar-nav a').forEach(function(link) {
+        link.addEventListener('click', closeSidebar);
+    });
     
     // ------------------------------------------
     // SCROLL ANIMATIONS (Intersection Observer)
@@ -776,69 +813,6 @@ document.addEventListener('DOMContentLoaded', function() {
     });
     
     // ------------------------------------------
-    // PORTAL SIDEBAR TOGGLE (mobile)
-    // ------------------------------------------
-    
-    var sidebarToggle = document.querySelector('.sidebar-toggle');
-    var sidebar = document.querySelector('.sidebar');
-    var portalMain = document.querySelector('.portal-main');
-    var sidebarOverlay = document.querySelector('.sidebar-overlay');
-    
-    function setSidebarOpen(isOpen) {
-        if (!sidebar) return;
-        sidebar.classList.toggle('open', isOpen);
-        if (sidebarToggle) {
-            sidebarToggle.setAttribute('aria-expanded', isOpen ? 'true' : 'false');
-            sidebarToggle.classList.toggle('active', isOpen);
-        }
-        if (sidebarOverlay) {
-            sidebarOverlay.classList.toggle('active', isOpen);
-        }
-        document.body.classList.toggle('portal-sidebar-open', isOpen);
-    }
-    
-    if (sidebarToggle && sidebar) {
-        sidebarToggle.addEventListener('click', function(e) {
-            e.stopPropagation();
-            setSidebarOpen(!sidebar.classList.contains('open'));
-        });
-    }
-    
-    if (sidebarOverlay && sidebar) {
-        sidebarOverlay.addEventListener('click', function() {
-            setSidebarOpen(false);
-        });
-    }
-
-    document.querySelectorAll('.sidebar-close').forEach(function(closeButton) {
-        closeButton.addEventListener('click', function() {
-            setSidebarOpen(false);
-        });
-    });
-    
-    if (portalMain && sidebar) {
-        portalMain.addEventListener('click', function() {
-            if (window.innerWidth <= 768 && sidebar.classList.contains('open')) {
-                setSidebarOpen(false);
-            }
-        });
-    }
-    
-    document.querySelectorAll('.sidebar-nav a').forEach(function(link) {
-        link.addEventListener('click', function() {
-            if (window.innerWidth <= 768) {
-                setSidebarOpen(false);
-            }
-        });
-    });
-    
-    window.addEventListener('resize', function() {
-        if (window.innerWidth > 768) {
-            setSidebarOpen(false);
-        }
-    });
-    
-    // ------------------------------------------
     // PORTAL LOGOUT
     // ------------------------------------------
     
@@ -897,17 +871,6 @@ document.addEventListener('DOMContentLoaded', function() {
         var overlay = document.querySelector('.mobile-nav-overlay');
         if (overlay) overlay.classList.remove('active');
         document.body.style.overflow = '';
-        
-        // Close portal sidebar on mobile
-        var portalSidebar = document.querySelector('.sidebar');
-        if (portalSidebar) {
-            portalSidebar.classList.remove('open');
-            var portalToggle = document.querySelector('.sidebar-toggle');
-            if (portalToggle) portalToggle.setAttribute('aria-expanded', 'false');
-            var portalOverlay = document.querySelector('.sidebar-overlay');
-            if (portalOverlay) portalOverlay.classList.remove('active');
-            document.body.classList.remove('portal-sidebar-open');
-        }
     }
     
     sidebarTabs.forEach(function(link) {

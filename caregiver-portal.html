@@ -9,40 +9,17 @@
     <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;600;700&family=Lato:wght@300;400;700;900&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <link rel="stylesheet" href="style.css?v=20260728">
-    <style>
-        @media (max-width: 768px) {
-            .sidebar-toggle {
-                display: flex !important;
-                align-items: center;
-                justify-content: center;
-                width: 44px;
-                height: 44px;
-                border-radius: 12px;
-                background: #081B3A;
-                color: #FFFFFF;
-                border: none;
-                cursor: pointer;
-                font-size: 18px;
-            }
-            .sidebar {
-                transform: translateX(-100%);
-            }
-            .sidebar.open {
-                transform: translateX(0);
-            }
-        }
-    </style>
     <script src="https://upload-widget.cloudinary.com/global/all.js"></script>
 </head>
 <body class="portal-body">
 
-    <aside class="sidebar">
+    <aside class="sidebar" id="sidebar">
         <div class="sidebar-mobile-head">
             <a href="index.html" class="sidebar-logo">
                 <span class="logo-icon"><i class="fas fa-heart"></i></span>
                 <span class="logo-text">Mercy<span class="gold">Senior</span></span>
             </a>
-            <button type="button" class="sidebar-close" aria-label="Close menu"><i class="fas fa-times"></i></button>
+            <button type="button" class="sidebar-close" id="sidebarClose" aria-label="Close menu"><i class="fas fa-times"></i></button>
         </div>
         <nav class="sidebar-nav">
             <a href="#dashboard" class="active" data-tab="dashboard"><i class="fas fa-th-large"></i> Dashboard</a>
@@ -56,11 +33,11 @@
         </nav>
     </aside>
 
-    <div class="sidebar-overlay" aria-hidden="true"></div>
+    <div class="sidebar-overlay" id="sidebarOverlay" aria-hidden="true"></div>
 
     <div class="portal-main">
         <div class="portal-header">
-            <button type="button" class="sidebar-toggle" aria-label="Toggle menu" aria-expanded="false"><i class="fas fa-bars"></i></button>
+            <button type="button" class="sidebar-toggle" id="sidebarToggle" aria-label="Toggle menu" aria-expanded="false"><i class="fas fa-bars"></i></button>
             <div class="portal-header-right">
                 <div class="portal-user">
                     <div class="user-avatar-initials" id="caregiverAvatar" title="Click to upload photo"></div>
@@ -111,7 +88,7 @@
                     <p style="color: #6B7280; margin-bottom: 12px;">Share your unique link. When someone signs up using it, you'll see them here.</p>
                     <div style="display: flex; gap: 8px; align-items: center; margin-bottom: 16px;">
                         <input type="text" id="cgReferralLink" readonly style="flex:1; padding: 10px 14px; border: 2px solid #E5E7EB; border-radius: 10px; font-size: 14px; background: #fff; color: #081B3A;">
-                        <button class="btn btn-gold" onclick="var el=document.getElementById('cgReferralLink'); el.select(); document.execCommand('copy'); this.innerHTML='<i class=\'fas fa-check\'></i> Copied!'; setTimeout(function(){this.innerHTML='<i class=\"fas fa-copy\"></i> Copy';}.bind(this),2000);" style="white-space:nowrap;"><i class="fas fa-copy"></i> Copy</button>
+                        <button class="btn btn-gold" onclick="var el=document.getElementById('cgReferralLink'); el.select(); document.execCommand('copy'); this.innerHTML='<i class=\'fas fa-check\'></i> Copied!'; setTimeout(function(){this.innerHTML='<i class=\'fas fa-copy\'></i> Copy';}.bind(this),2000);" style="white-space:nowrap;"><i class="fas fa-copy"></i> Copy</button>
                     </div>
                     <div style="display: flex; gap: 16px; flex-wrap: wrap;">
                         <div class="dash-card" style="min-width:120px; padding:16px; margin:0;"><div class="dash-card-info"><h3 id="cgReferralCount">0</h3><p>Total Referrals</p></div></div>
@@ -122,7 +99,8 @@
 
             <div class="dash-section">
                 <h3 style="font-family: 'Playfair Display', serif; color: #081B3A; margin-bottom: 20px;">Upcoming Shifts</h3>
-                <table class="dash-table">
+                <div class="table-responsive">
+<table class="dash-table">
                     <thead>
                         <tr><th>Client</th><th>Date</th><th>Time</th><th>Type</th><th>Rate</th></tr>
                     </thead>
@@ -130,11 +108,13 @@
                         <tr><td colspan="5" style="text-align:center; padding:30px; color:#6B7280;">No upcoming shifts.</td></tr>
                     </tbody>
                 </table>
+</div>
             </div>
 
             <div class="dash-section">
                 <h3 style="font-family: 'Playfair Display', serif; color: #081B3A; margin-bottom: 20px;">Available Shifts</h3>
-                <table class="dash-table">
+                <div class="table-responsive">
+<table class="dash-table">
                     <thead>
                         <tr><th>Client</th><th>Date</th><th>Hours</th><th>Type</th><th>Action</th></tr>
                     </thead>
@@ -142,11 +122,13 @@
                         <tr><td colspan="5" style="text-align:center; padding:30px; color:#6B7280;">No available shifts at this time.</td></tr>
                     </tbody>
                 </table>
+</div>
             </div>
 
             <div class="dash-section">
                 <h3 style="font-family: 'Playfair Display', serif; color: #081B3A; margin-bottom: 20px;">Credentials Status</h3>
-                <table class="dash-table">
+                <div class="table-responsive">
+<table class="dash-table">
                     <thead>
                         <tr><th>Credential</th><th>Status</th><th>Expiry</th><th>Action</th></tr>
                     </thead>
@@ -154,6 +136,7 @@
                         <tr><td colspan="4" style="text-align:center; padding:30px; color:#6B7280;">No credentials on file.</td></tr>
                     </tbody>
                 </table>
+</div>
             </div>
         </div>
 
