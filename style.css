@@ -2070,7 +2070,7 @@ input, textarea, select {
    ============================================ */
 @media (max-width: 1024px) {
   .navbar {
-    padding: 0 24px;
+    padding: 0;
   }
 
   .nav-container {
@@ -2084,7 +2084,7 @@ input, textarea, select {
     scrollbar-width: none;
     -ms-overflow-style: none;
     gap: 18px;
-    padding: 0;
+    padding: 0 6px;
     flex: 1;
     mask-image: linear-gradient(to right, black 85%, transparent 100%);
     -webkit-mask-image: linear-gradient(to right, black 85%, transparent 100%);
@@ -2339,7 +2339,7 @@ input, textarea, select {
   }
 
   .navbar {
-    padding: 0 16px;
+    padding: 0;
     height: 54px;
   }
 
@@ -2593,7 +2593,7 @@ input, textarea, select {
   }
 
   .navbar {
-    padding: 0 12px;
+    padding: 0;
     height: 48px;
   }
 
