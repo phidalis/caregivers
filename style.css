@@ -2371,7 +2371,7 @@ input, textarea, select {
   }
 
   .hero-content {
-    padding: 64px 16px 32px;
+    padding: 40px 16px 40px;
   }
 
   .hero-content h1 {
@@ -2380,6 +2380,10 @@ input, textarea, select {
 
   .hero-content p {
     font-size: 15px;
+  }
+
+  .hero-buttons {
+    margin-top: 56px;
   }
 
   .page-hero {
@@ -2619,7 +2623,7 @@ input, textarea, select {
   }
 
   .hero-content {
-    padding: 56px 12px 24px;
+    padding: 32px 12px 32px;
   }
 
   .hero-content h1 {
@@ -2629,6 +2633,10 @@ input, textarea, select {
   .hero-content p {
     font-size: 14px;
     margin-top: 16px;
+  }
+
+  .hero-buttons {
+    margin-top: 40px;
   }
 
   .hero-buttons .btn {
