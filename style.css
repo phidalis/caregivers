@@ -2073,6 +2073,10 @@ input, textarea, select {
     padding: 0 24px;
   }
 
+  .nav-container {
+    padding: 0;
+  }
+
   .nav-links {
     display: flex;
     overflow-x: auto;
@@ -2080,7 +2084,7 @@ input, textarea, select {
     scrollbar-width: none;
     -ms-overflow-style: none;
     gap: 18px;
-    padding: 0 4px;
+    padding: 0;
     flex: 1;
     mask-image: linear-gradient(to right, black 85%, transparent 100%);
     -webkit-mask-image: linear-gradient(to right, black 85%, transparent 100%);
@@ -2094,7 +2098,7 @@ input, textarea, select {
   .nav-dropdown > a {
     white-space: nowrap;
     flex-shrink: 0;
-    font-size: 13px;
+    font-size: 14px;
   }
 
   .nav-dropdown-menu {
@@ -2339,17 +2343,21 @@ input, textarea, select {
     height: 54px;
   }
 
+  .nav-container {
+    padding: 0;
+  }
+
   .nav-logo a {
     font-size: 17px;
   }
 
   .nav-links a {
-    font-size: 11px;
+    font-size: 12px;
     letter-spacing: 0;
   }
 
   .nav-links {
-    gap: 10px;
+    gap: 12px;
   }
 
   .sub-nav {
@@ -2589,17 +2597,21 @@ input, textarea, select {
     height: 48px;
   }
 
+  .nav-container {
+    padding: 0;
+  }
+
   .nav-logo a {
     font-size: 15px;
   }
 
   .nav-links {
-    gap: 8px;
+    gap: 10px;
   }
 
   .nav-links a,
   .nav-dropdown > a {
-    font-size: 10px;
+    font-size: 11px;
   }
 
   .nav-dropdown > a::after {
