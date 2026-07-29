@@ -2366,8 +2366,8 @@ input, textarea, select {
   }
 
   .hero {
-    min-height: 100vh;
-    min-height: 100dvh;
+    min-height: 90vh;
+    min-height: 90dvh;
   }
 
   .hero-content {
@@ -2614,8 +2614,8 @@ input, textarea, select {
   }
 
   .hero {
-    min-height: 100vh;
-    min-height: 100dvh;
+    min-height: 90vh;
+    min-height: 90dvh;
   }
 
   .hero-content {
