@@ -32,6 +32,7 @@
             <a href="#" data-tab="referrals"><i class="fas fa-link"></i> Referrals</a>
             <a href="#" data-tab="appointments"><i class="fas fa-calendar-alt"></i> Appointments</a>
             <a href="#" data-tab="resources"><i class="fas fa-newspaper"></i> Resources</a>
+            <a href="#" data-tab="testimonials"><i class="fas fa-star"></i> Testimonials</a>
             <a href="#" data-tab="applications"><i class="fas fa-file-alt"></i> Applications</a>
             <a href="#" data-tab="shifts"><i class="fas fa-calendar-check"></i> Shifts</a>
             <a href="#" data-tab="payments"><i class="fas fa-credit-card"></i> Payments</a>
@@ -348,6 +349,27 @@
                     </form>
                 </div>
             </div>
+        </div>
+
+        <!-- ==================== TESTIMONIALS TAB ==================== -->
+        <div class="portal-tab" id="tab-testimonials">
+            <div class="admin-tab-header">
+                <div><h2 class="admin-tab-title">Testimonials</h2><p class="admin-tab-subtitle">Approve, reject, or remove reviews submitted from the "Leave a Review" form on the home page.</p></div>
+            </div>
+            <div class="admin-filter-bar">
+                <button class="admin-filter-btn active" data-testimonial-filter="all">All</button>
+                <button class="admin-filter-btn" data-testimonial-filter="pending">Pending</button>
+                <button class="admin-filter-btn" data-testimonial-filter="approved">Approved</button>
+                <button class="admin-filter-btn" data-testimonial-filter="rejected">Rejected</button>
+            </div>
+            <div class="table-responsive">
+<table class="admin-table" id="testimonialsTable">
+                <thead><tr><th>Name</th><th>Rating</th><th>Review</th><th>Date</th><th>Status</th><th>Actions</th></tr></thead>
+                <tbody id="testimonialsTableBody">
+                    <tr><td colspan="6" class="admin-loading">Loading reviews...</td></tr>
+                </tbody>
+            </table>
+</div>
         </div>
 
         <!-- ==================== APPLICATIONS TAB ==================== -->

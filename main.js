@@ -375,6 +375,95 @@ document.addEventListener('DOMContentLoaded', function() {
         });
     }
     
+    // Star Rating Input (Leave a Review form)
+    var starRatingInput = document.getElementById('starRatingInput');
+    var reviewRatingInput = document.getElementById('reviewRatingInput');
+    var reviewStarIcons = [];
+    if (starRatingInput && reviewRatingInput) {
+        reviewStarIcons = Array.prototype.slice.call(starRatingInput.querySelectorAll('i'));
+        reviewStarIcons.forEach(function(star) {
+            star.addEventListener('click', function() {
+                var value = parseInt(this.getAttribute('data-value'));
+                reviewRatingInput.value = value;
+                reviewStarIcons.forEach(function(s) {
+                    var sVal = parseInt(s.getAttribute('data-value'));
+                    s.classList.toggle('active', sVal <= value);
+                });
+            });
+        });
+    }
+
+    // Leave a Review Form
+    var reviewForm = document.getElementById('reviewForm');
+    if (reviewForm) {
+        reviewForm.addEventListener('submit', function(e) {
+            e.preventDefault();
+            var rating = parseInt(reviewRatingInput.value) || 0;
+            if (rating < 1) {
+                showNotification('Please select a star rating before submitting.', 'error');
+                return;
+            }
+            if (!validateForm(reviewForm)) return;
+
+            var formData = new FormData(reviewForm);
+            var data = {};
+            formData.forEach(function(value, key) {
+                if (key === 'rating') return;
+                data[key] = value;
+            });
+            data.rating = rating;
+            data.status = 'pending';
+            data.createdAt = (typeof firebase !== 'undefined' && firebase.firestore) ? firebase.firestore.FieldValue.serverTimestamp() : new Date();
+
+            if (typeof db === 'undefined') {
+                showNotification('Unable to submit review right now. Please try again later.', 'error');
+                return;
+            }
+
+            var btn = reviewForm.querySelector('button[type="submit"]');
+            var origText = btn.innerHTML;
+            btn.disabled = true;
+            btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Submitting...';
+
+            db.collection('testimonials').add(data).then(function() {
+                showNotification('Thank you! Your review has been submitted and is pending approval.', 'success');
+                reviewForm.reset();
+                reviewRatingInput.value = 0;
+                reviewStarIcons.forEach(function(s) { s.classList.remove('active'); });
+                btn.disabled = false;
+                btn.innerHTML = origText;
+            }).catch(function(err) {
+                showNotification('Error submitting review. Please try again.', 'error');
+                console.error(err);
+                btn.disabled = false;
+                btn.innerHTML = origText;
+            });
+        });
+    }
+
+    // Homepage Testimonials Loader (approved reviews from Firestore)
+    function loadHomepageTestimonials() {
+        var grid = document.getElementById('testimonialsGrid');
+        if (!grid || typeof db === 'undefined') return;
+        db.collection('testimonials').where('status', '==', 'approved').orderBy('createdAt', 'desc').limit(6).get().then(function(snap) {
+            if (snap.empty) return; // keep the default sample testimonials in place
+            var html = '';
+            snap.forEach(function(doc) {
+                var r = doc.data();
+                var rating = Math.max(1, Math.min(5, parseInt(r.rating) || 5));
+                var stars = '';
+                for (var i = 1; i <= 5; i++) { stars += '<i class="' + (i <= rating ? 'fas' : 'far') + ' fa-star"></i>'; }
+                var initial = (r.name || '?').trim().charAt(0).toUpperCase() || '?';
+                html += '<div class="testimonial-card animated">' +
+                    '<div class="testimonial-stars">' + stars + '</div>' +
+                    '<p class="testimonial-quote">' + escapeHtml(r.message || '') + '</p>' +
+                    '<div class="testimonial-author"><div class="testimonial-avatar">' + initial + '</div>' +
+                    '<div class="testimonial-author-info"><h5>' + escapeHtml(r.name || 'Anonymous') + '</h5><span>' + escapeHtml(r.relationship || '') + '</span></div></div></div>';
+            });
+            grid.innerHTML = html;
+        }).catch(function(err) { console.error('Error loading testimonials:', err); });
+    }
+
     // ------------------------------------------
     // NOTIFICATION SYSTEM
     // ------------------------------------------
@@ -786,15 +875,17 @@ document.addEventListener('DOMContentLoaded', function() {
     
     function animateCounter(el) {
         var target = parseInt(el.getAttribute('data-target'));
+        var suffix = el.getAttribute('data-suffix');
+        if (suffix === null) suffix = '+';
         var current = 0;
         var increment = target / 60;
         var timer = setInterval(function() {
             current += increment;
             if (current >= target) {
-                el.textContent = target.toLocaleString() + '+';
+                el.textContent = target.toLocaleString() + suffix;
                 clearInterval(timer);
             } else {
-                el.textContent = Math.floor(current).toLocaleString() + '+';
+                el.textContent = Math.floor(current).toLocaleString() + suffix;
             }
         }, 30);
     }
@@ -1588,6 +1679,7 @@ document.addEventListener('DOMContentLoaded', function() {
             case 'referrals': loadAdminReferrals(); break;
             case 'appointments': loadAdminAppointments(); break;
             case 'resources': loadAdminResources(); break;
+            case 'testimonials': loadAdminTestimonials(); break;
             case 'applications': loadAdminApplications(); break;
             case 'shifts': loadAdminShifts(); break;
             case 'payments': loadAdminPayments(); break;
@@ -2151,6 +2243,57 @@ document.addEventListener('DOMContentLoaded', function() {
         });
     }
     
+    // --- TESTIMONIALS ---
+    function loadAdminTestimonials() {
+        var tbody = document.getElementById('testimonialsTableBody');
+        if (!tbody) return;
+        if (typeof db === 'undefined') {
+            tbody.innerHTML = '<tr><td colspan="6" style="text-align:center; padding:30px; color:#DC2626;">Database not available.</td></tr>';
+            return;
+        }
+        db.collection('testimonials').orderBy('createdAt', 'desc').get().then(function(snap) {
+            if (snap.empty) {
+                tbody.innerHTML = '<tr><td colspan="6" style="text-align:center; padding:30px; color:#6B7280;">No reviews submitted yet.</td></tr>';
+                return;
+            }
+            tbody.innerHTML = '';
+            snap.forEach(function(doc) {
+                var r = doc.data();
+                var rating = Math.max(0, Math.min(5, parseInt(r.rating) || 0));
+                var starsHtml = '';
+                for (var i = 1; i <= 5; i++) { starsHtml += '<i class="' + (i <= rating ? 'fas' : 'far') + ' fa-star" style="color:#D4A33A;"></i>'; }
+                var status = r.status || 'pending';
+                var dateStr = (typeof FirebaseServices !== 'undefined' && FirebaseServices.formatTimestamp) ? FirebaseServices.formatTimestamp(r.createdAt) : '--';
+                tbody.innerHTML += '<tr data-status="' + status + '">' +
+                    '<td><strong>' + escapeHtml(r.name || 'Anonymous') + '</strong><br><span style="color:#6B7280; font-size:12px;">' + escapeHtml(r.relationship || '') + '</span></td>' +
+                    '<td>' + starsHtml + '</td>' +
+                    '<td style="max-width:320px;">' + escapeHtml(r.message || '') + '</td>' +
+                    '<td>' + dateStr + '</td>' +
+                    '<td><span class="status-badge ' + status + '">' + (status.charAt(0).toUpperCase() + status.slice(1)) + '</span></td>' +
+                    '<td><div class="admin-action-btns">' +
+                        (status !== 'approved' ? '<button class="admin-action-btn view" title="Approve" onclick="adminUpdateTestimonialStatus(\'' + doc.id + '\', \'approved\')"><i class="fas fa-check"></i></button>' : '') +
+                        (status !== 'rejected' ? '<button class="admin-action-btn edit" title="Reject" onclick="adminUpdateTestimonialStatus(\'' + doc.id + '\', \'rejected\')"><i class="fas fa-ban"></i></button>' : '') +
+                        '<button class="admin-action-btn delete" title="Delete" onclick="adminDeleteTestimonial(\'' + doc.id + '\')"><i class="fas fa-trash"></i></button>' +
+                    '</div></td>' +
+                '</tr>';
+            });
+        }).catch(function(err) {
+            tbody.innerHTML = '<tr><td colspan="6" style="text-align:center; padding:30px; color:#DC2626;">Error loading reviews.</td></tr>';
+        });
+    }
+    
+    // Testimonials status filter (client-side, on already-loaded rows)
+    document.querySelectorAll('#tab-testimonials [data-testimonial-filter]').forEach(function(btn) {
+        btn.addEventListener('click', function() {
+            document.querySelectorAll('#tab-testimonials [data-testimonial-filter]').forEach(function(b) { b.classList.remove('active'); });
+            this.classList.add('active');
+            var filter = this.getAttribute('data-testimonial-filter');
+            document.querySelectorAll('#testimonialsTableBody tr[data-status]').forEach(function(row) {
+                row.style.display = (filter === 'all' || row.getAttribute('data-status') === filter) ? '' : 'none';
+            });
+        });
+    });
+    
     // --- SHIFTS ---
     function loadAdminShifts() {
         var tbody = document.getElementById('shiftsTableBody');
@@ -2548,6 +2691,24 @@ document.addEventListener('DOMContentLoaded', function() {
             btn2Text: 'Request a Caregiver', btn2Link: 'caregiver-services.html',
             btn3Text: 'Become a Provider', btn3Link: 'providers.html'
         },
+        stats: {
+            items: [
+                { number: 500, suffix: '+', label: 'Families Assisted' },
+                { number: 250, suffix: '+', label: 'Caregivers in Network' },
+                { number: 100, suffix: '+', label: 'Provider Network' },
+                { number: 98, suffix: '%', label: 'Family Satisfaction' }
+            ]
+        },
+        welcome: {
+            heading: 'Welcome to', goldText: 'Mercy Senior Solutions',
+            text: 'For years, families have trusted Mercy Senior Solutions to guide them through one of life\u2019s most important decisions: finding the right care for someone they love. We combine local expertise with genuine compassion to match families, caregivers, and providers with the support they need.',
+            text2: 'Whether you\u2019re searching for a senior living community, need a trusted in-home caregiver, or are a provider looking to grow, our team walks beside you every step of the way \u2014 at no cost to families.',
+            image: 'https://images.unsplash.com/photo-1591741535018-d042766c62eb?w=700&h=500&fit=crop'
+        },
+        whyChooseUs: {
+            heading: 'Why Families Choose Mercy',
+            reasons: ['Free placement services','Local senior advisors','Carefully screened providers','Fast placement','No hidden fees','One-on-one guidance']
+        },
         services: {
             heading: 'Our Services',
             subtitle: 'Comprehensive care solutions designed to support families, empower providers, and connect caregivers with meaningful opportunities.',
@@ -2596,6 +2757,10 @@ document.addEventListener('DOMContentLoaded', function() {
                 { title: 'Questions Before Touring', description: 'The top 20 questions every family should ask when touring a senior living community.', badge: 'Checklist', badgeClass: 'badge-green', image: 'https://images.unsplash.com/photo-1559757148-5c350d0d3c56?w=400&h=250&fit=crop' }
             ]
         },
+        testimonials: {
+            heading: 'What Families Are Saying', subtitle: 'Real stories from families we\u2019ve helped find the right care.',
+            reviewFormHeading: 'Leave a Review', reviewFormSubtitle: 'Share your experience with Mercy Senior Solutions.'
+        },
         contact: {
             heading: 'Get in Touch', subtitle: 'Ready to find the right care? Contact us for a free, no-obligation consultation.',
             phone: '(341) 618-9792', email: 'info@mercyseniorsolutions.com',
@@ -2621,6 +2786,9 @@ document.addEventListener('DOMContentLoaded', function() {
     
     var CMS_SECTIONS = [
         { key: 'hero', label: 'Hero Section', icon: 'fas fa-image' },
+        { key: 'stats', label: 'Statistics Bar', icon: 'fas fa-chart-simple' },
+        { key: 'welcome', label: 'Welcome Section', icon: 'fas fa-house-chimney-heart' },
+        { key: 'whyChooseUs', label: 'Why Choose Us', icon: 'fas fa-thumbs-up' },
         { key: 'services', label: 'Services', icon: 'fas fa-concierge-bell' },
         { key: 'howItWorks', label: 'How It Works', icon: 'fas fa-list-ol' },
         { key: 'families', label: 'For Families', icon: 'fas fa-users' },
@@ -2689,6 +2857,12 @@ document.addEventListener('DOMContentLoaded', function() {
         if (key === 'hero') {
             html += cmsIn('Main Headline','headline',data.headline) + cmsIn('Sub Headline','subHeadline',data.subHeadline) + cmsTx('Description','description',data.description);
             html += '<div class="admin-form-grid">' + cmsIn('Button 1 Text','btn1Text',data.btn1Text) + cmsIn('Button 1 Link','btn1Link',data.btn1Link) + cmsIn('Button 2 Text','btn2Text',data.btn2Text) + cmsIn('Button 2 Link','btn2Link',data.btn2Link) + cmsIn('Button 3 Text','btn3Text',data.btn3Text) + cmsIn('Button 3 Link','btn3Link',data.btn3Link) + '</div>';
+        } else if (key === 'stats') {
+            (data.items||[]).forEach(function(s,i) { html += '<div class="cms-repeater"><h5>Stat '+(i+1)+'</h5><div class="admin-form-grid">' + cmsIn('Number','items.'+i+'.number',s.number) + cmsIn('Suffix (+ or %)','items.'+i+'.suffix',s.suffix) + cmsIn('Label','items.'+i+'.label',s.label) + '</div></div>'; });
+        } else if (key === 'welcome') {
+            html += cmsIn('Heading','heading',data.heading) + cmsIn('Gold Text','goldText',data.goldText) + cmsTx('Paragraph 1','text',data.text) + cmsTx('Paragraph 2','text2',data.text2) + cmsImg('Section Image','image',data.image);
+        } else if (key === 'whyChooseUs') {
+            html += cmsIn('Section Heading','heading',data.heading) + cmsTx('Reasons (one per line)','reasons',(data.reasons||[]).join('\n'));
         } else if (key === 'services') {
             html += cmsIn('Section Heading','heading',data.heading) + cmsTx('Section Subtitle','subtitle',data.subtitle);
             (data.cards||[]).forEach(function(c,i) { html += '<div class="cms-repeater"><h5>Service Card '+(i+1)+'</h5>' + cmsIn('Title','cards.'+i+'.title',c.title) + cmsTx('Description','cards.'+i+'.description',c.description) + cmsIn('Icon Class','cards.'+i+'.icon',c.icon) + cmsIn('Link','cards.'+i+'.link',c.link) + cmsTx('Items (one per line)','cards.'+i+'.items',(c.items||[]).join('\n')) + '</div>'; });
@@ -2706,6 +2880,9 @@ document.addEventListener('DOMContentLoaded', function() {
         } else if (key === 'resources') {
             html += cmsIn('Section Heading','heading',data.heading) + cmsTx('Section Subtitle','subtitle',data.subtitle);
             (data.cards||[]).forEach(function(c,i) { html += '<div class="cms-repeater"><h5>Resource Card '+(i+1)+'</h5>' + cmsIn('Title','cards.'+i+'.title',c.title) + cmsTx('Description','cards.'+i+'.description',c.description) + cmsIn('Badge Label','cards.'+i+'.badge',c.badge) + cmsIn('Badge Class (badge-blue/gold/green)','cards.'+i+'.badgeClass',c.badgeClass) + cmsImg('Card Image','cards.'+i+'.image',c.image) + '</div>'; });
+        } else if (key === 'testimonials') {
+            html += cmsIn('Section Heading','heading',data.heading) + cmsTx('Section Subtitle','subtitle',data.subtitle);
+            html += cmsIn('Review Form Heading','reviewFormHeading',data.reviewFormHeading) + cmsTx('Review Form Subtitle','reviewFormSubtitle',data.reviewFormSubtitle);
         } else if (key === 'contact') {
             html += cmsIn('Section Heading','heading',data.heading) + cmsTx('Section Subtitle','subtitle',data.subtitle);
             html += '<div class="admin-form-grid">' + cmsIn('Phone','phone',data.phone) + cmsIn('Email','email',data.email) + '</div>';
@@ -2732,13 +2909,14 @@ document.addEventListener('DOMContentLoaded', function() {
         fields.forEach(function(el) {
             var field = el.getAttribute('data-field'); var value = el.value; var parts = field.split('.');
             if (parts.length === 1) {
-                if (field==='badges'||field==='checklist'||field==='values') { updateData[field] = value.split('\n').map(function(s){return s.trim();}).filter(Boolean); }
+                if (field==='badges'||field==='checklist'||field==='values'||field==='reasons') { updateData[field] = value.split('\n').map(function(s){return s.trim();}).filter(Boolean); }
                 else { updateData[field] = value; }
-            } else if (parts.length >= 3 && (parts[0]==='cards'||parts[0]==='steps')) {
+            } else if (parts.length >= 3 && (parts[0]==='cards'||parts[0]==='steps'||parts[0]==='items')) {
                 var idx = parseInt(parts[1]); var subField = parts[2];
                 if (!updateData[parts[0]]) updateData[parts[0]] = [];
                 if (!updateData[parts[0]][idx]) updateData[parts[0]][idx] = {};
                 if (subField==='items') { updateData[parts[0]][idx][subField] = value.split('\n').map(function(s){return s.trim();}).filter(Boolean); }
+                else if (subField==='number') { updateData[parts[0]][idx][subField] = parseInt(value) || 0; }
                 else { updateData[parts[0]][idx][subField] = value; }
             }
         });
@@ -2776,6 +2954,17 @@ document.addEventListener('DOMContentLoaded', function() {
             var h1=document.querySelector('.hero-content h1'); if(h1) h1.innerHTML=c.hero.headline+'<br><span class="gold">'+(c.hero.subHeadline||'')+'</span>';
             var hp=document.querySelector('.hero-content > p'); if(hp) hp.textContent=c.hero.description||'';
         }
+        if (c.stats) {
+            var statEls=document.querySelectorAll('.stats-bar .stat-item'); (c.stats.items||[]).forEach(function(s,i){ if(statEls[i]){ var num=statEls[i].querySelector('.stat-number'); if(num){ var suf=s.suffix||'+'; num.setAttribute('data-target',s.number); num.setAttribute('data-suffix',suf); if(!num.classList.contains('animated-counter-done')) num.textContent='0'+suf; } var lbl=statEls[i].querySelector('.stat-label'); if(lbl) lbl.textContent=s.label||''; } }); }
+        if (c.welcome) {
+            var wh=document.querySelector('.welcome-section .split-left h2'); if(wh) wh.innerHTML=(c.welcome.heading||'')+'<br><span class="gold">'+(c.welcome.goldText||'')+'</span>';
+            var wps=document.querySelectorAll('.welcome-section .split-left p'); if(wps[0]) wps[0].textContent=c.welcome.text||''; if(wps[1]) wps[1].textContent=c.welcome.text2||'';
+            var wi=document.querySelector('.welcome-section .split-right img'); if(wi&&c.welcome.image) wi.src=c.welcome.image;
+        }
+        if (c.whyChooseUs) {
+            var wch=document.querySelector('.why-choose-section .section-header h2'); if(wch) wch.textContent=c.whyChooseUs.heading||'';
+            var whyItems=document.querySelectorAll('.why-choose-grid .why-choose-item span'); (c.whyChooseUs.reasons||[]).forEach(function(r,i){ if(whyItems[i]) whyItems[i].textContent=r; });
+        }
         if (c.services) {
             var sh=document.querySelector('.services .section-header h2'); if(sh) sh.textContent=c.services.heading||'';
             var sp=document.querySelector('.services .section-header p'); if(sp) sp.textContent=c.services.subtitle||'';
@@ -2789,6 +2978,12 @@ document.addEventListener('DOMContentLoaded', function() {
             var rh=document.querySelector('.resources .section-header h2'); if(rh) rh.textContent=c.resources.heading||'';
             var rp=document.querySelector('.resources .section-header p'); if(rp) rp.textContent=c.resources.subtitle||'';
             var rc=document.querySelectorAll('.resources .resource-card'); (c.resources.cards||[]).forEach(function(crd,i){ if(rc[i]){var h3=rc[i].querySelector('h3');if(h3)h3.textContent=crd.title||'';var p=rc[i].querySelector('p');if(p)p.textContent=crd.description||'';var img=rc[i].querySelector('img');if(img&&crd.image)img.src=crd.image;var badge=rc[i].querySelector('.badge');if(badge){badge.textContent=crd.badge||'';badge.className='badge '+(crd.badgeClass||'');}} });
+        }
+        if (c.testimonials) {
+            var th=document.querySelector('.testimonials-section .section-header h2'); if(th) th.textContent=c.testimonials.heading||'';
+            var tp=document.querySelector('.testimonials-section .section-header p'); if(tp) tp.textContent=c.testimonials.subtitle||'';
+            var rfh=document.querySelector('.review-form-section .section-header h2'); if(rfh) rfh.textContent=c.testimonials.reviewFormHeading||'';
+            var rfp=document.querySelector('.review-form-section .section-header p'); if(rfp) rfp.textContent=c.testimonials.reviewFormSubtitle||'';
         }
         if (c.contact) { var ch=document.querySelector('.contact .section-header h2'); if(ch) ch.textContent=c.contact.heading||''; }
         if (c.caregivers&&c.caregivers.image) { var cgi=document.querySelector('.caregivers-section .split-left img'); if(cgi)cgi.src=c.caregivers.image; }
@@ -3063,6 +3258,23 @@ document.addEventListener('DOMContentLoaded', function() {
         }).catch(function(err) {
             showNotification('Error: ' + err.message, 'error');
         });
+    };
+    
+    window.adminUpdateTestimonialStatus = function(id, status) {
+        if (typeof db === 'undefined') return;
+        db.collection('testimonials').doc(id).update({ status: status }).then(function() {
+            showNotification('Review marked as ' + status + '.', 'success');
+            loadAdminTestimonials();
+        }).catch(function(err) { showNotification('Error: ' + err.message, 'error'); });
+    };
+    
+    window.adminDeleteTestimonial = function(id) {
+        if (!confirm('Delete this review permanently?')) return;
+        if (typeof db === 'undefined') return;
+        db.collection('testimonials').doc(id).delete().then(function() {
+            showNotification('Review deleted.', 'success');
+            loadAdminTestimonials();
+        }).catch(function(err) { showNotification('Error: ' + err.message, 'error'); });
     };
     
     window.adminUpdateApplicationStatus = function(id, status) {
@@ -4271,5 +4483,6 @@ document.addEventListener('DOMContentLoaded', function() {
     // LOAD WEBSITE CONTENT FROM FIRESTORE
     // ==========================================
     loadWebsiteContent();
+    loadHomepageTestimonials();
     
 });
