@@ -390,6 +390,17 @@ const FirebaseServices = {
             return await db.collection('messages')
                 .where('participants', 'array-contains', userId)
                 .get();
+        },
+        getUnreadCount: async (userId) => {
+            try {
+                var snap = await db.collection('messages')
+                    .where('toUserId', '==', userId)
+                    .where('read', '==', false)
+                    .get();
+                return snap.size;
+            } catch(e) {
+                return 0;
+            }
         }
     },
 
@@ -586,6 +597,9 @@ const FirebaseServices = {
     },
 
     settings: {
+        get: async (id) => {
+            return await db.collection('settings').doc(id).get();
+        },
         update: async (id, data) => {
             data.updatedAt = firebase.firestore.FieldValue.serverTimestamp();
             await db.collection('settings').doc(id).set(data, { merge: true });

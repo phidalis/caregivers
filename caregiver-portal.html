@@ -16,7 +16,7 @@
     <aside class="sidebar" id="sidebar">
         <div class="sidebar-mobile-head">
             <a href="index.html" class="sidebar-logo">
-                <span class="logo-icon"><i class="fas fa-heart"></i></span>
+                
                 <span class="logo-text">Mercy<span class="gold">Senior</span></span>
             </a>
             <button type="button" class="sidebar-close" id="sidebarClose" aria-label="Close menu"><i class="fas fa-times"></i></button>
@@ -83,15 +83,15 @@
             </div>
 
             <div class="dash-section">
-                <h3 style="font-family: 'Playfair Display', serif; color: #081B3A; margin-bottom: 20px;">My Referral Link</h3>
+                <h3 style="font-family: 'Playfair Display', serif; color: #081B3A; margin-bottom: 20px;">Invite & Earn</h3>
                 <div style="background: #F5F7FA; border-radius: 14px; padding: 24px;">
-                    <p style="color: #6B7280; margin-bottom: 12px;">Share your unique link. When someone signs up using it, you'll see them here.</p>
+                    <p style="color: #6B7280; margin-bottom: 12px;">Share your unique referral link. When someone signs up using it, you'll earn rewards.</p>
                     <div style="display: flex; gap: 8px; align-items: center; margin-bottom: 16px;">
                         <input type="text" id="cgReferralLink" readonly style="flex:1; padding: 10px 14px; border: 2px solid #E5E7EB; border-radius: 10px; font-size: 14px; background: #fff; color: #081B3A;">
                         <button class="btn btn-gold" onclick="var el=document.getElementById('cgReferralLink'); el.select(); document.execCommand('copy'); this.innerHTML='<i class=\'fas fa-check\'></i> Copied!'; setTimeout(function(){this.innerHTML='<i class=\'fas fa-copy\'></i> Copy';}.bind(this),2000);" style="white-space:nowrap;"><i class="fas fa-copy"></i> Copy</button>
                     </div>
                     <div style="display: flex; gap: 16px; flex-wrap: wrap;">
-                        <div class="dash-card" style="min-width:120px; padding:16px; margin:0;"><div class="dash-card-info"><h3 id="cgReferralCount">0</h3><p>Total Referrals</p></div></div>
+                        <div class="dash-card" style="min-width:120px; padding:16px; margin:0;"><div class="dash-card-info"><h3 id="cgReferralCount">0</h3><p>Invited Sign-Ups</p></div></div>
                     </div>
                     <div id="cgReferralList" style="margin-top: 16px;"></div>
                 </div>
@@ -145,7 +145,17 @@
             <h2 style="font-family: 'Playfair Display', serif; color: #081B3A; margin-bottom: 8px;">Availability</h2>
             <p style="color: #6B7280; margin-bottom: 30px;">Set your weekly availability for shifts.</p>
             <div style="background: #FFFFFF; border-radius: 18px; padding: 32px; box-shadow: 0 10px 30px rgba(0,0,0,0.06);">
-                <p style="color: #6B7280; text-align: center;">Availability management coming soon.</p>
+                <div class="availability-grid" id="availabilityGrid">
+                    <label class="avail-day"><input type="checkbox" value="Monday" class="avail-check"> Monday</label>
+                    <label class="avail-day"><input type="checkbox" value="Tuesday" class="avail-check"> Tuesday</label>
+                    <label class="avail-day"><input type="checkbox" value="Wednesday" class="avail-check"> Wednesday</label>
+                    <label class="avail-day"><input type="checkbox" value="Thursday" class="avail-check"> Thursday</label>
+                    <label class="avail-day"><input type="checkbox" value="Friday" class="avail-check"> Friday</label>
+                    <label class="avail-day"><input type="checkbox" value="Saturday" class="avail-check"> Saturday</label>
+                    <label class="avail-day"><input type="checkbox" value="Sunday" class="avail-check"> Sunday</label>
+                </div>
+                <button class="btn btn-gold" id="saveAvailabilityBtn" style="margin-top:20px;"><i class="fas fa-save"></i> Save Availability</button>
+                <p id="availStatusMsg" style="margin-top:12px;font-size:12px;color:#6B7280;"></p>
             </div>
         </div>
 
@@ -154,7 +164,23 @@
             <h2 style="font-family: 'Playfair Display', serif; color: #081B3A; margin-bottom: 8px;">Credentials</h2>
             <p style="color: #6B7280; margin-bottom: 30px;">Manage your certifications and documents.</p>
             <div style="background: #FFFFFF; border-radius: 18px; padding: 32px; box-shadow: 0 10px 30px rgba(0,0,0,0.06);">
-                <p style="color: #6B7280; text-align: center;">Credential management coming soon.</p>
+                <div class="table-responsive">
+                    <table class="dash-table" style="margin-bottom:24px;">
+                        <thead><tr><th>Credential</th><th>Status</th><th>Expiry</th><th>Document</th></tr></thead>
+                        <tbody id="cgCredentialsTabTable">
+                            <tr><td colspan="4" style="text-align:center; padding:30px; color:#6B7280;">No credentials on file.</td></tr>
+                        </tbody>
+                    </table>
+                </div>
+                <hr style="margin:24px 0;border:none;border-top:1px solid #E5E7EB;">
+                <h4 style="font-family:'Playfair Display',serif;color:#081B3A;margin-bottom:16px;">Upload New Credential</h4>
+                <div class="admin-form-grid">
+                    <div class="form-group"><label>Credential Type</label><select id="credentialType"><option>CPR Certification</option><option>First Aid</option><option>Home Health Aide</option><option>Nursing License</option><option>Background Check</option><option>Other</option></select></div>
+                    <div class="form-group"><label>Expiry Date</label><input type="date" id="credentialExpiry"></div>
+                    <div class="form-group" style="grid-column:1/-1;"><label>Upload Document</label><button class="btn btn-outline" id="credentialUploadBtn"><i class="fas fa-cloud-upload-alt"></i> Upload via Cloudinary</button><span id="credentialFileName" style="margin-left:12px;color:#6B7280;font-size:13px;"></span></div>
+                </div>
+                <button class="btn btn-gold" id="saveCredentialBtn"><i class="fas fa-save"></i> Save Credential</button>
+                <p id="credStatusMsg" style="margin-top:12px;font-size:12px;color:#6B7280;"></p>
             </div>
         </div>
 
@@ -162,8 +188,8 @@
         <div class="portal-tab" id="tab-messages">
             <h2 style="font-family: 'Playfair Display', serif; color: #081B3A; margin-bottom: 8px;">Messages</h2>
             <p style="color: #6B7280; margin-bottom: 30px;">View your messages from families and admin.</p>
-            <div style="background: #FFFFFF; border-radius: 18px; padding: 32px; box-shadow: 0 10px 30px rgba(0,0,0,0.06);">
-                <p style="color: #6B7280; text-align: center;">Messages coming soon.</p>
+            <div id="cgMessagesList" style="background: #FFFFFF; border-radius: 18px; padding: 32px; box-shadow: 0 10px 30px rgba(0,0,0,0.06);">
+                <div style="text-align:center; padding:40px; color:#6B7280;"><i class="fas fa-spinner fa-spin" style="font-size:24px;"></i><p>Loading messages...</p></div>
             </div>
         </div>
 
@@ -172,7 +198,14 @@
             <h2 style="font-family: 'Playfair Display', serif; color: #081B3A; margin-bottom: 8px;">Accept Shifts</h2>
             <p style="color: #6B7280; margin-bottom: 30px;">Browse and accept available shifts.</p>
             <div style="background: #FFFFFF; border-radius: 18px; padding: 32px; box-shadow: 0 10px 30px rgba(0,0,0,0.06);">
-                <p style="color: #6B7280; text-align: center;">Shift management coming soon.</p>
+                <div class="table-responsive">
+                    <table class="dash-table">
+                        <thead><tr><th>Client</th><th>Date</th><th>Time</th><th>Type</th><th>Rate</th><th>Action</th></tr></thead>
+                        <tbody id="cgShiftsTabTable">
+                            <tr><td colspan="6" style="text-align:center; padding:30px; color:#6B7280;">No available shifts at this time.</td></tr>
+                        </tbody>
+                    </table>
+                </div>
             </div>
         </div>
 

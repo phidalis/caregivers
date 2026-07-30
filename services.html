@@ -17,7 +17,7 @@
     <div class="top-bar">
         <div class="top-bar-container">
             <a href="index.html" class="top-bar-logo">
-                <span class="logo-icon"><i class="fas fa-heart"></i></span>
+                
                 <span class="logo-text">Mercy<span class="gold">Senior</span> Solutions</span>
             </a>
             <div class="top-bar-right">
@@ -34,15 +34,7 @@
                 <div class="nav-scroll-indicator"><i class="fas fa-chevron-right"></i> <span>Scroll</span></div>
                 <div class="nav-links">
                     <a href="index.html">Home</a>
-                    <div class="nav-dropdown">
-                        <a href="services.html" class="active">Services</a>
-                        <div class="nav-dropdown-menu">
-                            <a href="services.html"><i class="fas fa-search"></i> Find Care</a>
-                            <a href="senior-placement.html"><i class="fas fa-home"></i> Senior Placement</a>
-                            <a href="caregiver-services.html"><i class="fas fa-hands-holding-heart"></i> Caregiver Services</a>
-                            <a href="healthcare-consulting.html"><i class="fas fa-chart-line"></i> Healthcare Consulting</a>
-                        </div>
-                    </div>
+                    <a href="services.html" class="active">Services</a>
                     <a href="providers.html">Providers</a>
                     <a href="caregiver-services.html">Caregivers</a>
                     <a href="resources.html">Resources</a>
@@ -168,7 +160,7 @@
                             <label class="checkbox-label"><input type="checkbox"> Respite Care Available</label>
                         </div>
                     </div>
-                    <button type="submit" class="btn btn-primary btn-full" style="margin-top: 20px;"><i class="fas fa-search"></i> Search Communities</button>
+                    <button type="submit" class="btn btn-primary btn-full" style="margin-top: 20px;"><i class="fas fa-search"></i> Search</button>
                 </form>
             </div>
         </div>
@@ -282,7 +274,7 @@
             <div class="footer-grid">
                 <div class="footer-col">
                     <a href="index.html" class="footer-logo">
-                        <span class="logo-icon"><i class="fas fa-heart"></i></span>
+                        
                         <span class="logo-text">Mercy<span class="gold">Senior</span></span>
                     </a>
                     <p>Providing compassionate senior care solutions for families, healthcare providers, and private caregivers since 2020.</p>
@@ -349,6 +341,11 @@
         </div>
     </div>
 
+    <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-auth-compat.js"></script>
+    <script src="firebase-config.js"></script>
+    <script src="firebase-services.js"></script>
     <script src="main.js"></script>
 </body>
 </html>

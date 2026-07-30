@@ -16,7 +16,7 @@
     <aside class="sidebar" id="sidebar">
         <div class="sidebar-mobile-head">
             <a href="index.html" class="sidebar-logo">
-                <span class="logo-icon"><i class="fas fa-heart"></i></span>
+                
                 <span class="logo-text">Mercy<span class="gold">Senior</span></span>
             </a>
             <button type="button" class="sidebar-close" id="sidebarClose" aria-label="Close menu"><i class="fas fa-times"></i></button>
@@ -121,15 +121,15 @@
             </div>
 
             <div class="dash-section">
-                <h3 style="font-family: 'Playfair Display', serif; color: #081B3A; margin-bottom: 20px;">My Referral Link</h3>
+                <h3 style="font-family: 'Playfair Display', serif; color: #081B3A; margin-bottom: 20px;">Invite & Earn</h3>
                 <div style="background: #F5F7FA; border-radius: 14px; padding: 24px;">
-                    <p style="color: #6B7280; margin-bottom: 12px;">Share your unique link. When someone signs up using it, you'll see them here.</p>
+                    <p style="color: #6B7280; margin-bottom: 12px;">Share your unique referral link. When someone signs up using it, you'll earn rewards.</p>
                     <div style="display: flex; gap: 8px; align-items: center; margin-bottom: 16px;">
                         <input type="text" id="providerReferralLink" readonly style="flex:1; padding: 10px 14px; border: 2px solid #E5E7EB; border-radius: 10px; font-size: 14px; background: #fff; color: #081B3A;">
                         <button class="btn btn-gold" onclick="var el=document.getElementById('providerReferralLink'); el.select(); document.execCommand('copy'); this.innerHTML='<i class=\'fas fa-check\'></i> Copied!'; setTimeout(function(){this.innerHTML='<i class=\'fas fa-copy\'></i> Copy';}.bind(this),2000);" style="white-space:nowrap;"><i class="fas fa-copy"></i> Copy</button>
                     </div>
                     <div style="display: flex; gap: 16px; flex-wrap: wrap;">
-                        <div class="dash-card" style="min-width:120px; padding:16px; margin:0;"><div class="dash-card-info"><h3 id="providerReferralCount">0</h3><p>Total Referrals</p></div></div>
+                        <div class="dash-card" style="min-width:120px; padding:16px; margin:0;"><div class="dash-card-info"><h3 id="providerReferralCount">0</h3><p>Invited Sign-Ups</p></div></div>
                     </div>
                     <div id="providerReferralList" style="margin-top: 16px;"></div>
                 </div>

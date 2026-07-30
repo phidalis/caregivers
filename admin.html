@@ -18,7 +18,7 @@
     <aside class="sidebar" id="sidebar">
         <div class="sidebar-mobile-head">
             <a href="index.html" class="sidebar-logo">
-                <span class="logo-icon"><i class="fas fa-heart"></i></span>
+                
                 <span class="logo-text">Mercy<span class="gold">Senior</span></span>
             </a>
             <button class="sidebar-close" id="sidebarClose" aria-label="Close menu"><i class="fas fa-times"></i></button>
@@ -36,8 +36,6 @@
             <a href="#" data-tab="applications"><i class="fas fa-file-alt"></i> Applications</a>
             <a href="#" data-tab="shifts"><i class="fas fa-calendar-check"></i> Shifts</a>
             <a href="#" data-tab="payments"><i class="fas fa-credit-card"></i> Payments</a>
-            <a href="#" data-tab="analytics"><i class="fas fa-chart-bar"></i> Analytics</a>
-            <a href="#" data-tab="reports"><i class="fas fa-file-chart-line"></i> Reports</a>
             <a href="#" data-tab="media"><i class="fas fa-photo-film"></i> Media Library</a>
             <a href="#" data-tab="content"><i class="fas fa-globe"></i> Website Content</a>
             <a href="#" data-tab="settings"><i class="fas fa-gear"></i> Settings</a>
@@ -77,6 +75,20 @@
             </div>
 
             <div class="dash-section">
+                <h3 class="admin-tab-title">Platform Metrics</h3>
+                <div class="dashboard-cards" style="margin-bottom: 16px;">
+                    <div class="dash-card"><div class="dash-card-icon blue"><i class="fas fa-users"></i></div><div class="dash-card-info"><h3 id="analyticsTotalUsers">--</h3><p>Total Users</p></div></div>
+                    <div class="dash-card"><div class="dash-card-icon gold"><i class="fas fa-building"></i></div><div class="dash-card-info"><h3 id="analyticsTotalCommunities">--</h3><p>Communities</p></div></div>
+                    <div class="dash-card"><div class="dash-card-icon green"><i class="fas fa-link"></i></div><div class="dash-card-info"><h3 id="analyticsTotalReferrals">--</h3><p>Total Referrals</p></div></div>
+                    <div class="dash-card"><div class="dash-card-icon blue"><i class="fa-solid fa-newspaper"></i></div><div class="dash-card-info"><h3 id="analyticsTotalPosts">--</h3><p>Resources</p></div></div>
+                    <div class="dash-card"><div class="dash-card-icon gold"><i class="fas fa-file-alt"></i></div><div class="dash-card-info"><h3 id="analyticsTotalApplications">--</h3><p>Applications</p></div></div>
+                    <div class="dash-card"><div class="dash-card-icon green"><i class="fas fa-envelope"></i></div><div class="dash-card-info"><h3 id="analyticsTotalMessages">--</h3><p>Messages</p></div></div>
+                    <div class="dash-card"><div class="dash-card-icon blue"><i class="fas fa-dollar-sign"></i></div><div class="dash-card-info"><h3 id="analyticsTotalPayments">--</h3><p>Payments</p></div></div>
+                    <div class="dash-card"><div class="dash-card-icon gold"><i class="fas fa-calendar-check"></i></div><div class="dash-card-info"><h3 id="analyticsTotalShifts">--</h3><p>Open Shifts</p></div></div>
+                </div>
+            </div>
+
+            <div class="dash-section">
                 <h3 class="admin-tab-title">Analytics Overview</h3>
                 <div class="admin-charts-grid">
                     <div class="admin-chart-card">
@@ -86,6 +98,64 @@
                     <div class="admin-chart-card">
                         <h4>Revenue Trend</h4>
                         <div id="adminRevenueChart" class="admin-bar-chart"></div>
+                    </div>
+                    <div class="admin-chart-card">
+                        <h4>User Growth</h4>
+                        <div id="analyticsUserChart" class="admin-bar-chart"></div>
+                    </div>
+                    <div class="admin-chart-card">
+                        <h4>Referrals Over Time</h4>
+                        <div id="analyticsReferralChart" class="admin-bar-chart"></div>
+                    </div>
+                    <div class="admin-chart-card">
+                        <h4>Applications Over Time</h4>
+                        <div id="analyticsApplicationChart" class="admin-bar-chart"></div>
+                    </div>
+                    <div class="admin-chart-card">
+                        <h4>Messages Over Time</h4>
+                        <div id="analyticsMessageChart" class="admin-bar-chart"></div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="dash-section">
+                <h3 class="admin-tab-title">Data Reports</h3>
+                <div class="admin-reports-grid">
+                    <div class="admin-report-card">
+                        <div class="admin-report-icon blue"><i class="fas fa-users"></i></div>
+                        <h4>User Report</h4>
+                        <p>User breakdown by role and registration date.</p>
+                        <div id="reportUserBreakdown" class="report-content">Loading...</div>
+                    </div>
+                    <div class="admin-report-card">
+                        <div class="admin-report-icon gold"><i class="fas fa-link"></i></div>
+                        <h4>Referral Report</h4>
+                        <p>Referral pipeline, conversion rates, and outcomes.</p>
+                        <div id="reportReferralBreakdown" class="report-content">Loading...</div>
+                    </div>
+                    <div class="admin-report-card">
+                        <div class="admin-report-icon green"><i class="fas fa-file-alt"></i></div>
+                        <h4>Application Report</h4>
+                        <p>Career and provider application statistics.</p>
+                        <div id="reportApplicationBreakdown" class="report-content">Loading...</div>
+                    </div>
+                    <div class="admin-report-card">
+                        <div class="admin-report-icon blue"><i class="fas fa-dollar-sign"></i></div>
+                        <h4>Revenue Report</h4>
+                        <p>Payment history, monthly totals, and projections.</p>
+                        <div id="reportPaymentBreakdown" class="report-content">Loading...</div>
+                    </div>
+                    <div class="admin-report-card">
+                        <div class="admin-report-icon gold"><i class="fas fa-envelope"></i></div>
+                        <h4>Messages Report</h4>
+                        <p>Contact message volume and response times.</p>
+                        <div id="reportMessageBreakdown" class="report-content">Loading...</div>
+                    </div>
+                    <div class="admin-report-card">
+                        <div class="admin-report-icon green"><i class="fas fa-building"></i></div>
+                        <h4>Community Report</h4>
+                        <p>Community listings, occupancy, and availability.</p>
+                        <div id="reportCommunityBreakdown" class="report-content">Loading...</div>
                     </div>
                 </div>
             </div>
@@ -122,9 +192,9 @@
             </div>
             <div class="table-responsive">
 <table class="admin-table" id="familiesTable">
-                <thead><tr><th>Name</th><th>Email</th><th>Phone</th><th>Joined</th><th>Status</th><th>Actions</th></tr></thead>
+                <thead><tr><th>Name</th><th>Email</th><th>Phone</th><th>Caregiver</th><th>Joined</th><th>Status</th><th>Actions</th></tr></thead>
                 <tbody id="familiesTableBody">
-                    <tr><td colspan="6" class="admin-loading">Loading families...</td></tr>
+                    <tr><td colspan="7" class="admin-loading">Loading families...</td></tr>
                 </tbody>
             </table>
 </div>
@@ -282,8 +352,9 @@
             <div class="admin-filter-bar">
                 <button class="admin-filter-btn active" data-filter="all">All</button>
                 <button class="admin-filter-btn" data-filter="new">New</button>
+                <button class="admin-filter-btn" data-filter="assigned">Assigned</button>
                 <button class="admin-filter-btn" data-filter="contacted">Contacted</button>
-                <button class="admin-filter-btn" data-filter="tour-scheduled">Tour Scheduled</button>
+                <button class="admin-filter-btn" data-filter="tour_scheduled">Tour Scheduled</button>
                 <button class="admin-filter-btn" data-filter="admitted">Admitted</button>
             </div>
             <div class="table-responsive">
@@ -294,6 +365,63 @@
                 </tbody>
             </table>
 </div>
+
+            <!-- FULL SCREEN REQUEST DETAIL / ALLOCATE MODAL -->
+            <div class="admin-modal admin-modal-fullscreen" id="referralDetailModal">
+                <div class="admin-modal-content">
+                    <div class="admin-modal-header">
+                        <div class="admin-modal-header-info">
+                            <h3>Care Request Details</h3>
+                            <span class="status-badge" id="refDetailStatusBadge">--</span>
+                        </div>
+                        <button class="admin-modal-close">&times;</button>
+                    </div>
+                    <div class="admin-modal-body">
+                        <div class="request-detail-grid">
+                            <div>
+                                <div class="request-detail-section">
+                                    <h4><i class="fas fa-user"></i> Family Contact</h4>
+                                    <div class="request-detail-fields">
+                                        <div class="request-detail-field"><label>Family Name</label><span id="refDetailFamilyName">--</span></div>
+                                        <div class="request-detail-field"><label>Preferred Contact Method</label><span id="refDetailContactMethod">--</span></div>
+                                        <div class="request-detail-field"><label>Phone</label><span id="refDetailPhone">--</span></div>
+                                        <div class="request-detail-field"><label>Submitted</label><span id="refDetailDate">--</span></div>
+                                    </div>
+                                </div>
+                                <div class="request-detail-section">
+                                    <h4><i class="fas fa-user-injured"></i> Patient &amp; Care Needs</h4>
+                                    <div class="request-detail-fields">
+                                        <div class="request-detail-field"><label>Patient Name</label><span id="refDetailPatientName">--</span></div>
+                                        <div class="request-detail-field"><label>Age</label><span id="refDetailPatientAge">--</span></div>
+                                        <div class="request-detail-field"><label>Relationship</label><span id="refDetailRelationship">--</span></div>
+                                        <div class="request-detail-field"><label>Care Type</label><span id="refDetailCareType">--</span></div>
+                                        <div class="request-detail-field"><label>Budget</label><span id="refDetailBudget">--</span></div>
+                                        <div class="request-detail-field"><label>Timeline</label><span id="refDetailTimeline">--</span></div>
+                                        <div class="request-detail-field full-width"><label>Preferred Location</label><span id="refDetailLocation">--</span></div>
+                                        <div class="request-detail-field full-width"><label>Medical Conditions</label><span id="refDetailConditions">--</span></div>
+                                        <div class="request-detail-field full-width"><label>Additional Notes</label><span id="refDetailNotes">--</span></div>
+                                    </div>
+                                </div>
+                            </div>
+                            <div>
+                                <div class="request-allocate-panel">
+                                    <h4><i class="fas fa-share-square"></i> Allocate to Provider</h4>
+                                    <div class="request-current-provider" id="refDetailCurrentProvider"><i class="fas fa-circle-info"></i> Not yet allocated</div>
+                                    <div class="form-group">
+                                        <label>Select Provider / Community</label>
+                                        <select id="refDetailProviderSelect"><option value="">-- Choose a provider --</option></select>
+                                    </div>
+                                    <button type="button" class="btn btn-gold btn-full" id="refDetailAllocateBtn" style="width:100%; margin-top:10px;"><i class="fas fa-paper-plane"></i> Allocate Request</button>
+                                    <div class="request-timeline" id="refDetailTimelineSteps"></div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="admin-modal-actions">
+                        <button type="button" class="btn btn-outline admin-modal-close-btn">Close</button>
+                    </div>
+                </div>
+            </div>
         </div>
 
         <!-- ==================== APPOINTMENTS TAB ==================== -->
@@ -451,74 +579,6 @@
                 </tbody>
             </table>
 </div>
-        </div>
-
-        <!-- ==================== ANALYTICS TAB ==================== -->
-        <div class="portal-tab" id="tab-analytics">
-            <div class="admin-tab-header">
-                <div><h2 class="admin-tab-title">Analytics</h2><p class="admin-tab-subtitle">Platform metrics and insights.</p></div>
-            </div>
-            <div class="dashboard-cards" style="margin-bottom: 24px;">
-                <div class="dash-card"><div class="dash-card-icon blue"><i class="fas fa-users"></i></div><div class="dash-card-info"><h3 id="analyticsTotalUsers">0</h3><p>Total Users</p></div></div>
-                <div class="dash-card"><div class="dash-card-icon gold"><i class="fas fa-building"></i></div><div class="dash-card-info"><h3 id="analyticsTotalCommunities">0</h3><p>Communities</p></div></div>
-                <div class="dash-card"><div class="dash-card-icon green"><i class="fas fa-link"></i></div><div class="dash-card-info"><h3 id="analyticsTotalReferrals">0</h3><p>Total Referrals</p></div></div>
-                <div class="dash-card"><div class="dash-card-icon blue"><i class="fa-solid fa-newspaper"></i></div><div class="dash-card-info"><h3 id="analyticsTotalPosts">0</h3><p>Resources</p></div></div>
-                <div class="dash-card"><div class="dash-card-icon gold"><i class="fas fa-file-alt"></i></div><div class="dash-card-info"><h3 id="analyticsTotalApplications">0</h3><p>Applications</p></div></div>
-                <div class="dash-card"><div class="dash-card-icon green"><i class="fas fa-envelope"></i></div><div class="dash-card-info"><h3 id="analyticsTotalMessages">0</h3><p>Messages</p></div></div>
-                <div class="dash-card"><div class="dash-card-icon blue"><i class="fas fa-dollar-sign"></i></div><div class="dash-card-info"><h3 id="analyticsTotalPayments">0</h3><p>Payments</p></div></div>
-                <div class="dash-card"><div class="dash-card-icon gold"><i class="fas fa-calendar-check"></i></div><div class="dash-card-info"><h3 id="analyticsTotalShifts">0</h3><p>Open Shifts</p></div></div>
-            </div>
-            <div class="admin-charts-grid">
-                <div class="admin-chart-card"><h4>User Growth</h4><div id="analyticsUserChart" class="admin-bar-chart"></div></div>
-                <div class="admin-chart-card"><h4>Referrals Over Time</h4><div id="analyticsReferralChart" class="admin-bar-chart"></div></div>
-                <div class="admin-chart-card"><h4>Applications Over Time</h4><div id="analyticsApplicationChart" class="admin-bar-chart"></div></div>
-                <div class="admin-chart-card"><h4>Messages Over Time</h4><div id="analyticsMessageChart" class="admin-bar-chart"></div></div>
-            </div>
-        </div>
-
-        <!-- ==================== REPORTS TAB ==================== -->
-        <div class="portal-tab" id="tab-reports">
-            <div class="admin-tab-header">
-                <div><h2 class="admin-tab-title">Reports</h2><p class="admin-tab-subtitle">Real-time platform data breakdowns.</p></div>
-            </div>
-            <div class="admin-reports-grid">
-                <div class="admin-report-card">
-                    <div class="admin-report-icon blue"><i class="fas fa-users"></i></div>
-                    <h4>User Report</h4>
-                    <p>User breakdown by role and registration date.</p>
-                    <div id="reportUserBreakdown" class="report-content">Loading...</div>
-                </div>
-                <div class="admin-report-card">
-                    <div class="admin-report-icon gold"><i class="fas fa-link"></i></div>
-                    <h4>Referral Report</h4>
-                    <p>Referral pipeline, conversion rates, and outcomes.</p>
-                    <div id="reportReferralBreakdown" class="report-content">Loading...</div>
-                </div>
-                <div class="admin-report-card">
-                    <div class="admin-report-icon green"><i class="fas fa-file-alt"></i></div>
-                    <h4>Application Report</h4>
-                    <p>Career and provider application statistics.</p>
-                    <div id="reportApplicationBreakdown" class="report-content">Loading...</div>
-                </div>
-                <div class="admin-report-card">
-                    <div class="admin-report-icon blue"><i class="fas fa-dollar-sign"></i></div>
-                    <h4>Revenue Report</h4>
-                    <p>Payment history, monthly totals, and projections.</p>
-                    <div id="reportPaymentBreakdown" class="report-content">Loading...</div>
-                </div>
-                <div class="admin-report-card">
-                    <div class="admin-report-icon gold"><i class="fas fa-envelope"></i></div>
-                    <h4>Messages Report</h4>
-                    <p>Contact message volume and response times.</p>
-                    <div id="reportMessageBreakdown" class="report-content">Loading...</div>
-                </div>
-                <div class="admin-report-card">
-                    <div class="admin-report-icon green"><i class="fas fa-building"></i></div>
-                    <h4>Community Report</h4>
-                    <p>Community listings, occupancy, and availability.</p>
-                    <div id="reportCommunityBreakdown" class="report-content">Loading...</div>
-                </div>
-            </div>
         </div>
 
         <!-- ==================== MEDIA LIBRARY TAB ==================== -->

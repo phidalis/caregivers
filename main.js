@@ -653,14 +653,39 @@ document.addEventListener('DOMContentLoaded', function() {
     
     var familySearchForm = document.getElementById('familySearchForm');
     if (familySearchForm) {
-        var searchVisibleCount = 9;
+        var searchRowsPerPage = 10;
+        var searchCurrentPage = 1;
+        var searchLastColumnTier = null;
         var allSearchResults = [];
+        
+        function getSearchColumns() {
+            return window.innerWidth > 1024 ? 3 : 2;
+        }
+        
+        function getSearchItemsPerPage() {
+            return searchRowsPerPage * getSearchColumns();
+        }
+        
+        var searchResizeTimer = null;
+        window.addEventListener('resize', function() {
+            clearTimeout(searchResizeTimer);
+            searchResizeTimer = setTimeout(function() {
+                var tier = getSearchColumns();
+                if (tier !== searchLastColumnTier && allSearchResults.length > 0) {
+                    searchCurrentPage = 1;
+                    renderSearchResults();
+                }
+            }, 250);
+        });
         
         familySearchForm.addEventListener('submit', function(e) {
             e.preventDefault();
-            searchVisibleCount = 9;
+            searchCurrentPage = 1;
             performCommunitySearch();
         });
+        
+        // Auto-load all communities on page load
+        performCommunitySearch();
         
         function performCommunitySearch() {
             var searchCard = familySearchForm.closest('.search-card');
@@ -740,15 +765,36 @@ document.addEventListener('DOMContentLoaded', function() {
             if (!resultsContainer) return;
             
             if (allSearchResults.length === 0) {
-                resultsContainer.innerHTML = '<div class="search-empty"><i class="fas fa-building"></i><h4>No Communities Found</h4><p>Try adjusting your filters or <a href="#careRequestForm" style="color: #D4A33A; font-weight: 700;">request a personalized recommendation</a>.</p></div>';
+                resultsContainer.innerHTML = '<div class="search-empty"><i class="fas fa-building"></i><h4>No Facilities Found</h4><p>Try adjusting your filters or <a href="#careRequestForm" style="color: #D4A33A; font-weight: 700;">request a personalized recommendation</a>.</p></div>' +
+                    '<div class="search-results-grid"><div class="search-result-card caregiver-cta-card">' +
+                    '<div class="caregiver-cta-icon"><i class="fas fa-hands-holding-heart"></i></div>' +
+                    '<div class="search-result-name">Looking for an In-Home Caregiver?</div>' +
+                    '<p class="search-result-desc">We\'ll match you with a background-checked, credentialed caregiver based on your family\'s needs.</p>' +
+                    '<a href="caregiver-services.html" class="btn btn-gold" style="width:100%;margin-top:8px;padding:8px;font-size:13px;"><i class="fas fa-user-nurse"></i> Request a Caregiver</a>' +
+                    '</div></div>';
                 return;
             }
             
-            var showCount = Math.min(searchVisibleCount, allSearchResults.length);
-            var html = '<div class="search-results-header"><h4>Communities Found</h4><span class="search-results-count">Showing ' + showCount + ' of ' + allSearchResults.length + '</span></div>';
+            var itemsPerPage = getSearchItemsPerPage();
+            searchLastColumnTier = getSearchColumns();
+            var totalPages = Math.max(1, Math.ceil(allSearchResults.length / itemsPerPage));
+            if (searchCurrentPage > totalPages) searchCurrentPage = totalPages;
+            var startIdx = (searchCurrentPage - 1) * itemsPerPage;
+            var endIdx = Math.min(startIdx + itemsPerPage, allSearchResults.length);
+            
+            var html = '<div class="search-results-header"><h4>All Facilities</h4><span class="search-results-count">Showing ' + (startIdx + 1) + '-' + endIdx + ' of ' + allSearchResults.length + '</span></div>';
             html += '<div class="search-results-grid">';
             
-            for (var i = 0; i < showCount; i++) {
+            if (searchCurrentPage === 1) {
+                html += '<div class="search-result-card caregiver-cta-card">' +
+                    '<div class="caregiver-cta-icon"><i class="fas fa-hands-holding-heart"></i></div>' +
+                    '<div class="search-result-name">Looking for an In-Home Caregiver?</div>' +
+                    '<p class="search-result-desc">We\'ll match you with a background-checked, credentialed caregiver based on your family\'s needs.</p>' +
+                    '<a href="caregiver-services.html" class="btn btn-gold" style="width:100%;margin-top:8px;padding:8px;font-size:13px;"><i class="fas fa-user-nurse"></i> Request a Caregiver</a>' +
+                    '</div>';
+            }
+            
+            for (var i = startIdx; i < endIdx; i++) {
                 var f = allSearchResults[i];
                 var types = f.careTypes || [];
                 var typesHtml = '';
@@ -764,31 +810,127 @@ document.addEventListener('DOMContentLoaded', function() {
                     vacancyHtml = '<span class="search-result-vacancy"><i class="fas fa-clock"></i>Waitlist</span>';
                 }
                 
-                html += '<div class="search-result-card">' +
+                var userRole = getCurrentUserRole && getCurrentUserRole();
+                var saveBtnHtml = '';
+                if (userRole === 'family' && auth.currentUser) {
+                    saveBtnHtml = '<button class="search-save-btn" data-facility-id="' + f.id + '" data-facility-name="' + escapeHtml(f.facilityName || '') + '" data-city="' + escapeHtml(f.city || '') + '" data-state="' + escapeHtml(f.state || '') + '" data-care-types="' + escapeHtml((f.careTypes || []).join(',')) + '" data-price="' + (f.pricingFrom || '') + '"><i class="far fa-heart"></i></button>';
+                }
+                var isPartner = f.activePartner !== false;
+                var partnerBadge = isPartner ? '<span class="search-result-partner-badge"><i class="fas fa-handshake"></i> Partner</span>' : '';
+                var partnerDesc = isPartner && f.description ? '<p class="search-result-desc">' + escapeHtml(f.description.substring(0, 100)) + '</p>' : '';
+                var partnerReqBtn = isPartner ? '<button class="btn btn-gold partner-request-btn" data-partner="' + escapeHtml(f.facilityName || '') + '" data-partner-id="' + escapeHtml(f.providerId || '') + '" style="width:100%;margin-top:8px;padding:8px;font-size:13px;"><i class="fas fa-paper-plane"></i> Request Info</button>' : '';
+                html += '<div class="search-result-card' + (isPartner ? ' partner-card' : '') + '">' +
+                    saveBtnHtml +
+                    partnerBadge +
                     '<div class="search-result-name">' + escapeHtml(f.facilityName || 'Community') + '</div>' +
                     '<div class="search-result-location"><i class="fas fa-location-dot"></i> ' + escapeHtml(f.city || '') + (f.state ? ', ' + escapeHtml(f.state) : '') + '</div>' +
                     '<div class="search-result-types">' + typesHtml + '</div>' +
+                    partnerDesc +
                     '<div class="search-result-meta"><span class="search-result-price">' + priceStr + '</span>' + vacancyHtml + '</div>' +
+                    partnerReqBtn +
                     '</div>';
             }
             
             html += '</div>';
             
-            if (allSearchResults.length > searchVisibleCount) {
-                html += '<button class="search-show-more" id="showMoreResults">Show More Communities (' + (allSearchResults.length - showCount) + ' remaining)</button>';
+            if (totalPages > 1) {
+                html += '<div class="search-pagination">' +
+                    '<button class="search-page-btn" id="searchPrevPage"' + (searchCurrentPage === 1 ? ' disabled' : '') + '><i class="fas fa-chevron-left"></i> Prev</button>' +
+                    '<span class="search-page-info">Page ' + searchCurrentPage + ' of ' + totalPages + '</span>' +
+                    '<button class="search-page-btn" id="searchNextPage"' + (searchCurrentPage === totalPages ? ' disabled' : '') + '>Next <i class="fas fa-chevron-right"></i></button>' +
+                    '</div>';
             }
             
             html += '<div style="text-align: center; margin-top: 24px;"><a href="#careRequestForm" class="btn btn-gold"><i class="fas fa-paper-plane"></i> Request a Personalized Recommendation</a></div>';
             
             resultsContainer.innerHTML = html;
             
-            var showMoreBtn = document.getElementById('showMoreResults');
-            if (showMoreBtn) {
-                showMoreBtn.addEventListener('click', function() {
-                    searchVisibleCount += 9;
-                    renderSearchResults();
+            var prevPageBtn = document.getElementById('searchPrevPage');
+            if (prevPageBtn) {
+                prevPageBtn.addEventListener('click', function() {
+                    if (searchCurrentPage > 1) {
+                        searchCurrentPage--;
+                        renderSearchResults();
+                        resultsContainer.scrollIntoView({ behavior: 'smooth', block: 'start' });
+                    }
                 });
             }
+            
+            var nextPageBtn = document.getElementById('searchNextPage');
+            if (nextPageBtn) {
+                nextPageBtn.addEventListener('click', function() {
+                    var pages = Math.max(1, Math.ceil(allSearchResults.length / getSearchItemsPerPage()));
+                    if (searchCurrentPage < pages) {
+                        searchCurrentPage++;
+                        renderSearchResults();
+                        resultsContainer.scrollIntoView({ behavior: 'smooth', block: 'start' });
+                    }
+                });
+            }
+            
+            // Partner request info buttons
+            resultsContainer.querySelectorAll('.partner-request-btn').forEach(function(btn) {
+                btn.addEventListener('click', function() {
+                    var partnerName = this.getAttribute('data-partner');
+                    if (!auth.currentUser) {
+                        showNotification('Please log in or sign up as a family to request info.', 'success');
+                        setTimeout(function() { window.location.href = 'login.html'; }, 2000);
+                        return;
+                    }
+                    db.collection('contactMessages').add({
+                        name: auth.currentUser.email,
+                        userId: auth.currentUser.uid,
+                        subject: 'Interest in ' + partnerName,
+                        message: 'I am interested in learning more about ' + partnerName + '. Please send me information.',
+                        createdAt: firebase.firestore.FieldValue.serverTimestamp()
+                    }).then(function() {
+                        showNotification('Your request has been sent to ' + partnerName + '. An advisor will follow up.', 'success');
+                    }).catch(function(err) {
+                        showNotification('Error sending request. Please try again.', 'error');
+                    });
+                });
+            });
+            
+            // Save/unsave community buttons
+            resultsContainer.querySelectorAll('.search-save-btn').forEach(function(btn) {
+                var facilityId = btn.getAttribute('data-facility-id');
+                if (!facilityId) return;
+                db.collection('savedCommunities').where('familyId', '==', auth.currentUser ? auth.currentUser.uid : 'none').where('facilityId', '==', facilityId).get().then(function(snap) {
+                    if (!snap.empty) {
+                        btn.classList.add('saved');
+                        btn.querySelector('i').className = 'fas fa-heart';
+                        btn.setAttribute('data-saved-id', snap.docs[0].id);
+                    }
+                }).catch(function() {});
+                btn.addEventListener('click', function(e) {
+                    e.stopPropagation();
+                    var savedId = btn.getAttribute('data-saved-id');
+                    if (savedId) {
+                        db.collection('savedCommunities').doc(savedId).delete().then(function() {
+                            btn.classList.remove('saved');
+                            btn.querySelector('i').className = 'far fa-heart';
+                            btn.removeAttribute('data-saved-id');
+                            showNotification('Community removed from saved.', 'success');
+                        }).catch(function() { showNotification('Error removing.', 'error'); });
+                    } else {
+                        db.collection('savedCommunities').add({
+                            familyId: auth.currentUser.uid,
+                            facilityId: btn.getAttribute('data-facility-id'),
+                            communityName: btn.getAttribute('data-facility-name'),
+                            location: (btn.getAttribute('data-city') || '') + (btn.getAttribute('data-state') ? ', ' + btn.getAttribute('data-state') : ''),
+                            careType: btn.getAttribute('data-care-types'),
+                            monthlyCost: parseInt(btn.getAttribute('data-price')) || 0,
+                            status: 'active',
+                            createdAt: firebase.firestore.FieldValue.serverTimestamp()
+                        }).then(function(docRef) {
+                            btn.classList.add('saved');
+                            btn.querySelector('i').className = 'fas fa-heart';
+                            btn.setAttribute('data-saved-id', docRef.id);
+                            showNotification('Community saved!', 'success');
+                        }).catch(function() { showNotification('Error saving.', 'error'); });
+                    }
+                });
+            });
         }
     }
     
@@ -1452,6 +1594,10 @@ document.addEventListener('DOMContentLoaded', function() {
         
         // Load charts
         loadAdminCharts();
+        
+        // Load analytics and reports into dashboard
+        loadAdminAnalytics();
+        loadAdminReports();
     }
     
     function loadAdminActivity() {
@@ -1683,8 +1829,6 @@ document.addEventListener('DOMContentLoaded', function() {
             case 'applications': loadAdminApplications(); break;
             case 'shifts': loadAdminShifts(); break;
             case 'payments': loadAdminPayments(); break;
-            case 'analytics': loadAdminAnalytics(); break;
-            case 'reports': loadAdminReports(); break;
             case 'media': loadAdminMedia(); break;
             case 'content': loadAdminContent(); break;
             case 'settings': loadAdminSettings(); break;
@@ -1699,29 +1843,67 @@ document.addEventListener('DOMContentLoaded', function() {
         
         FirebaseServices.users.getByRole('family').then(function(snap) {
             if (snap.empty) {
-                tbody.innerHTML = '<tr><td colspan="6" style="text-align:center; padding:30px; color:#6B7280;">No family accounts found.</td></tr>';
+                tbody.innerHTML = '<tr><td colspan="7" style="text-align:center; padding:30px; color:#6B7280;">No family accounts found.</td></tr>';
                 return;
             }
             tbody.innerHTML = '';
-            snap.forEach(function(doc) {
-                var u = doc.data();
+            var familyDocs = [];
+            snap.forEach(function(doc) { familyDocs.push({ id: doc.id, data: doc.data() }); });
+            
+            // Batch-load caregiver names
+            var cgCache = {};
+            familyDocs.forEach(function(item) {
+                var u = item.data;
+                var cgId = u.assignedCaregiverId || '';
                 var dateStr = FirebaseServices.formatTimestamp(u.createdAt);
                 var status = u.active !== false ? 'active' : 'pending';
                 var statusLabel = u.active !== false ? 'Active' : 'Inactive';
-                tbody.innerHTML += '<tr>\
+                var cgName = cgId ? (cgCache[cgId] || 'Loading...') : '--';
+                
+                tbody.innerHTML += '<tr data-family-id="' + item.id + '" data-cg="' + cgId + '">\
                     <td><strong>' + escapeHtml(u.name || u.firstName + ' ' + (u.lastName || '')) + '</strong></td>\
                     <td>' + escapeHtml(u.email || '') + '</td>\
                     <td>' + escapeHtml(u.phone || '--') + '</td>\
+                    <td class="assign-cg-cell" data-family-id="' + item.id + '" data-cg-id="' + cgId + '">' + (cgId ? '<span class="cg-name-placeholder" data-cg-id="' + cgId + '">Loading...</span>' : '<span class="no-cg">--</span>') + ' <button class="admin-action-btn edit assign-cg-btn" data-family-id="' + item.id + '" title="Assign Caregiver"><i class="fas fa-user-plus"></i></button></td>\
                     <td>' + dateStr + '</td>\
                     <td><span class="status-badge ' + status + '">' + statusLabel + '</span></td>\
                     <td><div class="admin-action-btns">\
-                        <button class="admin-action-btn view" onclick="adminViewUser(\'' + doc.id + '\')"><i class="fas fa-eye"></i></button>\
-                        <button class="admin-action-btn edit" onclick="adminToggleUserActive(\'' + doc.id + '\', ' + (u.active !== false) + ')"><i class="fas fa-power-off"></i></button>\
+                        <button class="admin-action-btn view" onclick="adminViewUser(\'' + item.id + '\')"><i class="fas fa-eye"></i></button>\
+                        <button class="admin-action-btn edit" onclick="adminToggleUserActive(\'' + item.id + '\', ' + (u.active !== false) + ')"><i class="fas fa-power-off"></i></button>\
+                        <button class="admin-action-btn edit" onclick="adminChangeUserRole(\'' + item.id + '\', \'' + (u.role || 'family') + '\')" title="Change Role"><i class="fas fa-user-tag"></i></button>\
                     </div></td>\
                 </tr>';
+                
+                if (cgId && !cgCache[cgId]) {
+                    db.collection('users').doc(cgId).get().then(function(cgDoc) {
+                        if (cgDoc.exists) {
+                            var cg = cgDoc.data();
+                            var name = cg.name || cg.firstName + ' ' + (cg.lastName || '');
+                            cgCache[cgId] = name;
+                            var placeholder = tbody.querySelector('.cg-name-placeholder[data-cg-id="' + cgId + '"]');
+                            if (placeholder) placeholder.textContent = name;
+                        } else {
+                            var placeholder = tbody.querySelector('.cg-name-placeholder[data-cg-id="' + cgId + '"]');
+                            if (placeholder) placeholder.textContent = '(deleted)';
+                        }
+                    }).catch(function() {
+                        var placeholder = tbody.querySelector('.cg-name-placeholder[data-cg-id="' + cgId + '"]');
+                        if (placeholder) placeholder.textContent = 'Error';
+                    });
+                }
+            });
+            
+            // Assign caregiver buttons
+            tbody.querySelectorAll('.assign-cg-btn').forEach(function(btn) {
+                btn.addEventListener('click', function() {
+                    var familyId = this.getAttribute('data-family-id');
+                    var currentCg = tbody.querySelector('tr[data-family-id="' + familyId + '"]');
+                    var currentCgId = currentCg ? currentCg.getAttribute('data-cg') : '';
+                    promptAssignCaregiver(familyId, currentCgId, tbody);
+                });
             });
         }).catch(function(err) {
-            tbody.innerHTML = '<tr><td colspan="6" style="text-align:center; padding:30px; color:#DC2626;">Error loading families.</td></tr>';
+            tbody.innerHTML = '<tr><td colspan="7" style="text-align:center; padding:30px; color:#DC2626;">Error loading families.</td></tr>';
         });
         
         var searchEl = document.getElementById('familiesSearch');
@@ -1733,6 +1915,58 @@ document.addEventListener('DOMContentLoaded', function() {
                 });
             };
         }
+    }
+    
+    function promptAssignCaregiver(familyId, currentCgId, tbody) {
+        // Build a caregiver select popup
+        var overlay = document.createElement('div');
+        overlay.className = 'admin-modal active';
+        overlay.style.display = 'flex';
+        overlay.innerHTML = '<div class="admin-modal-content" style="max-width:420px;">\
+            <div class="admin-modal-header"><h3>Assign Caregiver</h3><button class="admin-modal-close close-assign-modal">&times;</button></div>\
+            <div class="admin-form-grid">\
+                <div class="form-group"><label>Select Caregiver</label><select id="assignCgSelect"><option value="">-- None --</option></select></div>\
+            </div>\
+            <div class="admin-modal-actions">\
+                <button type="button" class="btn btn-outline close-assign-modal">Cancel</button>\
+                <button type="button" class="btn btn-gold" id="confirmAssignCg"><i class="fas fa-check"></i> Assign</button>\
+            </div>\
+        </div>';
+        document.body.appendChild(overlay);
+        
+        // Load caregivers
+        var select = overlay.querySelector('#assignCgSelect');
+        FirebaseServices.users.getByRole('caregiver').then(function(snap) {
+            snap.forEach(function(doc) {
+                var cg = doc.data();
+                var name = cg.name || cg.firstName + ' ' + (cg.lastName || '');
+                if (currentCgId === doc.id) {
+                    select.innerHTML += '<option value="' + doc.id + '" selected>' + escapeHtml(name) + ' (' + escapeHtml(cg.email || '') + ')</option>';
+                } else {
+                    select.innerHTML += '<option value="' + doc.id + '">' + escapeHtml(name) + ' (' + escapeHtml(cg.email || '') + ')</option>';
+                }
+            });
+        }).catch(function() {});
+        
+        overlay.querySelectorAll('.close-assign-modal').forEach(function(el) {
+            el.addEventListener('click', function() { overlay.remove(); });
+        });
+        overlay.querySelector('#confirmAssignCg').addEventListener('click', function() {
+            var cgId = select.value;
+            var updateData = {};
+            if (cgId) {
+                updateData.assignedCaregiverId = cgId;
+            } else {
+                updateData.assignedCaregiverId = firebase.firestore.FieldValue.delete();
+            }
+            db.collection('users').doc(familyId).update(updateData).then(function() {
+                showNotification('Caregiver assigned!', 'success');
+                overlay.remove();
+                loadAdminFamilies();
+            }).catch(function(err) {
+                showNotification('Error assigning caregiver.', 'error');
+            });
+        });
     }
     
     // --- PROVIDERS ---
@@ -1761,6 +1995,7 @@ document.addEventListener('DOMContentLoaded', function() {
                     <td><div class="admin-action-btns">\
                         <button class="admin-action-btn view" onclick="adminViewUser(\'' + doc.id + '\')"><i class="fas fa-eye"></i></button>\
                         <button class="admin-action-btn edit" onclick="adminToggleUserActive(\'' + doc.id + '\', ' + (u.active !== false) + ')"><i class="fas fa-power-off"></i></button>\
+                        <button class="admin-action-btn edit" onclick="adminChangeUserRole(\'' + doc.id + '\', \'' + (u.role || 'provider') + '\')" title="Change Role"><i class="fas fa-user-tag"></i></button>\
                     </div></td>\
                 </tr>';
             });
@@ -1881,6 +2116,7 @@ document.addEventListener('DOMContentLoaded', function() {
                     <td><div class="admin-action-btns">\
                         <button class="admin-action-btn view" onclick="adminViewUser(\'' + doc.id + '\')"><i class="fas fa-eye"></i></button>\
                         <button class="admin-action-btn edit" onclick="adminToggleUserActive(\'' + doc.id + '\', ' + (u.active !== false) + ')"><i class="fas fa-power-off"></i></button>\
+                        <button class="admin-action-btn edit" onclick="adminChangeUserRole(\'' + doc.id + '\', \'' + (u.role || 'caregiver') + '\')" title="Change Role"><i class="fas fa-user-tag"></i></button>\
                     </div></td>\
                 </tr>';
             });
@@ -2066,6 +2302,10 @@ document.addEventListener('DOMContentLoaded', function() {
     }
     
     // --- REFERRALS ---
+    // Cache of loaded referral (care request) docs, keyed by id, so the full-screen
+    // detail/allocate modal can read them without an extra Firestore round trip.
+    window._referralsCache = window._referralsCache || {};
+
     function loadAdminReferrals() {
         var tbody = document.getElementById('referralsTableBody');
         if (!tbody) return;
@@ -2078,11 +2318,12 @@ document.addEventListener('DOMContentLoaded', function() {
             tbody.innerHTML = '';
             snap.forEach(function(doc) {
                 var r = doc.data();
+                window._referralsCache[doc.id] = r;
                 var dateStr = FirebaseServices.formatTimestamp(r.createdAt);
                 var budgetStr = r.budget ? FirebaseServices.formatCurrency(r.budget) : '--';
                 var status = r.status || 'new';
                 
-                tbody.innerHTML += '<tr>\
+                tbody.innerHTML += '<tr data-status="' + status + '">\
                     <td>' + escapeHtml(r.familyName || r.name || '--') + '</td>\
                     <td>' + escapeHtml(r.patientName || '--') + '</td>\
                     <td>' + escapeHtml(r.careType || '--') + '</td>\
@@ -2091,7 +2332,8 @@ document.addEventListener('DOMContentLoaded', function() {
                     <td>' + dateStr + '</td>\
                     <td><span class="status-badge ' + status + '">' + (status.replace('_', ' ').replace(/\b\w/g, function(l) { return l.toUpperCase(); })) + '</span></td>\
                     <td><div class="admin-action-btns">\
-                        <button class="admin-action-btn edit" onclick="adminUpdateReferralStatus(\'' + doc.id + '\', \'' + status + '\')"><i class="fas fa-edit"></i></button>\
+                        <button class="admin-action-btn view" title="View &amp; Allocate" onclick="adminViewReferral(\'' + doc.id + '\')"><i class="fas fa-eye"></i></button>\
+                        <button class="admin-action-btn edit" title="Quick status update" onclick="adminUpdateReferralStatus(\'' + doc.id + '\', \'' + status + '\')"><i class="fas fa-edit"></i></button>\
                     </div></td>\
                 </tr>';
             });
@@ -2099,6 +2341,18 @@ document.addEventListener('DOMContentLoaded', function() {
             tbody.innerHTML = '<tr><td colspan="8" style="text-align:center; padding:30px; color:#DC2626;">Error loading referrals.</td></tr>';
         });
     }
+
+    // Referrals status filter (client-side, on already-loaded rows)
+    document.querySelectorAll('#tab-referrals .admin-filter-bar [data-filter]').forEach(function(btn) {
+        btn.addEventListener('click', function() {
+            document.querySelectorAll('#tab-referrals .admin-filter-bar [data-filter]').forEach(function(b) { b.classList.remove('active'); });
+            this.classList.add('active');
+            var filter = this.getAttribute('data-filter');
+            document.querySelectorAll('#referralsTableBody tr[data-status]').forEach(function(row) {
+                row.style.display = (filter === 'all' || row.getAttribute('data-status') === filter) ? '' : 'none';
+            });
+        });
+    });
     
     // --- APPOINTMENTS ---
     function loadAdminAppointments() {
@@ -3197,9 +3451,9 @@ document.addEventListener('DOMContentLoaded', function() {
     };
     
     window.adminUpdateReferralStatus = function(id, currentStatus) {
-        var statuses = ['new', 'contacted', 'tour_scheduled', 'admitted'];
+        var statuses = ['new', 'assigned', 'contacted', 'tour_scheduled', 'admitted'];
         var idx = statuses.indexOf(currentStatus);
-        var next = prompt('Update status.\n\nCurrent: ' + currentStatus + '\nOptions: new, contacted, tour_scheduled, admitted', currentStatus);
+        var next = prompt('Update status.\n\nCurrent: ' + currentStatus + '\nOptions: new, assigned, contacted, tour_scheduled, admitted', currentStatus);
         if (!next || next === currentStatus) return;
         
         FirebaseServices.referrals.updateStatus(id, next).then(function() {
@@ -3209,6 +3463,121 @@ document.addEventListener('DOMContentLoaded', function() {
             showNotification('Error: ' + err.message, 'error');
         });
     };
+
+    // ==========================================
+    // REQUEST DETAIL / ALLOCATE-TO-PROVIDER MODAL
+    // Guest submits a request -> lands here as a referral ("new") -> admin
+    // opens the full-screen detail modal and allocates it to a provider ->
+    // the provider then sees it in their portal (FirebaseServices.referrals.getByProvider).
+    // ==========================================
+
+    function populateReferralProviderSelect(selectedId) {
+        var sel = document.getElementById('refDetailProviderSelect');
+        if (!sel) return;
+        sel.innerHTML = '<option value="">-- Choose a provider --</option>';
+        FirebaseServices.users.getByRole('provider').then(function(snap) {
+            snap.forEach(function(doc) {
+                var u = doc.data();
+                var name = escapeHtml(u.name || ((u.firstName || '') + ' ' + (u.lastName || '')).trim() || u.email || 'Provider');
+                var facility = u.facilityName ? ' (' + escapeHtml(u.facilityName) + ')' : '';
+                sel.innerHTML += '<option value="' + doc.id + '" data-name="' + name + '"' + (doc.id === selectedId ? ' selected' : '') + '>' + name + facility + '</option>';
+            });
+        }).catch(function() {});
+    }
+
+    function renderReferralTimeline(status) {
+        var steps = [
+            { key: 'new', label: 'Request Submitted' },
+            { key: 'assigned', label: 'Allocated to Provider' },
+            { key: 'contacted', label: 'Family Contacted' },
+            { key: 'tour_scheduled', label: 'Tour Scheduled' },
+            { key: 'admitted', label: 'Admitted' }
+        ];
+        var order = ['new', 'assigned', 'contacted', 'tour_scheduled', 'admitted'];
+        var currentIdx = order.indexOf(status);
+        var el = document.getElementById('refDetailTimelineSteps');
+        if (!el) return;
+        el.innerHTML = '';
+        steps.forEach(function(step, i) {
+            var cls = i < currentIdx ? 'done' : (i === currentIdx ? 'current' : '');
+            var icon = i < currentIdx ? '<i class="fas fa-check"></i>' : (i + 1);
+            el.innerHTML += '<div class="request-timeline-step ' + cls + '">' +
+                '<div class="request-timeline-dot">' + icon + '</div>' +
+                '<div class="request-timeline-label">' + step.label + '</div>' +
+                '</div>';
+        });
+    }
+
+    window.adminViewReferral = function(id) {
+        var r = window._referralsCache[id];
+        if (!r) return;
+        var status = r.status || 'new';
+        
+        document.getElementById('refDetailStatusBadge').className = 'status-badge ' + status;
+        document.getElementById('refDetailStatusBadge').textContent = status.replace('_', ' ').replace(/\b\w/g, function(l) { return l.toUpperCase(); });
+        
+        document.getElementById('refDetailFamilyName').textContent = r.familyName || r.name || '--';
+        document.getElementById('refDetailContactMethod').textContent = r.contactMethod || '--';
+        document.getElementById('refDetailPhone').textContent = r.phone || '--';
+        document.getElementById('refDetailDate').textContent = FirebaseServices.formatTimestamp(r.createdAt);
+        
+        document.getElementById('refDetailPatientName').textContent = r.patientName || '--';
+        document.getElementById('refDetailPatientAge').textContent = r.patientAge || '--';
+        document.getElementById('refDetailRelationship').textContent = r.relationship || '--';
+        document.getElementById('refDetailCareType').textContent = r.careType || '--';
+        document.getElementById('refDetailBudget').textContent = r.budget ? FirebaseServices.formatCurrency(r.budget) : '--';
+        document.getElementById('refDetailTimeline').textContent = r.timeline || '--';
+        document.getElementById('refDetailLocation').textContent = r.location || '--';
+        document.getElementById('refDetailConditions').textContent = r.conditions || '--';
+        document.getElementById('refDetailNotes').textContent = r.notes || '--';
+        
+        var currentProviderEl = document.getElementById('refDetailCurrentProvider');
+        currentProviderEl.innerHTML = r.providerId ?
+            '<i class="fas fa-hospital"></i> Currently allocated to <strong>' + escapeHtml(r.providerName || 'Unknown provider') + '</strong>' :
+            '<i class="fas fa-circle-info"></i> Not yet allocated';
+        
+        populateReferralProviderSelect(r.providerId || '');
+        renderReferralTimeline(status);
+        
+        var modal = document.getElementById('referralDetailModal');
+        modal.setAttribute('data-referral-id', id);
+        modal.classList.add('active');
+    };
+
+    var refAllocateBtn = document.getElementById('refDetailAllocateBtn');
+    if (refAllocateBtn) {
+        refAllocateBtn.addEventListener('click', function() {
+            var modal = document.getElementById('referralDetailModal');
+            var id = modal.getAttribute('data-referral-id');
+            var sel = document.getElementById('refDetailProviderSelect');
+            var providerId = sel.value;
+            var providerName = sel.selectedOptions && sel.selectedOptions[0] ? sel.selectedOptions[0].getAttribute('data-name') : '';
+            
+            if (!providerId) { showNotification('Please select a provider to allocate this request to.', 'error'); return; }
+            
+            var r = window._referralsCache[id] || {};
+            var updateData = { providerId: providerId, providerName: providerName || '' };
+            // A brand-new, unassigned request moves to "assigned" once allocated;
+            // requests further along the pipeline keep their current status when reassigned.
+            if (!r.status || r.status === 'new') updateData.status = 'assigned';
+            
+            refAllocateBtn.disabled = true;
+            refAllocateBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Allocating...';
+            
+            FirebaseServices.referrals.update(id, updateData).then(function() {
+                showNotification('Request allocated to ' + providerName + '. They will see it in their portal.', 'success');
+                modal.classList.remove('active');
+                loadAdminReferrals();
+            }).catch(function(err) {
+                showNotification('Error allocating request: ' + err.message, 'error');
+            }).then(function() {
+                refAllocateBtn.disabled = false;
+                refAllocateBtn.innerHTML = '<i class="fas fa-paper-plane"></i> Allocate Request';
+            });
+        });
+    }
+
+    initModalClose('referralDetailModal');
     
     window.adminUpdateTourStatus = function(id, currentStatus) {
         var next = prompt('Update tour status.\n\nCurrent: ' + currentStatus + '\nOptions: scheduled, completed, cancelled', currentStatus);
@@ -3345,6 +3714,50 @@ document.addEventListener('DOMContentLoaded', function() {
             loadAdminAdmins();
         }).catch(function(err) {
             showNotification('Error: ' + err.message, 'error');
+        });
+    };
+    
+    window.adminChangeUserRole = function(uid, currentRole) {
+        var overlay = document.createElement('div');
+        overlay.className = 'admin-modal active';
+        overlay.style.display = 'flex';
+        overlay.innerHTML = '<div class="admin-modal-content" style="max-width:400px;">\
+            <div class="admin-modal-header"><h3>Change User Role</h3><button class="admin-modal-close close-role-modal">&times;</button></div>\
+            <div class="admin-form-grid">\
+                <div class="form-group"><label>Current Role</label><input type="text" value="' + escapeHtml(currentRole) + '" disabled style="background:#F3F4F6;"></div>\
+                <div class="form-group"><label>New Role</label><select id="newRoleSelect">\
+                    <option value="family"' + (currentRole === 'family' ? ' selected' : '') + '>Family</option>\
+                    <option value="provider"' + (currentRole === 'provider' ? ' selected' : '') + '>Provider</option>\
+                    <option value="caregiver"' + (currentRole === 'caregiver' ? ' selected' : '') + '>Caregiver</option>\
+                    <option value="admin"' + (currentRole === 'admin' ? ' selected' : '') + '>Admin</option>\
+                </select></div>\
+            </div>\
+            <div class="admin-modal-actions">\
+                <button type="button" class="btn btn-outline close-role-modal">Cancel</button>\
+                <button type="button" class="btn btn-gold" id="confirmRoleChange"><i class="fas fa-check"></i> Update Role</button>\
+            </div>\
+        </div>';
+        document.body.appendChild(overlay);
+        
+        overlay.querySelectorAll('.close-role-modal').forEach(function(el) {
+            el.addEventListener('click', function() { overlay.remove(); });
+        });
+        overlay.querySelector('#confirmRoleChange').addEventListener('click', function() {
+            var newRole = document.getElementById('newRoleSelect').value;
+            if (newRole === currentRole) { overlay.remove(); return; }
+            if (!confirm('Change this user\'s role from \'' + currentRole + '\' to \'' + newRole + '\'? This will affect their portal access.')) return;
+            
+            FirebaseServices.users.updateRole(uid, newRole).then(function() {
+                showNotification('Role updated from ' + currentRole + ' to ' + newRole + '.', 'success');
+                overlay.remove();
+                // Reload all admin tables since roles may have shifted
+                if (typeof loadAdminFamilies === 'function') loadAdminFamilies();
+                if (typeof loadAdminProviders === 'function') loadAdminProviders();
+                if (typeof loadAdminCaregivers === 'function') loadAdminCaregivers();
+                if (typeof loadAdminAdmins === 'function') loadAdminAdmins();
+            }).catch(function(err) {
+                showNotification('Error: ' + err.message, 'error');
+            });
         });
     };
     
@@ -3485,6 +3898,32 @@ document.addEventListener('DOMContentLoaded', function() {
         // Messages count
         var msgEl = document.getElementById('familyUnreadMsgs');
         if (msgEl) msgEl.textContent = '0';
+        
+        // Load assigned caregiver (advisor)
+        var cgEl = document.getElementById('familyAssignedCaregiver');
+        if (cgEl) {
+            db.collection('users').doc(familyId).get().then(function(doc) {
+                if (doc.exists) {
+                    var userData = doc.data();
+                    var cgId = userData.assignedCaregiverId;
+                    if (cgId) {
+                        db.collection('users').doc(cgId).get().then(function(cgDoc) {
+                            if (cgDoc.exists) {
+                                var cg = cgDoc.data();
+                                var name = cg.name || cg.firstName + ' ' + (cg.lastName || '');
+                                cgEl.textContent = escapeHtml(name);
+                            } else {
+                                cgEl.textContent = 'Unassigned';
+                            }
+                        }).catch(function() { cgEl.textContent = 'Unassigned'; });
+                    } else {
+                        cgEl.textContent = 'Unassigned';
+                    }
+                } else {
+                    cgEl.textContent = 'Unassigned';
+                }
+            }).catch(function() { cgEl.textContent = 'Unassigned'; });
+        }
         
         // Load referrals list
         loadFamilyReferrals(userId);
@@ -3814,7 +4253,7 @@ document.addEventListener('DOMContentLoaded', function() {
             snap.forEach(function(doc) {
                 var r = doc.data();
                 var dateStr = FirebaseServices.formatTimestamp(r.createdAt);
-                var statusClass = r.status === 'new' ? 'active' : r.status === 'contacted' ? 'pending' : r.status === 'admitted' ? 'green' : 'active';
+                var statusClass = r.status === 'assigned' ? 'assigned' : r.status === 'contacted' ? 'pending' : r.status === 'admitted' ? 'green' : 'active';
                 var statusLabel = r.status.charAt(0).toUpperCase() + r.status.slice(1).replace('_', ' ');
                 
                 tbody.innerHTML += '\
@@ -3896,12 +4335,13 @@ document.addEventListener('DOMContentLoaded', function() {
                 var dateStr = FirebaseServices.formatTimestamp(r.createdAt);
                 var statusClass = 'active';
                 var statusLabel = r.status.charAt(0).toUpperCase() + r.status.slice(1).replace('_', ' ');
-                if (r.status === 'contacted') statusClass = 'pending';
+                if (r.status === 'assigned') statusClass = 'assigned';
+                else if (r.status === 'contacted') statusClass = 'pending';
                 else if (r.status === 'tour_scheduled') statusClass = 'review';
                 else if (r.status === 'admitted') statusClass = 'green';
                 
                 var actions = '';
-                if (r.status === 'new') {
+                if (r.status === 'new' || r.status === 'assigned') {
                     actions = '<button class="btn btn-sm btn-primary prov-ref-action" data-id="' + docId + '" data-status="contacted">Contact</button>';
                 } else if (r.status === 'contacted') {
                     actions = '<button class="btn btn-sm btn-gold prov-ref-action" data-id="' + docId + '" data-status="tour_scheduled">Schedule Tour</button>';
@@ -4469,6 +4909,196 @@ document.addEventListener('DOMContentLoaded', function() {
         // Messages
         var msgEl = document.getElementById('cgUnreadMsgs');
         if (msgEl) msgEl.textContent = '0';
+        
+        // ---- Wire caregiver portal tabs ----
+        wireCaregiverTabs(caregiverId);
+    }
+    
+    function wireCaregiverTabs(caregiverId) {
+        // Availability tab: load saved availability
+        var availChecks = document.querySelectorAll('.avail-check');
+        if (availChecks.length > 0) {
+            FirebaseServices.settings.get('availability_' + caregiverId).then(function(doc) {
+                if (doc.exists) {
+                    var saved = doc.data().days || [];
+                    availChecks.forEach(function(cb) {
+                        cb.checked = saved.indexOf(cb.value) > -1;
+                    });
+                }
+            }).catch(function() {});
+            
+            var saveAvailBtn = document.getElementById('saveAvailabilityBtn');
+            if (saveAvailBtn) {
+                saveAvailBtn.addEventListener('click', function() {
+                    var days = [];
+                    availChecks.forEach(function(cb) { if (cb.checked) days.push(cb.value); });
+                    FirebaseServices.settings.update('availability_' + caregiverId, { days: days, caregiverId: caregiverId }).then(function() {
+                        document.getElementById('availStatusMsg').textContent = 'Availability saved!';
+                    }).catch(function() {
+                        document.getElementById('availStatusMsg').textContent = 'Error saving availability.';
+                    });
+                });
+            }
+        }
+        
+        // Credentials tab: load credentials into cgCredentialsTabTable
+        var credTabBody = document.getElementById('cgCredentialsTabTable');
+        if (credTabBody) {
+            FirebaseServices.credentials.getByCaregiver(caregiverId).then(function(snap) {
+                if (snap.empty) {
+                    credTabBody.innerHTML = '<tr><td colspan="4" style="text-align:center;padding:30px;color:#6B7280;">No credentials on file.</td></tr>';
+                    return;
+                }
+                credTabBody.innerHTML = '';
+                snap.forEach(function(doc) {
+                    var c = doc.data();
+                    var sc = c.status === 'active' || c.status === 'cleared' ? 'active' : 'pending';
+                    credTabBody.innerHTML += '<tr><td>' + escapeHtml(c.type) + '</td><td><span class="status-badge ' + sc + '">' + (c.status.charAt(0).toUpperCase() + c.status.slice(1)) + '</span></td><td>' + escapeHtml(c.expiry || '--') + '</td><td>' + (c.documentUrl ? '<a href="' + c.documentUrl + '" target="_blank" style="color:#081B3A;font-weight:700;">View</a>' : '--') + '</td></tr>';
+                });
+            }).catch(function() {});
+            
+            // Credential upload
+            var credDocUrl = '';
+            var uploadBtn = document.getElementById('credentialUploadBtn');
+            if (uploadBtn && typeof cloudinary !== 'undefined') {
+                uploadBtn.addEventListener('click', function() {
+                    cloudinary.openUploadWidget({ cloudName: 'dci6hrfxn', uploadPreset: 'senior_care_default', sources: ['local', 'url'], multiple: false, cropping: false, maxFileSize: 5000000 }, function(err, result) {
+                        if (!err && result && result.info) {
+                            credDocUrl = result.info.secure_url;
+                            document.getElementById('credentialFileName').textContent = result.info.original_filename;
+                        }
+                    });
+                });
+            }
+            var saveCredBtn = document.getElementById('saveCredentialBtn');
+            if (saveCredBtn) {
+                saveCredBtn.addEventListener('click', function() {
+                    var type = document.getElementById('credentialType');
+                    var expiry = document.getElementById('credentialExpiry');
+                    if (!type || !type.value) { document.getElementById('credStatusMsg').textContent = 'Please select a credential type.'; return; }
+                    db.collection('credentials').add({
+                        caregiverId: caregiverId,
+                        type: type.value,
+                        expiry: expiry ? expiry.value : '',
+                        documentUrl: credDocUrl || '',
+                        status: 'pending',
+                        createdAt: firebase.firestore.FieldValue.serverTimestamp()
+                    }).then(function() {
+                        document.getElementById('credStatusMsg').textContent = 'Credential submitted for review!';
+                        credDocUrl = '';
+                        if (document.getElementById('credentialFileName')) document.getElementById('credentialFileName').textContent = '';
+                        if (expiry) expiry.value = '';
+                        // Reload table
+                        FirebaseServices.credentials.getByCaregiver(caregiverId).then(function(snap) {
+                            if (credTabBody) {
+                                if (snap.empty) { credTabBody.innerHTML = '<tr><td colspan="4" style="text-align:center;padding:30px;color:#6B7280;">No credentials on file.</td></tr>'; return; }
+                                credTabBody.innerHTML = '';
+                                snap.forEach(function(doc) {
+                                    var c = doc.data();
+                                    var sc = c.status === 'active' || c.status === 'cleared' ? 'active' : 'pending';
+                                    credTabBody.innerHTML += '<tr><td>' + escapeHtml(c.type) + '</td><td><span class="status-badge ' + sc + '">' + (c.status.charAt(0).toUpperCase() + c.status.slice(1)) + '</span></td><td>' + escapeHtml(c.expiry || '--') + '</td><td>' + (c.documentUrl ? '<a href="' + c.documentUrl + '" target="_blank" style="color:#081B3A;font-weight:700;">View</a>' : '--') + '</td></tr>';
+                                });
+                            }
+                        });
+                        // Also refresh dashboard table
+                        FirebaseServices.credentials.getByCaregiver(caregiverId).then(function(snap) {
+                            var dt = document.getElementById('cgCredentialsTable');
+                            if (dt) {
+                                if (snap.empty) { dt.innerHTML = '<tr><td colspan="4" style="text-align:center;padding:30px;color:#6B7280;">No credentials on file.</td></tr>'; return; }
+                                dt.innerHTML = '';
+                                snap.forEach(function(doc) {
+                                    var c = doc.data();
+                                    var sc = c.status === 'active' || c.status === 'cleared' ? 'active' : 'pending';
+                                    dt.innerHTML += '<tr><td>' + escapeHtml(c.type) + '</td><td><span class="status-badge ' + sc + '">' + (c.status.charAt(0).toUpperCase() + c.status.slice(1)) + '</span></td><td>' + escapeHtml(c.expiry || '--') + '</td><td><a href="' + (c.documentUrl || '#') + '" style="color:#081B3A;font-weight:700;">View</a></td></tr>';
+                                });
+                            }
+                        });
+                    }).catch(function() {
+                        document.getElementById('credStatusMsg').textContent = 'Error saving credential.';
+                    });
+                });
+            }
+        }
+        
+        // Messages tab: load messages
+        var msgList = document.getElementById('cgMessagesList');
+        if (msgList) {
+            db.collection('messages').where('toUserId', '==', caregiverId).orderBy('createdAt', 'desc').onSnapshot(function(snap) {
+                if (snap.empty) {
+                    msgList.innerHTML = '<div style="text-align:center; padding:40px; color:#6B7280;"><i class="fas fa-inbox" style="font-size:36px;color:#D4A33A;margin-bottom:12px;display:block;"></i><p>No messages yet.</p></div>';
+                    return;
+                }
+                var html = '<div class="messages-list">';
+                snap.forEach(function(doc) {
+                    var m = doc.data();
+                    var cls = m.read ? 'cg-message-item read' : 'cg-message-item unread';
+                    html += '<div class="' + cls + '" data-msg-id="' + doc.id + '">\
+                        <div class="cg-msg-header"><strong>' + escapeHtml(m.fromName || m.from || 'System') + '</strong> <span class="cg-msg-date">' + FirebaseServices.formatDate(m.createdAt) + '</span></div>\
+                        <div class="cg-msg-subject">' + escapeHtml(m.subject || '(no subject)') + '</div>\
+                        <div class="cg-msg-body">' + escapeHtml(m.message || '') + '</div>\
+                    </div>';
+                });
+                html += '</div>';
+                msgList.innerHTML = html;
+                
+                // Mark as read on click
+                msgList.querySelectorAll('.cg-message-item.unread').forEach(function(el) {
+                    el.addEventListener('click', function() {
+                        var id = this.getAttribute('data-msg-id');
+                        if (id) db.collection('messages').doc(id).update({ read: true });
+                        this.classList.remove('unread');
+                        this.classList.add('read');
+                    });
+                });
+            }, function(err) {
+                msgList.innerHTML = '<div style="text-align:center; padding:40px; color:#DC2626;"><p>Unable to load messages.</p></div>';
+            });
+        }
+        
+        // Shifts tab: load available shifts into cgShiftsTabTable
+        var shiftsTabBody = document.getElementById('cgShiftsTabTable');
+        if (shiftsTabBody) {
+            FirebaseServices.shifts.getAvailable().then(function(snap) {
+                if (snap.empty) {
+                    shiftsTabBody.innerHTML = '<tr><td colspan="6" style="text-align:center; padding:30px; color:#6B7280;">No available shifts at this time.</td></tr>';
+                    return;
+                }
+                shiftsTabBody.innerHTML = '';
+                snap.forEach(function(doc) {
+                    var s = doc.data();
+                    shiftsTabBody.innerHTML += '<tr>\
+                        <td><strong>' + escapeHtml(s.clientName) + '</strong></td>\
+                        <td>' + FirebaseServices.formatDate(s.date) + '</td>\
+                        <td>' + escapeHtml(s.startTime) + ' - ' + escapeHtml(s.endTime) + '</td>\
+                        <td>' + escapeHtml(s.type) + '</td>\
+                        <td>' + escapeHtml(s.rate) + '</td>\
+                        <td><button class="btn btn-gold accept-shift-tab-btn" data-shift-id="' + doc.id + '" style="padding:8px 16px;font-size:13px;">Accept</button></td>\
+                    </tr>';
+                });
+                shiftsTabBody.querySelectorAll('.accept-shift-tab-btn').forEach(function(btn) {
+                    btn.addEventListener('click', function() {
+                        var shiftId = this.getAttribute('data-shift-id');
+                        FirebaseServices.shifts.accept(shiftId, caregiverId).then(function() {
+                            showNotification('Shift accepted!', 'success');
+                            // Re-run both the dashboard and shifts tab load
+                            loadCaregiverDashboard(caregiverId);
+                        }).catch(function(err) {
+                            showNotification('Error accepting shift.', 'error');
+                        });
+                    });
+                });
+            }).catch(function() {
+                shiftsTabBody.innerHTML = '<tr><td colspan="6" style="text-align:center; padding:30px; color:#DC2626;">Error loading shifts.</td></tr>';
+            });
+        }
+        
+        // Unread count badge update
+        var unreadEl = document.getElementById('cgUnreadMsgs');
+        if (unreadEl) {
+            FirebaseServices.messages.getUnreadCount(caregiverId).then(function(count) {
+                unreadEl.textContent = count;
+            }).catch(function() { unreadEl.textContent = '0'; });
+        }
     }
     
     // ==========================================
@@ -4479,6 +5109,7 @@ document.addEventListener('DOMContentLoaded', function() {
         if (el) el.textContent = value || '0';
     }
     
+
     // ==========================================
     // LOAD WEBSITE CONTENT FROM FIRESTORE
     // ==========================================
