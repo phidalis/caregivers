@@ -556,6 +556,9 @@ const FirebaseServices = {
         countUnread: async () => {
             const snapshot = await db.collection('contactMessages').where('read', '==', false).get();
             return snapshot.size;
+        },
+        update: async (id, data) => {
+            await db.collection('contactMessages').doc(id).update(data);
         }
     },
 

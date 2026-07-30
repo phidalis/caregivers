@@ -25,11 +25,8 @@
         </div>
         <nav class="sidebar-nav">
             <a href="#" class="active" data-tab="dashboard"><i class="fas fa-th-large"></i> Dashboard</a>
-            <a href="#" data-tab="families"><i class="fas fa-users"></i> Families</a>
-            <a href="#" data-tab="providers"><i class="fas fa-hospital"></i> Providers</a>
-            <a href="#" data-tab="caregivers"><i class="fas fa-user-nurse"></i> Caregivers</a>
-            <a href="#" data-tab="communities"><i class="fas fa-building"></i> Communities</a>
-            <a href="#" data-tab="servicerequests"><i class="fas fa-file-invoice"></i> Service Requests</a>
+            <a href="#" data-tab="users"><i class="fas fa-users"></i> Users</a>
+            <a href="#" data-tab="servicerequests"><i class="fas fa-file-invoice"></i> Care Requests</a>
             <a href="#" data-tab="referrals"><i class="fas fa-link"></i> Referrals</a>
             <a href="#" data-tab="appointments"><i class="fas fa-calendar-alt"></i> Appointments</a>
             <a href="#" data-tab="resources"><i class="fas fa-newspaper"></i> Resources</a>
@@ -40,7 +37,6 @@
             <a href="#" data-tab="media"><i class="fas fa-photo-film"></i> Media Library</a>
             <a href="#" data-tab="content"><i class="fas fa-globe"></i> Website Content</a>
             <a href="#" data-tab="settings"><i class="fas fa-gear"></i> Settings</a>
-            <a href="#" data-tab="admins"><i class="fas fa-user-shield"></i> Admins</a>
             <a href="login.html" class="sidebar-logout"><i class="fas fa-sign-out-alt"></i> Logout</a>
         </nav>
     </aside>
@@ -183,15 +179,23 @@
             </div>
         </div>
 
-        <!-- ==================== FAMILIES TAB ==================== -->
-        <div class="portal-tab" id="tab-families">
+        <!-- ==================== USERS TAB ==================== -->
+        <div class="portal-tab" id="tab-users">
             <div class="admin-tab-header">
-                <div><h2 class="admin-tab-title">Families</h2><p class="admin-tab-subtitle">Manage family member accounts.</p></div>
+                <div><h2 class="admin-tab-title">Users</h2><p class="admin-tab-subtitle">Manage all user accounts.</p></div>
             </div>
-            <div class="admin-search-bar">
-                <input type="text" id="familiesSearch" placeholder="Search families by name or email..." class="admin-search-input">
+            <div class="admin-filter-bar" id="usersSubNav">
+                <button class="admin-filter-btn active" data-users-subtab="families">Families</button>
+                <button class="admin-filter-btn" data-users-subtab="caregivers">Caregivers</button>
+                <button class="admin-filter-btn" data-users-subtab="admins">Admins</button>
             </div>
-            <div class="table-responsive">
+
+            <!-- Families sub-tab -->
+            <div class="users-subtab" id="subtab-families">
+                <div class="admin-search-bar">
+                    <input type="text" id="familiesSearch" placeholder="Search families by name or email..." class="admin-search-input">
+                </div>
+                <div class="table-responsive">
 <table class="admin-table" id="familiesTable">
                 <thead><tr><th>Name</th><th>Email</th><th>Phone</th><th>Caregiver</th><th>Joined</th><th>Status</th><th>Actions</th></tr></thead>
                 <tbody id="familiesTableBody">
@@ -199,62 +203,14 @@
                 </tbody>
             </table>
 </div>
-        </div>
-
-        <!-- ==================== PROVIDERS TAB ==================== -->
-        <div class="portal-tab" id="tab-providers">
-            <div class="admin-tab-header">
-                <div><h2 class="admin-tab-title">Providers</h2><p class="admin-tab-subtitle">Manage healthcare provider accounts.</p></div>
-                <button class="btn btn-gold" id="addProviderBtn"><i class="fas fa-plus"></i> Add Provider</button>
             </div>
-            <div class="admin-search-bar">
-                <input type="text" id="providersSearch" placeholder="Search providers by facility name or email..." class="admin-search-input">
-            </div>
-            <div class="table-responsive">
-<table class="admin-table" id="providersTable">
-                <thead><tr><th>Facility</th><th>Contact</th><th>Email</th><th>Phone</th><th>Joined</th><th>Status</th><th>Actions</th></tr></thead>
-                <tbody id="providersTableBody">
-                    <tr><td colspan="7" class="admin-loading">Loading providers...</td></tr>
-                </tbody>
-            </table>
-</div>
 
-            <div class="admin-modal" id="providerCreateModal">
-                <div class="admin-modal-content">
-                    <div class="admin-modal-header">
-                        <h3>Create Provider Account</h3>
-                        <button class="admin-modal-close">&times;</button>
-                    </div>
-                    <form id="providerCreateForm">
-                        <div class="admin-form-grid">
-                            <div class="form-group"><label>First Name *</label><input type="text" name="firstName" required></div>
-                            <div class="form-group"><label>Last Name *</label><input type="text" name="lastName" required></div>
-                            <div class="form-group"><label>Email *</label><input type="email" name="email" required></div>
-                            <div class="form-group"><label>Phone</label><input type="tel" name="phone"></div>
-                            <div class="form-group"><label>Password *</label><input type="password" name="password" required minlength="6"></div>
-                            <div class="form-group"><label>Facility Name</label><input type="text" name="facilityName"></div>
-                            <div class="form-group"><label>City</label><input type="text" name="city"></div>
-                            <div class="form-group"><label>State</label><input type="text" name="state"></div>
-                        </div>
-                        <div class="admin-modal-actions">
-                            <button type="button" class="btn btn-outline admin-modal-close-btn">Cancel</button>
-                            <button type="submit" class="btn btn-gold"><i class="fas fa-plus"></i> Create Provider</button>
-                        </div>
-                    </form>
+            <!-- Caregivers sub-tab -->
+            <div class="users-subtab" id="subtab-caregivers" style="display:none;">
+                <div class="admin-search-bar">
+                    <input type="text" id="caregiversSearch" placeholder="Search caregivers by name or email..." class="admin-search-input">
                 </div>
-            </div>
-        </div>
-
-        <!-- ==================== CAREGIVERS TAB ==================== -->
-        <div class="portal-tab" id="tab-caregivers">
-            <div class="admin-tab-header">
-                <div><h2 class="admin-tab-title">Caregivers</h2><p class="admin-tab-subtitle">Manage private caregiver accounts.</p></div>
-                <button class="btn btn-gold" id="addCaregiverBtn"><i class="fas fa-plus"></i> Add Caregiver</button>
-            </div>
-            <div class="admin-search-bar">
-                <input type="text" id="caregiversSearch" placeholder="Search caregivers by name or email..." class="admin-search-input">
-            </div>
-            <div class="table-responsive">
+                <div class="table-responsive">
 <table class="admin-table" id="caregiversTable">
                 <thead><tr><th>Name</th><th>Email</th><th>Phone</th><th>Availability</th><th>Joined</th><th>Status</th><th>Actions</th></tr></thead>
                 <tbody id="caregiversTableBody">
@@ -262,111 +218,60 @@
                 </tbody>
             </table>
 </div>
+            </div>
 
-            <div class="admin-modal" id="caregiverCreateModal">
-                <div class="admin-modal-content">
-                    <div class="admin-modal-header">
-                        <h3>Create Caregiver Account</h3>
-                        <button class="admin-modal-close">&times;</button>
-                    </div>
-                    <form id="caregiverCreateForm">
-                        <div class="admin-form-grid">
-                            <div class="form-group"><label>First Name *</label><input type="text" name="firstName" required></div>
-                            <div class="form-group"><label>Last Name *</label><input type="text" name="lastName" required></div>
-                            <div class="form-group"><label>Email *</label><input type="email" name="email" required></div>
-                            <div class="form-group"><label>Phone</label><input type="tel" name="phone"></div>
-                            <div class="form-group"><label>Password *</label><input type="password" name="password" required minlength="6"></div>
-                        </div>
-                        <div class="admin-modal-actions">
-                            <button type="button" class="btn btn-outline admin-modal-close-btn">Cancel</button>
-                            <button type="submit" class="btn btn-gold"><i class="fas fa-plus"></i> Create Caregiver</button>
-                        </div>
-                    </form>
+            <!-- Admins sub-tab -->
+            <div class="users-subtab" id="subtab-admins" style="display:none;">
+                <div class="admin-tab-header">
+                    <div></div>
+                    <button class="btn btn-gold" id="addAdminBtn"><i class="fas fa-plus"></i> Add Admin</button>
                 </div>
-            </div>
-        </div>
-
-        <!-- ==================== COMMUNITIES TAB ==================== -->
-        <div class="portal-tab" id="tab-communities">
-            <div class="admin-tab-header">
-                <div><h2 class="admin-tab-title">Communities</h2><p class="admin-tab-subtitle">Manage senior living communities and facilities.</p></div>
-                <button class="btn btn-gold" id="addCommunityBtn"><i class="fas fa-plus"></i> Add Community</button>
-            </div>
-            <div class="admin-search-bar">
-                <input type="text" id="communitiesSearch" placeholder="Search communities by name or city..." class="admin-search-input">
-            </div>
-            <div class="table-responsive">
-<table class="admin-table" id="communitiesTable">
-                <thead><tr><th>Community</th><th>City</th><th>Care Types</th><th>From</th><th>Vacancies</th><th>Status</th><th>Actions</th></tr></thead>
-                <tbody id="communitiesTableBody">
-                    <tr><td colspan="7" class="admin-loading">Loading communities...</td></tr>
+                <div class="table-responsive">
+<table class="admin-table" id="adminsTable">
+                <thead><tr><th>Name</th><th>Email</th><th>Role</th><th>Added</th><th>Status</th><th>Actions</th></tr></thead>
+                <tbody id="adminsTableBody">
+                    <tr><td colspan="6" class="admin-loading">Loading admins...</td></tr>
                 </tbody>
             </table>
 </div>
 
-            <div class="admin-modal" id="communityModal">
-                <div class="admin-modal-content admin-modal-lg">
-                    <div class="admin-modal-header">
-                        <h3 id="communityModalTitle">Add Community</h3>
-                        <button class="admin-modal-close">&times;</button>
+                <div class="admin-modal" id="adminModal">
+                    <div class="admin-modal-content">
+                        <div class="admin-modal-header">
+                            <h3>Admin Details</h3>
+                            <button class="admin-modal-close">&times;</button>
+                        </div>
+                        <form id="adminForm">
+                            <div class="form-group"><label>User ID</label><input type="text" name="uid" id="adminFormUid" required></div>
+                            <div class="form-group"><label>Role</label><select name="role"><option value="admin">Admin</option><option value="super-admin">Super Admin</option></select></div>
+                            <div class="admin-modal-actions">
+                                <button type="button" class="btn btn-outline admin-modal-close-btn">Cancel</button>
+                                <button type="submit" class="btn btn-gold">Save</button>
+                            </div>
+                        </form>
                     </div>
-                    <form id="communityForm">
-                        <div class="admin-form-grid">
-                            <div class="form-group"><label>Facility Name *</label><input type="text" name="facilityName" required></div>
-                            <div class="form-group"><label>Facility Type</label><select name="facilityType"><option value="">Select type</option><option>Assisted Living</option><option>Memory Care</option><option>Nursing Home</option><option>Independent Living</option><option>Continuing Care</option></select></div>
-                            <div class="form-group" style="grid-column: 1 / -1;"><label>Link to Provider (optional)</label><select name="providerId" id="communityProviderSelect"><option value="">-- No provider linked --</option></select></div>
-                            <div class="form-group"><label>Address</label><input type="text" name="address"></div>
-                            <div class="form-group"><label>City *</label><input type="text" name="city" required></div>
-                            <div class="form-group"><label>State *</label><input type="text" name="state" required></div>
-                            <div class="form-group"><label>ZIP</label><input type="text" name="zip"></div>
-                            <div class="form-group"><label>Phone</label><input type="tel" name="phone"></div>
-                            <div class="form-group"><label>Email</label><input type="email" name="email"></div>
-                            <div class="form-group"><label>Website</label><input type="url" name="website"></div>
-                            <div class="form-group"><label>Starting Price ($/mo)</label><input type="number" name="pricingFrom"></div>
-                            <div class="form-group"><label>Max Price ($/mo)</label><input type="number" name="pricingTo"></div>
-                            <div class="form-group"><label>Total Beds</label><input type="number" name="totalBeds"></div>
-                            <div class="form-group"><label>Available Vacancies</label><input type="number" name="vacancies"></div>
-                            <div class="form-group"><label>Care Types</label><select name="careTypes" multiple><option>Assisted Living</option><option>Memory Care</option><option>Skilled Nursing</option><option>Independent Living</option><option>Respite Care</option><option>Hospice</option></select></div>
-                        </div>
-                        <div class="admin-form-checks">
-                            <label class="admin-check"><input type="checkbox" name="petFriendly"> Pet Friendly</label>
-                            <label class="admin-check"><input type="checkbox" name="privateRooms"> Private Rooms</label>
-                            <label class="admin-check"><input type="checkbox" name="vaBenefits"> VA Benefits</label>
-                            <label class="admin-check"><input type="checkbox" name="memoryCare"> Memory Care</label>
-                        </div>
-                        <div class="form-group"><label>Description</label><textarea name="description" rows="4"></textarea></div>
-                        <input type="hidden" name="communityId" value="">
-                        <div class="admin-modal-actions">
-                            <button type="button" class="btn btn-outline admin-modal-close-btn">Cancel</button>
-                            <button type="submit" class="btn btn-gold">Save Community</button>
-                        </div>
-                    </form>
                 </div>
             </div>
         </div>
-
-        <!-- ==================== SERVICE REQUESTS TAB ==================== -->
+        <!-- ==================== CARE REQUESTS TAB ==================== -->
         <div class="portal-tab" id="tab-servicerequests">
             <div class="admin-tab-header">
-                <div><h2 class="admin-tab-title">Service Requests</h2><p class="admin-tab-subtitle">Review info requests from the Services page and allocate to providers.</p></div>
+                <div><h2 class="admin-tab-title">Care Requests</h2><p class="admin-tab-subtitle">Review incoming requests from the Find Care form. Find facilities offline and reach out to clients.</p></div>
             </div>
             <div class="table-responsive">
 <table class="admin-table" id="serviceRequestsTable">
-                <thead><tr><th>Name</th><th>Email</th><th>Phone</th><th>Care Type</th><th>Provider</th><th>Date</th><th>Status</th><th>Actions</th></tr></thead>
+                <thead><tr><th>Name</th><th>Email</th><th>Phone</th><th>State</th><th>City</th><th>Care Type</th><th>Family Group</th><th>Date</th><th>Actions</th></tr></thead>
                 <tbody id="serviceRequestsTableBody">
-                    <tr><td colspan="8" class="admin-loading">Loading service requests...</td></tr>
+                    <tr><td colspan="9" class="admin-loading">Loading care requests...</td></tr>
                 </tbody>
             </table>
 </div>
 
-            <!-- SERVICE REQUEST DETAIL / ALLOCATE MODAL -->
+            <!-- CARE REQUEST DETAIL MODAL -->
             <div class="admin-modal admin-modal-fullscreen" id="srDetailModal">
                 <div class="admin-modal-content">
                     <div class="admin-modal-header">
-                        <div class="admin-modal-header-info">
-                            <h3>Service Request Details</h3>
-                            <span class="status-badge" id="srDetailStatusBadge">--</span>
-                        </div>
+                        <h3>Care Request Details</h3>
                         <button class="admin-modal-close">&times;</button>
                     </div>
                     <div class="admin-modal-body">
@@ -382,23 +287,24 @@
                                     </div>
                                 </div>
                                 <div class="request-detail-section">
-                                    <h4><i class="fas fa-notes-medical"></i> Request Details</h4>
+                                    <h4><i class="fas fa-notes-medical"></i> Care Details</h4>
                                     <div class="request-detail-fields">
                                         <div class="request-detail-field"><label>Care Type</label><span id="srDetailCareType">--</span></div>
+                                        <div class="request-detail-field"><label>Care Is For</label><span id="srDetailFamilyGroup">--</span></div>
+                                        <div class="request-detail-field"><label>Add-on Services</label><span id="srDetailAddons">--</span></div>
+                                        <div class="request-detail-field"><label>State</label><span id="srDetailState">--</span></div>
+                                        <div class="request-detail-field"><label>City</label><span id="srDetailCity">--</span></div>
                                         <div class="request-detail-field full-width"><label>Notes</label><span id="srDetailNotes">--</span></div>
                                     </div>
                                 </div>
                             </div>
                             <div>
                                 <div class="request-allocate-panel">
-                                    <h4><i class="fas fa-share-square"></i> Allocate to Provider</h4>
-                                    <div class="request-current-provider" id="srDetailCurrentProvider"><i class="fas fa-circle-info"></i> Not yet allocated</div>
-                                    <div class="form-group">
-                                        <label>Select Provider</label>
-                                        <select id="srDetailProviderSelect"><option value="">-- Choose a provider --</option></select>
+                                    <h4><i class="fas fa-check-circle"></i> Status</h4>
+                                    <div class="request-current-provider" id="srDetailCurrentProvider"><i class="fas fa-circle-info"></i> <span id="srDetailStatusBadge" class="status-badge">new</span></div>
+                                    <div class="admin-form-checks" style="margin-top:12px;">
+                                        <label class="admin-check"><input type="checkbox" id="srDetailReviewed"> Mark as Reviewed</label>
                                     </div>
-                                    <button type="button" class="btn btn-gold btn-full" id="srDetailAllocateBtn" style="width:100%; margin-top:10px;"><i class="fas fa-paper-plane"></i> Allocate Request</button>
-                                    <div class="request-timeline" id="srDetailTimelineSteps"></div>
                                 </div>
                             </div>
                         </div>
@@ -694,39 +600,6 @@
                         <label class="admin-check"><input type="checkbox" id="settingRegistration" checked> Public Registration</label>
                     </div>
                     <button class="btn btn-gold" id="savePlatformSettings"><i class="fas fa-save"></i> Save Settings</button>
-                </div>
-            </div>
-        </div>
-
-        <!-- ==================== ADMINS TAB ==================== -->
-        <div class="portal-tab" id="tab-admins">
-            <div class="admin-tab-header">
-                <div><h2 class="admin-tab-title">Admins</h2><p class="admin-tab-subtitle">Manage administrator accounts.</p></div>
-                <button class="btn btn-gold" id="addAdminBtn"><i class="fas fa-plus"></i> Add Admin</button>
-            </div>
-            <div class="table-responsive">
-<table class="admin-table" id="adminsTable">
-                <thead><tr><th>Name</th><th>Email</th><th>Role</th><th>Added</th><th>Status</th><th>Actions</th></tr></thead>
-                <tbody id="adminsTableBody">
-                    <tr><td colspan="6" class="admin-loading">Loading admins...</td></tr>
-                </tbody>
-            </table>
-</div>
-
-            <div class="admin-modal" id="adminModal">
-                <div class="admin-modal-content">
-                    <div class="admin-modal-header">
-                        <h3>Admin Details</h3>
-                        <button class="admin-modal-close">&times;</button>
-                    </div>
-                    <form id="adminForm">
-                        <div class="form-group"><label>User ID</label><input type="text" name="uid" id="adminFormUid" required></div>
-                        <div class="form-group"><label>Role</label><select name="role"><option value="admin">Admin</option><option value="super-admin">Super Admin</option></select></div>
-                        <div class="admin-modal-actions">
-                            <button type="button" class="btn btn-outline admin-modal-close-btn">Cancel</button>
-                            <button type="submit" class="btn btn-gold">Save</button>
-                        </div>
-                    </form>
                 </div>
             </div>
         </div>

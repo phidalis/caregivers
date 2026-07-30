@@ -322,63 +322,7 @@ document.addEventListener('DOMContentLoaded', function() {
         });
     }
     
-    // Service Request Info buttons
-    var srModal = document.getElementById('serviceRequestModal');
-    var srForm = document.getElementById('serviceRequestForm');
-    var srCareType = document.getElementById('srCareType');
-    var srConfirm = document.getElementById('serviceRequestConfirm');
 
-    document.querySelectorAll('.request-info-btn').forEach(function(btn) {
-        btn.addEventListener('click', function() {
-            var careType = this.getAttribute('data-care-type');
-            if (srCareType) srCareType.value = careType;
-            if (srForm) srForm.style.display = '';
-            if (srConfirm) srConfirm.style.display = 'none';
-            if (srForm) srForm.reset();
-            if (srCareType) srCareType.value = careType;
-            if (srModal) srModal.classList.add('active');
-        });
-    });
-
-    if (srForm) {
-        srForm.addEventListener('submit', function(e) {
-            e.preventDefault();
-            if (!validateForm(srForm)) return;
-
-            var fd = new FormData(srForm);
-            var data = {};
-            fd.forEach(function(val, key) { data[key] = val; });
-            data.source = 'service_page_request';
-            data.status = 'new';
-
-            var btn = srForm.querySelector('button[type="submit"]');
-            var origText = btn.innerHTML;
-            btn.disabled = true;
-            btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Submitting...';
-
-            FirebaseServices.contactMessages.create(data).then(function() {
-                srForm.style.display = 'none';
-                if (srConfirm) srConfirm.style.display = '';
-                btn.disabled = false;
-                btn.innerHTML = origText;
-            }).catch(function(err) {
-                showNotification('Error submitting request. Please try again.', 'error');
-                btn.disabled = false;
-                btn.innerHTML = origText;
-            });
-        });
-    }
-
-    document.querySelectorAll('.service-modal-close').forEach(function(el) {
-        el.addEventListener('click', function() {
-            if (srModal) srModal.classList.remove('active');
-        });
-    });
-    if (srModal) {
-        srModal.addEventListener('click', function(e) {
-            if (e.target === srModal) srModal.classList.remove('active');
-        });
-    }
 
     // Contact Form
     var contactForm = document.getElementById('contactForm');
@@ -706,397 +650,129 @@ document.addEventListener('DOMContentLoaded', function() {
     }
     
     // ------------------------------------------
-    // COMMUNITY SEARCH (TASK 1)
+    // FIND CARE FORM (State/City dropdown logic)
     // ------------------------------------------
-    
-    var familySearchForm = document.getElementById('familySearchForm');
-    if (familySearchForm) {
-        var searchRowsPerPage = 10;
-        var searchCurrentPage = 1;
-        var searchLastColumnTier = null;
-        var allSearchResults = [];
-        
-        // State -> Cities lookup, used to populate the City filter based on the
-        // selected State so families only see cities that actually apply.
-        var US_STATE_CITIES = {
-            'Alabama': ['Birmingham', 'Montgomery', 'Huntsville', 'Mobile', 'Tuscaloosa', 'Hoover', 'Dothan', 'Auburn', 'Decatur', 'Madison'],
-            'Alaska': ['Anchorage', 'Fairbanks', 'Juneau', 'Sitka', 'Ketchikan', 'Wasilla', 'Kenai', 'Kodiak'],
-            'Arizona': ['Phoenix', 'Tucson', 'Mesa', 'Chandler', 'Scottsdale', 'Glendale', 'Gilbert', 'Tempe', 'Peoria', 'Surprise'],
-            'Arkansas': ['Little Rock', 'Fort Smith', 'Fayetteville', 'Springdale', 'Jonesboro', 'Rogers', 'Conway', 'North Little Rock', 'Bentonville'],
-            'California': ['Los Angeles', 'San Diego', 'San Jose', 'San Francisco', 'Fresno', 'Sacramento', 'Long Beach', 'Oakland', 'Bakersfield', 'Anaheim', 'Santa Ana', 'Riverside', 'Irvine'],
-            'Colorado': ['Denver', 'Colorado Springs', 'Aurora', 'Fort Collins', 'Lakewood', 'Thornton', 'Arvada', 'Westminster', 'Pueblo', 'Boulder'],
-            'Connecticut': ['Bridgeport', 'New Haven', 'Stamford', 'Hartford', 'Waterbury', 'Norwalk', 'Danbury', 'New Britain', 'Greenwich'],
-            'Delaware': ['Wilmington', 'Dover', 'Newark', 'Middletown', 'Smyrna', 'Milford'],
-            'Florida': ['Jacksonville', 'Miami', 'Tampa', 'Orlando', 'St. Petersburg', 'Hialeah', 'Tallahassee', 'Port St. Lucie', 'Cape Coral', 'Fort Lauderdale', 'Pembroke Pines'],
-            'Georgia': ['Atlanta', 'Augusta', 'Columbus', 'Macon', 'Savannah', 'Athens', 'Sandy Springs', 'Roswell', 'Albany'],
-            'Hawaii': ['Honolulu', 'Hilo', 'Kailua', 'Kapolei', 'Pearl City', 'Waipahu', 'Kaneohe'],
-            'Idaho': ['Boise', 'Meridian', 'Nampa', 'Idaho Falls', 'Pocatello', 'Caldwell', "Coeur d'Alene", 'Twin Falls'],
-            'Illinois': ['Chicago', 'Aurora', 'Naperville', 'Joliet', 'Rockford', 'Springfield', 'Elgin', 'Peoria', 'Champaign', 'Waukegan'],
-            'Indiana': ['Indianapolis', 'Fort Wayne', 'Evansville', 'South Bend', 'Carmel', 'Fishers', 'Bloomington', 'Hammond', 'Gary'],
-            'Iowa': ['Des Moines', 'Cedar Rapids', 'Davenport', 'Sioux City', 'Iowa City', 'Waterloo', 'Ames', 'Council Bluffs'],
-            'Kansas': ['Wichita', 'Overland Park', 'Kansas City', 'Topeka', 'Olathe', 'Lawrence', 'Shawnee', 'Manhattan'],
-            'Kentucky': ['Louisville', 'Lexington', 'Bowling Green', 'Owensboro', 'Covington', 'Richmond', 'Florence'],
-            'Louisiana': ['New Orleans', 'Baton Rouge', 'Shreveport', 'Lafayette', 'Lake Charles', 'Kenner', 'Bossier City', 'Monroe'],
-            'Maine': ['Portland', 'Lewiston', 'Bangor', 'South Portland', 'Auburn', 'Biddeford'],
-            'Maryland': ['Baltimore', 'Columbia', 'Germantown', 'Silver Spring', 'Waldorf', 'Frederick', 'Rockville', 'Bethesda', 'Gaithersburg', 'Annapolis'],
-            'Massachusetts': ['Boston', 'Worcester', 'Springfield', 'Cambridge', 'Lowell', 'Brockton', 'New Bedford', 'Quincy', 'Lynn'],
-            'Michigan': ['Detroit', 'Grand Rapids', 'Warren', 'Sterling Heights', 'Ann Arbor', 'Lansing', 'Flint', 'Dearborn', 'Livonia'],
-            'Minnesota': ['Minneapolis', 'St. Paul', 'Rochester', 'Duluth', 'Bloomington', 'Brooklyn Park', 'Plymouth', 'St. Cloud'],
-            'Mississippi': ['Jackson', 'Gulfport', 'Southaven', 'Hattiesburg', 'Biloxi', 'Meridian', 'Tupelo'],
-            'Missouri': ['Kansas City', 'St. Louis', 'Springfield', 'Columbia', 'Independence', "Lee's Summit", "O'Fallon", 'St. Joseph'],
-            'Montana': ['Billings', 'Missoula', 'Great Falls', 'Bozeman', 'Butte', 'Helena', 'Kalispell'],
-            'Nebraska': ['Omaha', 'Lincoln', 'Bellevue', 'Grand Island', 'Kearney', 'Fremont'],
-            'Nevada': ['Las Vegas', 'Henderson', 'Reno', 'North Las Vegas', 'Sparks', 'Carson City'],
-            'New Hampshire': ['Manchester', 'Nashua', 'Concord', 'Dover', 'Rochester', 'Keene'],
-            'New Jersey': ['Newark', 'Jersey City', 'Paterson', 'Elizabeth', 'Edison', 'Trenton', 'Clifton', 'Camden', 'Cherry Hill'],
-            'New Mexico': ['Albuquerque', 'Las Cruces', 'Rio Rancho', 'Santa Fe', 'Roswell', 'Farmington'],
-            'New York': ['New York City', 'Buffalo', 'Rochester', 'Yonkers', 'Syracuse', 'Albany', 'New Rochelle', 'Schenectady', 'Utica', 'White Plains'],
-            'North Carolina': ['Charlotte', 'Raleigh', 'Greensboro', 'Durham', 'Winston-Salem', 'Fayetteville', 'Cary', 'Wilmington', 'High Point', 'Asheville'],
-            'North Dakota': ['Fargo', 'Bismarck', 'Grand Forks', 'Minot', 'West Fargo'],
-            'Ohio': ['Columbus', 'Cleveland', 'Cincinnati', 'Toledo', 'Akron', 'Dayton', 'Parma', 'Canton', 'Youngstown'],
-            'Oklahoma': ['Oklahoma City', 'Tulsa', 'Norman', 'Broken Arrow', 'Edmond', 'Lawton', 'Moore'],
-            'Oregon': ['Portland', 'Eugene', 'Salem', 'Gresham', 'Hillsboro', 'Beaverton', 'Bend', 'Medford'],
-            'Pennsylvania': ['Philadelphia', 'Pittsburgh', 'Allentown', 'Erie', 'Reading', 'Scranton', 'Bethlehem', 'Lancaster', 'Harrisburg'],
-            'Rhode Island': ['Providence', 'Warwick', 'Cranston', 'Pawtucket', 'East Providence', 'Woonsocket'],
-            'South Carolina': ['Columbia', 'Charleston', 'North Charleston', 'Mount Pleasant', 'Rock Hill', 'Greenville', 'Summerville'],
-            'South Dakota': ['Sioux Falls', 'Rapid City', 'Aberdeen', 'Brookings', 'Watertown'],
-            'Tennessee': ['Nashville', 'Memphis', 'Knoxville', 'Chattanooga', 'Clarksville', 'Murfreesboro', 'Franklin'],
-            'Texas': ['Houston', 'San Antonio', 'Dallas', 'Austin', 'Fort Worth', 'El Paso', 'Arlington', 'Corpus Christi', 'Plano', 'Irving'],
-            'Utah': ['Salt Lake City', 'West Valley City', 'Provo', 'West Jordan', 'Orem', 'Sandy', 'Ogden', 'St. George'],
-            'Vermont': ['Burlington', 'South Burlington', 'Rutland', 'Essex', 'Montpelier'],
-            'Virginia': ['Virginia Beach', 'Norfolk', 'Chesapeake', 'Richmond', 'Newport News', 'Alexandria', 'Hampton', 'Roanoke', 'Arlington'],
-            'Washington': ['Seattle', 'Spokane', 'Tacoma', 'Vancouver', 'Bellevue', 'Kent', 'Everett', 'Renton', 'Spokane Valley', 'Kirkland'],
-            'West Virginia': ['Charleston', 'Huntington', 'Morgantown', 'Parkersburg', 'Wheeling'],
-            'Wisconsin': ['Milwaukee', 'Madison', 'Green Bay', 'Kenosha', 'Racine', 'Appleton', 'Waukesha'],
-            'Wyoming': ['Cheyenne', 'Casper', 'Laramie', 'Gillette', 'Rock Springs']
-        };
-        
-        var filterStateSelect = document.getElementById('filterState');
-        var filterCitySelect = document.getElementById('filterCity');
-        
-        function populateCitiesForState(stateName) {
-            if (!filterCitySelect) return;
-            var cities = US_STATE_CITIES[stateName] || [];
-            filterCitySelect.innerHTML = '<option>Select City</option>';
-            cities.forEach(function(city) {
-                filterCitySelect.innerHTML += '<option>' + city + '</option>';
-            });
-        }
-        
-        if (filterStateSelect) {
-            filterStateSelect.addEventListener('change', function() {
-                populateCitiesForState(this.value);
-            });
-        }
-        
-        function getSearchColumns() {
-            return window.innerWidth > 1024 ? 3 : 2;
-        }
-        
-        function getSearchItemsPerPage() {
-            return searchRowsPerPage * getSearchColumns();
-        }
-        
-        var searchResizeTimer = null;
-        window.addEventListener('resize', function() {
-            clearTimeout(searchResizeTimer);
-            searchResizeTimer = setTimeout(function() {
-                var tier = getSearchColumns();
-                if (tier !== searchLastColumnTier && allSearchResults.length > 0) {
-                    searchCurrentPage = 1;
-                    renderSearchResults();
-                }
-            }, 250);
+
+    var fcState = document.getElementById('fcState');
+    var fcCity = document.getElementById('fcCity');
+    var fcForm = document.getElementById('findCareForm');
+
+    var US_STATE_CITIES = {
+        'Alabama': ['Birmingham', 'Montgomery', 'Huntsville', 'Mobile', 'Tuscaloosa', 'Hoover', 'Dothan', 'Auburn', 'Decatur', 'Madison'],
+        'Alaska': ['Anchorage', 'Fairbanks', 'Juneau', 'Sitka', 'Ketchikan', 'Wasilla', 'Kenai', 'Kodiak'],
+        'Arizona': ['Phoenix', 'Tucson', 'Mesa', 'Chandler', 'Scottsdale', 'Glendale', 'Gilbert', 'Tempe', 'Peoria', 'Surprise'],
+        'Arkansas': ['Little Rock', 'Fort Smith', 'Fayetteville', 'Springdale', 'Jonesboro', 'Rogers', 'Conway', 'North Little Rock', 'Bentonville'],
+        'California': ['Los Angeles', 'San Diego', 'San Jose', 'San Francisco', 'Fresno', 'Sacramento', 'Long Beach', 'Oakland', 'Bakersfield', 'Anaheim', 'Santa Ana', 'Riverside', 'Irvine'],
+        'Colorado': ['Denver', 'Colorado Springs', 'Aurora', 'Fort Collins', 'Lakewood', 'Thornton', 'Arvada', 'Westminster', 'Pueblo', 'Boulder'],
+        'Connecticut': ['Bridgeport', 'New Haven', 'Stamford', 'Hartford', 'Waterbury', 'Norwalk', 'Danbury', 'New Britain', 'Greenwich'],
+        'Delaware': ['Wilmington', 'Dover', 'Newark', 'Middletown', 'Smyrna', 'Milford'],
+        'Florida': ['Jacksonville', 'Miami', 'Tampa', 'Orlando', 'St. Petersburg', 'Hialeah', 'Tallahassee', 'Port St. Lucie', 'Cape Coral', 'Fort Lauderdale', 'Pembroke Pines'],
+        'Georgia': ['Atlanta', 'Augusta', 'Columbus', 'Macon', 'Savannah', 'Athens', 'Sandy Springs', 'Roswell', 'Albany'],
+        'Hawaii': ['Honolulu', 'Hilo', 'Kailua', 'Kapolei', 'Pearl City', 'Waipahu', 'Kaneohe'],
+        'Idaho': ['Boise', 'Meridian', 'Nampa', 'Idaho Falls', 'Pocatello', 'Caldwell', "Coeur d'Alene", 'Twin Falls'],
+        'Illinois': ['Chicago', 'Aurora', 'Naperville', 'Joliet', 'Rockford', 'Springfield', 'Elgin', 'Peoria', 'Champaign', 'Waukegan'],
+        'Indiana': ['Indianapolis', 'Fort Wayne', 'Evansville', 'South Bend', 'Carmel', 'Fishers', 'Bloomington', 'Hammond', 'Gary'],
+        'Iowa': ['Des Moines', 'Cedar Rapids', 'Davenport', 'Sioux City', 'Iowa City', 'Waterloo', 'Ames', 'Council Bluffs'],
+        'Kansas': ['Wichita', 'Overland Park', 'Kansas City', 'Topeka', 'Olathe', 'Lawrence', 'Shawnee', 'Manhattan'],
+        'Kentucky': ['Louisville', 'Lexington', 'Bowling Green', 'Owensboro', 'Covington', 'Richmond', 'Florence'],
+        'Louisiana': ['New Orleans', 'Baton Rouge', 'Shreveport', 'Lafayette', 'Lake Charles', 'Kenner', 'Bossier City', 'Monroe'],
+        'Maine': ['Portland', 'Lewiston', 'Bangor', 'South Portland', 'Auburn', 'Biddeford'],
+        'Maryland': ['Baltimore', 'Columbia', 'Germantown', 'Silver Spring', 'Waldorf', 'Frederick', 'Rockville', 'Bethesda', 'Gaithersburg', 'Annapolis'],
+        'Massachusetts': ['Boston', 'Worcester', 'Springfield', 'Cambridge', 'Lowell', 'Brockton', 'New Bedford', 'Quincy', 'Lynn'],
+        'Michigan': ['Detroit', 'Grand Rapids', 'Warren', 'Sterling Heights', 'Ann Arbor', 'Lansing', 'Flint', 'Dearborn', 'Livonia'],
+        'Minnesota': ['Minneapolis', 'St. Paul', 'Rochester', 'Duluth', 'Bloomington', 'Brooklyn Park', 'Plymouth', 'St. Cloud'],
+        'Mississippi': ['Jackson', 'Gulfport', 'Southaven', 'Hattiesburg', 'Biloxi', 'Meridian', 'Tupelo'],
+        'Missouri': ['Kansas City', 'St. Louis', 'Springfield', 'Columbia', 'Independence', "Lee's Summit", "O'Fallon", 'St. Joseph'],
+        'Montana': ['Billings', 'Missoula', 'Great Falls', 'Bozeman', 'Butte', 'Helena', 'Kalispell'],
+        'Nebraska': ['Omaha', 'Lincoln', 'Bellevue', 'Grand Island', 'Kearney', 'Fremont'],
+        'Nevada': ['Las Vegas', 'Henderson', 'Reno', 'North Las Vegas', 'Sparks', 'Carson City'],
+        'New Hampshire': ['Manchester', 'Nashua', 'Concord', 'Dover', 'Rochester', 'Keene'],
+        'New Jersey': ['Newark', 'Jersey City', 'Paterson', 'Elizabeth', 'Edison', 'Trenton', 'Clifton', 'Camden', 'Cherry Hill'],
+        'New Mexico': ['Albuquerque', 'Las Cruces', 'Rio Rancho', 'Santa Fe', 'Roswell', 'Farmington'],
+        'New York': ['New York City', 'Buffalo', 'Rochester', 'Yonkers', 'Syracuse', 'Albany', 'New Rochelle', 'Schenectady', 'Utica', 'White Plains'],
+        'North Carolina': ['Charlotte', 'Raleigh', 'Greensboro', 'Durham', 'Winston-Salem', 'Fayetteville', 'Cary', 'Wilmington', 'High Point', 'Asheville'],
+        'North Dakota': ['Fargo', 'Bismarck', 'Grand Forks', 'Minot', 'West Fargo'],
+        'Ohio': ['Columbus', 'Cleveland', 'Cincinnati', 'Toledo', 'Akron', 'Dayton', 'Parma', 'Canton', 'Youngstown'],
+        'Oklahoma': ['Oklahoma City', 'Tulsa', 'Norman', 'Broken Arrow', 'Edmond', 'Lawton', 'Moore'],
+        'Oregon': ['Portland', 'Eugene', 'Salem', 'Gresham', 'Hillsboro', 'Beaverton', 'Bend', 'Medford'],
+        'Pennsylvania': ['Philadelphia', 'Pittsburgh', 'Allentown', 'Erie', 'Reading', 'Scranton', 'Bethlehem', 'Lancaster', 'Harrisburg'],
+        'Rhode Island': ['Providence', 'Warwick', 'Cranston', 'Pawtucket', 'East Providence', 'Woonsocket'],
+        'South Carolina': ['Columbia', 'Charleston', 'North Charleston', 'Mount Pleasant', 'Rock Hill', 'Greenville', 'Summerville'],
+        'South Dakota': ['Sioux Falls', 'Rapid City', 'Aberdeen', 'Brookings', 'Watertown'],
+        'Tennessee': ['Nashville', 'Memphis', 'Knoxville', 'Chattanooga', 'Clarksville', 'Murfreesboro', 'Franklin'],
+        'Texas': ['Houston', 'San Antonio', 'Dallas', 'Austin', 'Fort Worth', 'El Paso', 'Arlington', 'Corpus Christi', 'Plano', 'Irving'],
+        'Utah': ['Salt Lake City', 'West Valley City', 'Provo', 'West Jordan', 'Orem', 'Sandy', 'Ogden', 'St. George'],
+        'Vermont': ['Burlington', 'South Burlington', 'Rutland', 'Essex', 'Montpelier'],
+        'Virginia': ['Virginia Beach', 'Norfolk', 'Chesapeake', 'Richmond', 'Newport News', 'Alexandria', 'Hampton', 'Roanoke', 'Arlington'],
+        'Washington': ['Seattle', 'Spokane', 'Tacoma', 'Vancouver', 'Bellevue', 'Kent', 'Everett', 'Renton', 'Spokane Valley', 'Kirkland'],
+        'West Virginia': ['Charleston', 'Huntington', 'Morgantown', 'Parkersburg', 'Wheeling'],
+        'Wisconsin': ['Milwaukee', 'Madison', 'Green Bay', 'Kenosha', 'Racine', 'Appleton', 'Waukesha'],
+        'Wyoming': ['Cheyenne', 'Casper', 'Laramie', 'Gillette', 'Rock Springs']
+    };
+
+    function populateFcCities(stateName) {
+        if (!fcCity) return;
+        var cities = US_STATE_CITIES[stateName] || [];
+        fcCity.innerHTML = '<option value="">Select City</option>';
+        cities.forEach(function(city) {
+            fcCity.innerHTML += '<option value="' + city + '">' + city + '</option>';
         });
-        
-        familySearchForm.addEventListener('submit', function(e) {
+    }
+
+    if (fcState) {
+        fcState.addEventListener('change', function() {
+            populateFcCities(this.value);
+        });
+    }
+
+    if (fcForm) {
+        fcForm.addEventListener('submit', function(e) {
             e.preventDefault();
-            searchCurrentPage = 1;
-            performCommunitySearch();
-        });
-        
-        // Auto-load all communities on page load
-        performCommunitySearch();
-        
-        function performCommunitySearch() {
-            var searchCard = familySearchForm.closest('.search-card');
-            var resultsContainer = document.getElementById('searchResults');
-            
-            if (!resultsContainer) {
-                resultsContainer = document.createElement('div');
-                resultsContainer.id = 'searchResults';
-                resultsContainer.className = 'search-results-container';
-                if (searchCard) {
-                    searchCard.parentNode.insertBefore(resultsContainer, searchCard.nextSibling);
-                } else {
-                    var section = familySearchForm.closest('.section');
-                    if (section) section.appendChild(resultsContainer);
-                }
-            }
-            
-            resultsContainer.innerHTML = '<div class="search-loading">' +
-                '<div class="search-skeleton-card"><div class="skeleton-line title"></div><div class="skeleton-line short"></div><div class="skeleton-line medium"></div><div class="skeleton-line"></div></div>' +
-                '<div class="search-skeleton-card"><div class="skeleton-line title"></div><div class="skeleton-line short"></div><div class="skeleton-line medium"></div><div class="skeleton-line"></div></div>' +
-                '<div class="search-skeleton-card"><div class="skeleton-line title"></div><div class="skeleton-line short"></div><div class="skeleton-line medium"></div><div class="skeleton-line"></div></div>' +
-                '</div>';
-            
-            var selects = familySearchForm.querySelectorAll('.filter-group select');
-            var stateVal = selects[0] ? selects[0].value : '';
-            var cityVal = selects[1] ? selects[1].value : '';
-            var careTypeVal = selects[2] ? selects[2].value : '';
-            
-            var advancedFilters = familySearchForm.querySelector('.advanced-filters');
-            var advCheckboxes = advancedFilters ? advancedFilters.querySelectorAll('input[type="checkbox"]') : [];
-            var wantsMemoryCare = advCheckboxes[0] ? advCheckboxes[0].checked : false;
-            var wantsPetFriendly = advCheckboxes[1] ? advCheckboxes[1].checked : false;
-            var wantsPrivateRoom = advCheckboxes[2] ? advCheckboxes[2].checked : false;
-            var wantsVA = advCheckboxes[3] ? advCheckboxes[3].checked : false;
-            
-            db.collection('facilities').get().then(function(snap) {
-                allSearchResults = [];
-                
-                snap.forEach(function(doc) {
-                    var f = doc.data();
-                    f.id = doc.id;
-                    
-                    if (stateVal && stateVal !== 'Select State' && f.state && f.state !== stateVal) return;
-                    if (cityVal && cityVal !== 'Select City' && f.city && f.city !== cityVal) return;
-                    
-                    if (careTypeVal && careTypeVal !== 'Select Care Type') {
-                        var types = f.careTypes || [];
-                        if (types.indexOf(careTypeVal) === -1) return;
-                    }
-                    
-                    if (wantsMemoryCare && !f.memoryCare) return;
-                    if (wantsPetFriendly && !f.petFriendly) return;
-                    if (wantsPrivateRoom && !f.privateRooms) return;
-                    if (wantsVA && !f.vaBenefits) return;
-                    
-                    allSearchResults.push(f);
-                });
-                
-                renderSearchResults();
+            if (!validateForm(fcForm)) return;
+
+            var state = document.getElementById('fcState').value;
+            var city = document.getElementById('fcCity').value;
+            var careType = document.getElementById('fcCareType').value;
+            var name = document.getElementById('fcName').value.trim();
+            var email = document.getElementById('fcEmail').value.trim();
+            var phone = document.getElementById('fcPhone').value.trim();
+            var familyGroup = document.getElementById('fcFamilyGroup').value;
+            var notes = document.getElementById('fcNotes').value.trim();
+
+            var addonCheckboxes = fcForm.querySelectorAll('input[name="addons"]:checked');
+            var addons = [];
+            addonCheckboxes.forEach(function(cb) { addons.push(cb.value); });
+
+            var data = {
+                state: state,
+                city: city,
+                careType: careType,
+                name: name,
+                email: email,
+                phone: phone,
+                familyGroup: familyGroup,
+                addons: addons,
+                notes: notes,
+                source: 'find_care_form',
+                status: 'new'
+            };
+
+            var btn = fcForm.querySelector('button[type="submit"]');
+            var origText = btn.innerHTML;
+            btn.disabled = true;
+            btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Submitting...';
+
+            FirebaseServices.contactMessages.create(data).then(function() {
+                fcForm.style.display = 'none';
+                document.getElementById('findCareConfirm').style.display = '';
+                btn.disabled = false;
+                btn.innerHTML = origText;
             }).catch(function(err) {
-                console.error('Search error:', err);
-                resultsContainer.innerHTML = '<div class="search-empty"><i class="fas fa-exclamation-triangle"></i><h4>Search Unavailable</h4><p>We couldn\'t load communities right now. Please try again or call us at (341) 618-9792.</p></div>';
+                showNotification('Error submitting request. Please try again.', 'error');
+                btn.disabled = false;
+                btn.innerHTML = origText;
             });
-        }
-        
-        function renderSearchResults() {
-            var resultsContainer = document.getElementById('searchResults');
-            if (!resultsContainer) return;
-            
-            if (allSearchResults.length === 0) {
-                resultsContainer.innerHTML = '<div class="search-empty"><i class="fas fa-building"></i><h4>No Facilities Found</h4><p>Try adjusting your filters or <a href="#careRequestForm" style="color: #D4A33A; font-weight: 700;">request a personalized recommendation</a>.</p></div>' +
-                    '<div class="search-results-grid"><div class="search-result-card caregiver-cta-card">' +
-                    '<div class="caregiver-cta-icon"><i class="fas fa-hands-holding-heart"></i></div>' +
-                    '<div class="search-result-name">Looking for an In-Home Caregiver?</div>' +
-                    '<p class="search-result-desc">We\'ll match you with a background-checked, credentialed caregiver based on your family\'s needs.</p>' +
-                    '<a href="caregiver-services.html" class="btn btn-gold" style="width:100%;margin-top:8px;padding:8px;font-size:13px;"><i class="fas fa-user-nurse"></i> Request a Caregiver</a>' +
-                    '</div></div>';
-                return;
-            }
-            
-            var itemsPerPage = getSearchItemsPerPage();
-            searchLastColumnTier = getSearchColumns();
-            var totalPages = Math.max(1, Math.ceil(allSearchResults.length / itemsPerPage));
-            if (searchCurrentPage > totalPages) searchCurrentPage = totalPages;
-            var startIdx = (searchCurrentPage - 1) * itemsPerPage;
-            var endIdx = Math.min(startIdx + itemsPerPage, allSearchResults.length);
-            
-            var html = '<div class="search-results-header"><h4>All Facilities</h4><span class="search-results-count">Showing ' + (startIdx + 1) + '-' + endIdx + ' of ' + allSearchResults.length + '</span></div>';
-            html += '<div class="search-results-grid">';
-            
-            if (searchCurrentPage === 1) {
-                html += '<div class="search-result-card caregiver-cta-card">' +
-                    '<div class="caregiver-cta-icon"><i class="fas fa-hands-holding-heart"></i></div>' +
-                    '<div class="search-result-name">Looking for an In-Home Caregiver?</div>' +
-                    '<p class="search-result-desc">We\'ll match you with a background-checked, credentialed caregiver based on your family\'s needs.</p>' +
-                    '<a href="caregiver-services.html" class="btn btn-gold" style="width:100%;margin-top:8px;padding:8px;font-size:13px;"><i class="fas fa-user-nurse"></i> Request a Caregiver</a>' +
-                    '</div>';
-            }
-            
-            for (var i = startIdx; i < endIdx; i++) {
-                var f = allSearchResults[i];
-                var types = f.careTypes || [];
-                var typesHtml = '';
-                for (var t = 0; t < types.length && t < 3; t++) {
-                    typesHtml += '<span class="search-result-type-tag">' + escapeHtml(types[t]) + '</span>';
-                }
-                
-                var priceStr = f.pricingFrom ? FirebaseServices.formatCurrency(f.pricingFrom) + '<span>/mo</span>' : 'Contact for pricing';
-                var vacancyHtml = '';
-                if (f.vacancies > 0) {
-                    vacancyHtml = '<span class="search-result-vacancy available"><i class="fas fa-circle-check"></i>' + f.vacancies + ' available</span>';
-                } else {
-                    vacancyHtml = '<span class="search-result-vacancy"><i class="fas fa-clock"></i>Waitlist</span>';
-                }
-                
-                var userRole = getCurrentUserRole && getCurrentUserRole();
-                var saveBtnHtml = '';
-                if (userRole === 'family' && auth.currentUser) {
-                    saveBtnHtml = '<button class="search-save-btn" data-facility-id="' + f.id + '" data-facility-name="' + escapeHtml(f.facilityName || '') + '" data-city="' + escapeHtml(f.city || '') + '" data-state="' + escapeHtml(f.state || '') + '" data-care-types="' + escapeHtml((f.careTypes || []).join(',')) + '" data-price="' + (f.pricingFrom || '') + '"><i class="far fa-heart"></i></button>';
-                }
-                var isPartner = f.activePartner !== false;
-                var partnerBadge = isPartner ? '<span class="search-result-partner-badge"><i class="fas fa-handshake"></i> Partner</span>' : '';
-                var partnerDesc = isPartner && f.description ? '<p class="search-result-desc">' + escapeHtml(f.description.substring(0, 100)) + '</p>' : '';
-                var partnerReqBtn = isPartner ? '<button class="btn btn-gold partner-request-btn" data-partner="' + escapeHtml(f.facilityName || '') + '" data-partner-id="' + escapeHtml(f.providerId || '') + '" data-facility-id="' + escapeHtml(f.id || '') + '" data-care-types="' + escapeHtml((f.careTypes || []).join(', ')) + '" data-city="' + escapeHtml(f.city || '') + '" data-state="' + escapeHtml(f.state || '') + '" style="width:100%;margin-top:8px;padding:8px;font-size:13px;"><i class="fas fa-paper-plane"></i> Request Info</button>' : '';
-                html += '<div class="search-result-card' + (isPartner ? ' partner-card' : '') + '">' +
-                    saveBtnHtml +
-                    partnerBadge +
-                    '<div class="search-result-name">' + escapeHtml(f.facilityName || 'Community') + '</div>' +
-                    '<div class="search-result-location"><i class="fas fa-location-dot"></i> ' + escapeHtml(f.city || '') + (f.state ? ', ' + escapeHtml(f.state) : '') + '</div>' +
-                    '<div class="search-result-types">' + typesHtml + '</div>' +
-                    partnerDesc +
-                    '<div class="search-result-meta"><span class="search-result-price">' + priceStr + '</span>' + vacancyHtml + '</div>' +
-                    partnerReqBtn +
-                    '</div>';
-            }
-            
-            html += '</div>';
-            
-            if (totalPages > 1) {
-                html += '<div class="search-pagination">' +
-                    '<button class="search-page-btn" id="searchPrevPage"' + (searchCurrentPage === 1 ? ' disabled' : '') + '><i class="fas fa-chevron-left"></i> Prev</button>' +
-                    '<span class="search-page-info">Page ' + searchCurrentPage + ' of ' + totalPages + '</span>' +
-                    '<button class="search-page-btn" id="searchNextPage"' + (searchCurrentPage === totalPages ? ' disabled' : '') + '>Next <i class="fas fa-chevron-right"></i></button>' +
-                    '</div>';
-            }
-            
-            html += '<div style="text-align: center; margin-top: 24px;"><a href="#careRequestForm" class="btn btn-gold"><i class="fas fa-paper-plane"></i> Request a Personalized Recommendation</a></div>';
-            
-            resultsContainer.innerHTML = html;
-            
-            var prevPageBtn = document.getElementById('searchPrevPage');
-            if (prevPageBtn) {
-                prevPageBtn.addEventListener('click', function() {
-                    if (searchCurrentPage > 1) {
-                        searchCurrentPage--;
-                        renderSearchResults();
-                        resultsContainer.scrollIntoView({ behavior: 'smooth', block: 'start' });
-                    }
-                });
-            }
-            
-            var nextPageBtn = document.getElementById('searchNextPage');
-            if (nextPageBtn) {
-                nextPageBtn.addEventListener('click', function() {
-                    var pages = Math.max(1, Math.ceil(allSearchResults.length / getSearchItemsPerPage()));
-                    if (searchCurrentPage < pages) {
-                        searchCurrentPage++;
-                        renderSearchResults();
-                        resultsContainer.scrollIntoView({ behavior: 'smooth', block: 'start' });
-                    }
-                });
-            }
-            
-            // Partner request info buttons
-            // These create a proper referral (careRequests doc) so it shows up in
-            // Admin > Referrals for allocation, and in the provider's portal once
-            // allocated - same pipeline as the main "Request a Recommendation" form.
-            resultsContainer.querySelectorAll('.partner-request-btn').forEach(function(btn) {
-                btn.addEventListener('click', function() {
-                    var partnerName = btn.getAttribute('data-partner');
-                    var partnerId = btn.getAttribute('data-partner-id');
-                    var facilityId = btn.getAttribute('data-facility-id');
-                    var careTypes = btn.getAttribute('data-care-types');
-                    var city = btn.getAttribute('data-city');
-                    var state = btn.getAttribute('data-state');
-
-                    if (!auth.currentUser) {
-                        showNotification('Please log in or sign up as a family to request info.', 'success');
-                        setTimeout(function() { window.location.href = 'login.html'; }, 2000);
-                        return;
-                    }
-
-                    btn.disabled = true;
-                    var origBtnHtml = btn.innerHTML;
-                    btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Sending...';
-
-                    // Pull the family's saved name/phone if we have them, so the
-                    // referral in admin/provider views isn't just an email address.
-                    db.collection('users').doc(auth.currentUser.uid).get().then(function(userDoc) {
-                        var u = userDoc.exists ? userDoc.data() : {};
-                        var familyName = u.name || ((u.firstName || '') + ' ' + (u.lastName || '')).trim() || auth.currentUser.displayName || auth.currentUser.email;
-
-                        var data = {
-                            familyName: familyName,
-                            userId: auth.currentUser.uid,
-                            email: auth.currentUser.email,
-                            phone: u.phone || '',
-                            careType: careTypes || '',
-                            location: [city, state].filter(Boolean).join(', '),
-                            notes: 'Requested info on ' + partnerName + ' via search results.',
-                            source: 'partner_request_info',
-                            facilityId: facilityId || '',
-                            createdAt: firebase.firestore.FieldValue.serverTimestamp()
-                        };
-
-                        // We already know which partner they want info from, so
-                        // pre-allocate it to that provider instead of leaving it
-                        // in an "unassigned" queue for admin to guess at. Admin
-                        // can still reassign it from the Referrals tab if needed.
-                        if (partnerId) {
-                            data.providerId = partnerId;
-                            data.providerName = partnerName;
-                            data.status = 'assigned';
-                        } else {
-                            data.status = 'new';
-                        }
-
-                        return FirebaseServices.careRequests.create(data);
-                    }).then(function() {
-                        showNotification('Your request has been sent to ' + partnerName + '. An advisor will follow up.', 'success');
-                        btn.innerHTML = '<i class="fas fa-check"></i> Requested';
-                    }).catch(function(err) {
-                        showNotification('Error sending request. Please try again.', 'error');
-                        btn.disabled = false;
-                        btn.innerHTML = origBtnHtml;
-                    });
-                });
-            });
-            
-            // Save/unsave community buttons
-            resultsContainer.querySelectorAll('.search-save-btn').forEach(function(btn) {
-                var facilityId = btn.getAttribute('data-facility-id');
-                if (!facilityId) return;
-                db.collection('savedCommunities').where('familyId', '==', auth.currentUser ? auth.currentUser.uid : 'none').where('facilityId', '==', facilityId).get().then(function(snap) {
-                    if (!snap.empty) {
-                        btn.classList.add('saved');
-                        btn.querySelector('i').className = 'fas fa-heart';
-                        btn.setAttribute('data-saved-id', snap.docs[0].id);
-                    }
-                }).catch(function() {});
-                btn.addEventListener('click', function(e) {
-                    e.stopPropagation();
-                    var savedId = btn.getAttribute('data-saved-id');
-                    if (savedId) {
-                        db.collection('savedCommunities').doc(savedId).delete().then(function() {
-                            btn.classList.remove('saved');
-                            btn.querySelector('i').className = 'far fa-heart';
-                            btn.removeAttribute('data-saved-id');
-                            showNotification('Community removed from saved.', 'success');
-                        }).catch(function() { showNotification('Error removing.', 'error'); });
-                    } else {
-                        db.collection('savedCommunities').add({
-                            familyId: auth.currentUser.uid,
-                            facilityId: btn.getAttribute('data-facility-id'),
-                            communityName: btn.getAttribute('data-facility-name'),
-                            location: (btn.getAttribute('data-city') || '') + (btn.getAttribute('data-state') ? ', ' + btn.getAttribute('data-state') : ''),
-                            careType: btn.getAttribute('data-care-types'),
-                            monthlyCost: parseInt(btn.getAttribute('data-price')) || 0,
-                            status: 'active',
-                            createdAt: firebase.firestore.FieldValue.serverTimestamp()
-                        }).then(function(docRef) {
-                            btn.classList.add('saved');
-                            btn.querySelector('i').className = 'fas fa-heart';
-                            btn.setAttribute('data-saved-id', docRef.id);
-                            showNotification('Community saved!', 'success');
-                        }).catch(function() { showNotification('Error saving.', 'error'); });
-                    }
-                });
-            });
-        }
+        });
     }
     
     // ------------------------------------------
@@ -1983,11 +1659,8 @@ document.addEventListener('DOMContentLoaded', function() {
     
     function loadAdminTab(tabId) {
         switch(tabId) {
-            case 'families': loadAdminFamilies(); break;
-            case 'providers': loadAdminProviders(); break;
-            case 'caregivers': loadAdminCaregivers(); break;
-            case 'communities': loadAdminCommunities(); break;
-            case 'servicerequests': loadAdminServiceRequests(); break;
+            case 'users': loadAdminUsers(); break;
+            case 'servicerequests': loadAdminCareRequests(); break;
             case 'referrals': loadAdminReferrals(); break;
             case 'appointments': loadAdminAppointments(); break;
             case 'resources': loadAdminResources(); break;
@@ -1998,7 +1671,74 @@ document.addEventListener('DOMContentLoaded', function() {
             case 'media': loadAdminMedia(); break;
             case 'content': loadAdminContent(); break;
             case 'settings': loadAdminSettings(); break;
-            case 'admins': loadAdminAdmins(); break;
+        }
+    }
+
+    function loadAdminCaregivers() {
+        var tbody = document.getElementById('caregiversTableBody');
+        if (!tbody) return;
+
+        FirebaseServices.users.getByRole('caregiver').then(function(snap) {
+            if (snap.empty) {
+                tbody.innerHTML = '<tr><td colspan="7" style="text-align:center; padding:30px; color:#6B7280;">No caregiver accounts found.</td></tr>';
+                return;
+            }
+            tbody.innerHTML = '';
+            snap.forEach(function(doc) {
+                var u = doc.data();
+                var dateStr = FirebaseServices.formatTimestamp(u.createdAt);
+                var status = u.active !== false ? 'active' : 'pending';
+                var statusLabel = u.active !== false ? 'Active' : 'Inactive';
+                tbody.innerHTML += '<tr>\
+                    <td><strong>' + escapeHtml(u.name || u.firstName + ' ' + (u.lastName || '')) + '</strong></td>\
+                    <td>' + escapeHtml(u.email || '') + '</td>\
+                    <td>' + escapeHtml(u.phone || '--') + '</td>\
+                    <td>' + escapeHtml(u.availability || 'Flexible') + '</td>\
+                    <td>' + dateStr + '</td>\
+                    <td><span class="status-badge ' + status + '">' + statusLabel + '</span></td>\
+                    <td><div class="admin-action-btns">\
+                        <button class="admin-action-btn view" onclick="adminViewUser(\'' + doc.id + '\')"><i class="fas fa-eye"></i></button>\
+                        <button class="admin-action-btn edit" onclick="adminToggleUserActive(\'' + doc.id + '\', ' + (u.active !== false) + ')"><i class="fas fa-power-off"></i></button>\
+                        <button class="admin-action-btn edit" onclick="adminChangeUserRole(\'' + doc.id + '\', \'' + (u.role || 'caregiver') + '\')" title="Change Role"><i class="fas fa-user-tag"></i></button>\
+                    </div></td>\
+                </tr>';
+            });
+        }).catch(function(err) {
+            tbody.innerHTML = '<tr><td colspan="7" style="text-align:center; padding:30px; color:#DC2626;">Error loading caregivers.</td></tr>';
+        });
+
+        var searchEl = document.getElementById('caregiversSearch');
+        if (searchEl) {
+            searchEl.oninput = function() {
+                var filter = this.value.toLowerCase();
+                tbody.querySelectorAll('tr').forEach(function(row) {
+                    row.style.display = row.textContent.toLowerCase().indexOf(filter) > -1 ? '' : 'none';
+                });
+            };
+        }
+    }
+
+    function loadAdminUsers() {
+        loadAdminFamilies();
+        if (!window._usersSubTabInitialized) {
+            window._usersSubTabInitialized = true;
+            var subNav = document.getElementById('usersSubNav');
+            if (!subNav) return;
+            subNav.querySelectorAll('[data-users-subtab]').forEach(function(btn) {
+                btn.addEventListener('click', function() {
+                    subNav.querySelectorAll('[data-users-subtab]').forEach(function(b) { b.classList.remove('active'); });
+                    this.classList.add('active');
+                    var subtab = this.getAttribute('data-users-subtab');
+                    document.querySelectorAll('.users-subtab').forEach(function(el) { el.style.display = 'none'; });
+                    var target = document.getElementById('subtab-' + subtab);
+                    if (target) {
+                        target.style.display = '';
+                        if (subtab === 'families') loadAdminFamilies();
+                        else if (subtab === 'caregivers') loadAdminCaregivers();
+                        else if (subtab === 'admins') loadAdminAdmins();
+                    }
+                });
+            });
         }
     }
     
@@ -2135,354 +1875,22 @@ document.addEventListener('DOMContentLoaded', function() {
         });
     }
     
-    // --- PROVIDERS ---
-    function loadAdminProviders() {
-        var tbody = document.getElementById('providersTableBody');
-        if (!tbody) return;
-        
-        FirebaseServices.users.getByRole('provider').then(function(snap) {
-            if (snap.empty) {
-                tbody.innerHTML = '<tr><td colspan="7" style="text-align:center; padding:30px; color:#6B7280;">No provider accounts found.</td></tr>';
-                return;
-            }
-            tbody.innerHTML = '';
-            snap.forEach(function(doc) {
-                var u = doc.data();
-                var dateStr = FirebaseServices.formatTimestamp(u.createdAt);
-                var status = u.active !== false ? 'active' : 'pending';
-                var statusLabel = u.active !== false ? 'Active' : 'Inactive';
-                tbody.innerHTML += '<tr>\
-                    <td><strong>' + escapeHtml(u.facilityName || '--') + '</strong></td>\
-                    <td>' + escapeHtml(u.name || u.firstName + ' ' + (u.lastName || '')) + '</td>\
-                    <td>' + escapeHtml(u.email || '') + '</td>\
-                    <td>' + escapeHtml(u.phone || '--') + '</td>\
-                    <td>' + dateStr + '</td>\
-                    <td><span class="status-badge ' + status + '">' + statusLabel + '</span></td>\
-                    <td><div class="admin-action-btns">\
-                        <button class="admin-action-btn view" onclick="adminViewUser(\'' + doc.id + '\')"><i class="fas fa-eye"></i></button>\
-                        <button class="admin-action-btn edit" onclick="adminToggleUserActive(\'' + doc.id + '\', ' + (u.active !== false) + ')"><i class="fas fa-power-off"></i></button>\
-                        <button class="admin-action-btn edit" onclick="adminChangeUserRole(\'' + doc.id + '\', \'' + (u.role || 'provider') + '\')" title="Change Role"><i class="fas fa-user-tag"></i></button>\
-                    </div></td>\
-                </tr>';
-            });
-        }).catch(function(err) {
-            tbody.innerHTML = '<tr><td colspan="7" style="text-align:center; padding:30px; color:#DC2626;">Error loading providers.</td></tr>';
-        });
-        
-        var searchEl = document.getElementById('providersSearch');
-        if (searchEl) {
-            searchEl.oninput = function() {
-                var filter = this.value.toLowerCase();
-                tbody.querySelectorAll('tr').forEach(function(row) {
-                    row.style.display = row.textContent.toLowerCase().indexOf(filter) > -1 ? '' : 'none';
-                });
-            };
-        }
-        
-        var addBtn = document.getElementById('addProviderBtn');
-        if (addBtn) {
-            addBtn.onclick = function() {
-                document.getElementById('providerCreateForm').reset();
-                document.getElementById('providerCreateModal').classList.add('active');
-            };
-        }
-        
-        var providerCreateForm = document.getElementById('providerCreateForm');
-        if (providerCreateForm) {
-            providerCreateForm.onsubmit = function(e) {
-                e.preventDefault();
-                var fd = new FormData(this);
-                var data = {};
-                fd.forEach(function(val, key) { data[key] = val; });
-                data.role = 'provider';
-                
-                var btn = this.querySelector('button[type="submit"]');
-                btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Creating...';
-                btn.disabled = true;
-                
-                var adminCreds = JSON.parse(sessionStorage.getItem('adminCreds') || 'null');
-                if (!adminCreds || !adminCreds.email || !adminCreds.password) {
-                    var pw = prompt('To create this account, re-enter your admin password:');
-                    if (!pw) {
-                        btn.innerHTML = '<i class="fas fa-plus"></i> Create Provider';
-                        btn.disabled = false;
-                        return;
-                    }
-                    adminCreds = { email: auth.currentUser.email, password: pw };
-                    sessionStorage.setItem('adminCreds', JSON.stringify(adminCreds));
-                }
-                
-                FirebaseServices.users.adminCreateUser(data.email, data.password, data).then(function(newUid) {
-                    showNotification('Provider account created successfully.', 'success');
-                    document.getElementById('providerCreateModal').classList.remove('active');
-                    btn.innerHTML = '<i class="fas fa-plus"></i> Create Provider';
-                    btn.disabled = false;
-                    
-                    // Auto-approve pending application if one was loaded
-                    if (window._pendingApproveId) {
-                        FirebaseServices.applications.updateStatus(window._pendingApproveId, 'approved').catch(function(err) {
-                            console.error('Error approving application:', err);
-                        });
-                        window._pendingApproveId = null;
-                    }
-                    
-                    // Create linked facility if facilityName provided
-                    if (data.facilityName) {
-                        FirebaseServices.facilities.create({
-                            facilityName: data.facilityName,
-                            providerId: newUid,
-                            providerName: data.firstName + ' ' + (data.lastName || ''),
-                            city: data.city || '',
-                            state: data.state || '',
-                            status: 'active'
-                        }).catch(function(err) {
-                            console.error('Error creating linked facility:', err);
-                        });
-                    }
-                    
-                    return auth.signInWithEmailAndPassword(adminCreds.email, adminCreds.password);
-                }).then(function() {
-                    loadAdminProviders();
-                }).catch(function(err) {
-                    console.error('Error creating provider:', err);
-                    showNotification('Error: ' + err.message, 'error');
-                    btn.innerHTML = '<i class="fas fa-plus"></i> Create Provider';
-                    btn.disabled = false;
-                    sessionStorage.removeItem('adminCreds');
-                });
-            };
-        }
-        
-        initModalClose('providerCreateModal');
-    }
+
     
     // --- CAREGIVERS ---
-    function loadAdminCaregivers() {
-        var tbody = document.getElementById('caregiversTableBody');
-        if (!tbody) return;
-        
-        FirebaseServices.users.getByRole('caregiver').then(function(snap) {
-            if (snap.empty) {
-                tbody.innerHTML = '<tr><td colspan="7" style="text-align:center; padding:30px; color:#6B7280;">No caregiver accounts found.</td></tr>';
-                return;
-            }
-            tbody.innerHTML = '';
-            snap.forEach(function(doc) {
-                var u = doc.data();
-                var dateStr = FirebaseServices.formatTimestamp(u.createdAt);
-                var status = u.active !== false ? 'active' : 'pending';
-                var statusLabel = u.active !== false ? 'Active' : 'Inactive';
-                tbody.innerHTML += '<tr>\
-                    <td><strong>' + escapeHtml(u.name || u.firstName + ' ' + (u.lastName || '')) + '</strong></td>\
-                    <td>' + escapeHtml(u.email || '') + '</td>\
-                    <td>' + escapeHtml(u.phone || '--') + '</td>\
-                    <td>' + escapeHtml(u.availability || 'Flexible') + '</td>\
-                    <td>' + dateStr + '</td>\
-                    <td><span class="status-badge ' + status + '">' + statusLabel + '</span></td>\
-                    <td><div class="admin-action-btns">\
-                        <button class="admin-action-btn view" onclick="adminViewUser(\'' + doc.id + '\')"><i class="fas fa-eye"></i></button>\
-                        <button class="admin-action-btn edit" onclick="adminToggleUserActive(\'' + doc.id + '\', ' + (u.active !== false) + ')"><i class="fas fa-power-off"></i></button>\
-                        <button class="admin-action-btn edit" onclick="adminChangeUserRole(\'' + doc.id + '\', \'' + (u.role || 'caregiver') + '\')" title="Change Role"><i class="fas fa-user-tag"></i></button>\
-                    </div></td>\
-                </tr>';
-            });
-        }).catch(function(err) {
-            tbody.innerHTML = '<tr><td colspan="7" style="text-align:center; padding:30px; color:#DC2626;">Error loading caregivers.</td></tr>';
-        });
-        
-        var searchEl = document.getElementById('caregiversSearch');
-        if (searchEl) {
-            searchEl.oninput = function() {
-                var filter = this.value.toLowerCase();
-                tbody.querySelectorAll('tr').forEach(function(row) {
-                    row.style.display = row.textContent.toLowerCase().indexOf(filter) > -1 ? '' : 'none';
-                });
-            };
-        }
-        
-        var addBtn = document.getElementById('addCaregiverBtn');
-        if (addBtn) {
-            addBtn.onclick = function() {
-                document.getElementById('caregiverCreateForm').reset();
-                document.getElementById('caregiverCreateModal').classList.add('active');
-            };
-        }
-        
-        var caregiverCreateForm = document.getElementById('caregiverCreateForm');
-        if (caregiverCreateForm) {
-            caregiverCreateForm.onsubmit = function(e) {
-                e.preventDefault();
-                var fd = new FormData(this);
-                var data = {};
-                fd.forEach(function(val, key) { data[key] = val; });
-                data.role = 'caregiver';
-                
-                var btn = this.querySelector('button[type="submit"]');
-                btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Creating...';
-                btn.disabled = true;
-                
-                var adminCreds = JSON.parse(sessionStorage.getItem('adminCreds') || 'null');
-                if (!adminCreds || !adminCreds.email || !adminCreds.password) {
-                    var pw = prompt('To create this account, re-enter your admin password:');
-                    if (!pw) {
-                        btn.innerHTML = '<i class="fas fa-plus"></i> Create Caregiver';
-                        btn.disabled = false;
-                        return;
-                    }
-                    adminCreds = { email: auth.currentUser.email, password: pw };
-                    sessionStorage.setItem('adminCreds', JSON.stringify(adminCreds));
-                }
-                
-                FirebaseServices.users.adminCreateUser(data.email, data.password, data).then(function() {
-                    showNotification('Caregiver account created successfully.', 'success');
-                    document.getElementById('caregiverCreateModal').classList.remove('active');
-                    btn.innerHTML = '<i class="fas fa-plus"></i> Create Caregiver';
-                    btn.disabled = false;
-                    
-                    // Auto-approve pending application if one was loaded
-                    if (window._pendingApproveId) {
-                        FirebaseServices.applications.updateStatus(window._pendingApproveId, 'approved').catch(function(err) {
-                            console.error('Error approving application:', err);
-                        });
-                        window._pendingApproveId = null;
-                    }
-                    
-                    return auth.signInWithEmailAndPassword(adminCreds.email, adminCreds.password);
-                }).then(function() {
-                    loadAdminCaregivers();
-                }).catch(function(err) {
-                    console.error('Error creating caregiver:', err);
-                    showNotification('Error: ' + err.message, 'error');
-                    btn.innerHTML = '<i class="fas fa-plus"></i> Create Caregiver';
-                    btn.disabled = false;
-                    sessionStorage.removeItem('adminCreds');
-                });
-            };
-        }
-        
-        initModalClose('caregiverCreateModal');
-    }
-    
-    // --- COMMUNITIES ---
-    function loadAdminCommunities() {
-        var tbody = document.getElementById('communitiesTableBody');
-        if (!tbody) return;
-        
-        FirebaseServices.facilities.getAll().then(function(snap) {
-            if (snap.empty) {
-                tbody.innerHTML = '<tr><td colspan="7" style="text-align:center; padding:30px; color:#6B7280;">No communities found. Click "Add Community" to get started.</td></tr>';
-                return;
-            }
-            tbody.innerHTML = '';
-            snap.forEach(function(doc) {
-                var f = doc.data();
-                var types = (f.careTypes || []).join(', ') || '--';
-                var priceStr = f.pricingFrom ? FirebaseServices.formatCurrency(f.pricingFrom) : '--';
-                var vacancyStr = f.vacancies > 0 ? f.vacancies + ' open' : 'Waitlist';
-                var vacancyClass = f.vacancies > 0 ? 'active' : 'pending';
-                var status = f.status || 'active';
-                
-                tbody.innerHTML += '<tr>\
-                    <td><strong>' + escapeHtml(f.facilityName || '--') + '</strong></td>\
-                    <td>' + escapeHtml(f.city || '--') + ', ' + escapeHtml(f.state || '') + '</td>\
-                    <td>' + escapeHtml(types) + '</td>\
-                    <td>' + priceStr + '/mo</td>\
-                    <td><span class="status-badge ' + vacancyClass + '">' + vacancyStr + '</span></td>\
-                    <td><span class="status-badge ' + status + '">' + (status.charAt(0).toUpperCase() + status.slice(1)) + '</span></td>\
-                    <td><div class="admin-action-btns">\
-                        <button class="admin-action-btn edit" onclick="adminEditCommunity(\'' + doc.id + '\')"><i class="fas fa-edit"></i></button>\
-                        <button class="admin-action-btn delete" onclick="adminDeleteCommunity(\'' + doc.id + '\')"><i class="fas fa-trash"></i></button>\
-                    </div></td>\
-                </tr>';
-            });
-        }).catch(function(err) {
-            tbody.innerHTML = '<tr><td colspan="7" style="text-align:center; padding:30px; color:#DC2626;">Error loading communities.</td></tr>';
-        });
-        
-        var searchEl = document.getElementById('communitiesSearch');
-        if (searchEl) {
-            searchEl.oninput = function() {
-                var filter = this.value.toLowerCase();
-                tbody.querySelectorAll('tr').forEach(function(row) {
-                    row.style.display = row.textContent.toLowerCase().indexOf(filter) > -1 ? '' : 'none';
-                });
-            };
-        }
-        
-        var addBtn = document.getElementById('addCommunityBtn');
-        if (addBtn) {
-            addBtn.onclick = function() {
-                document.getElementById('communityModalTitle').textContent = 'Add Community';
-                document.getElementById('communityForm').reset();
-                document.querySelector('input[name="communityId"]').value = '';
-                poplateProviderSelect();
-                document.getElementById('communityModal').classList.add('active');
-            };
-        }
-        
-        var communityForm = document.getElementById('communityForm');
-        if (communityForm) {
-            communityForm.onsubmit = function(e) {
-                e.preventDefault();
-                var fd = new FormData(this);
-                var data = {};
-                fd.forEach(function(val, key) { data[key] = val; });
-                
-                var careTypesSelect = this.querySelector('select[name="careTypes"]');
-                if (careTypesSelect) {
-                    var selected = [];
-                    for (var i = 0; i < careTypesSelect.options.length; i++) {
-                        if (careTypesSelect.options[i].selected) selected.push(careTypesSelect.options[i].value);
-                    }
-                    data.careTypes = selected;
-                }
-                
-                data.petFriendly = this.querySelector('input[name="petFriendly"]').checked;
-                data.privateRooms = this.querySelector('input[name="privateRooms"]').checked;
-                data.vaBenefits = this.querySelector('input[name="vaBenefits"]').checked;
-                data.memoryCare = this.querySelector('input[name="memoryCare"]').checked;
-                
-                var id = data.communityId;
-                delete data.communityId;
-                
-                var btn = this.querySelector('button[type="submit"]');
-                btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Saving...';
-                btn.disabled = true;
-                
-                var promise = id ? FirebaseServices.facilities.update(id, data) : FirebaseServices.facilities.create(data);
-                
-                promise.then(function() {
-                    document.getElementById('communityModal').classList.remove('active');
-                    btn.innerHTML = 'Save Community';
-                    btn.disabled = false;
-                    loadAdminCommunities();
-                }).catch(function(err) {
-                    showNotification('Error saving community: ' + err.message, 'error');
-                    btn.innerHTML = 'Save Community';
-                    btn.disabled = false;
-                });
-            };
-        }
-        
-        initModalClose('communityModal');
-    }
-    
-    // --- SERVICE REQUESTS ---
-    window._srCache = window._srCache || {};
-
-    function loadAdminServiceRequests() {
+    // --- CARE REQUESTS ---
+    function loadAdminCareRequests() {
         var tbody = document.getElementById('serviceRequestsTableBody');
         if (!tbody) return;
 
         FirebaseServices.contactMessages.getAll().then(function(snap) {
             if (snap.empty) {
-                tbody.innerHTML = '<tr><td colspan="8" style="text-align:center; padding:30px; color:#6B7280;">No service requests found.</td></tr>';
+                tbody.innerHTML = '<tr><td colspan="9" style="text-align:center; padding:30px; color:#6B7280;">No care requests found.</td></tr>';
                 return;
             }
             tbody.innerHTML = '';
             snap.forEach(function(doc) {
                 var r = doc.data();
-                window._srCache[doc.id] = r;
                 var dateStr = FirebaseServices.formatTimestamp(r.createdAt);
                 var status = r.status || 'new';
 
@@ -2490,99 +1898,67 @@ document.addEventListener('DOMContentLoaded', function() {
                     <td><strong>' + escapeHtml(r.name || '--') + '</strong></td>\
                     <td>' + escapeHtml(r.email || '--') + '</td>\
                     <td>' + escapeHtml(r.phone || '--') + '</td>\
-                    <td>' + escapeHtml(r.careType || r.subject || '--') + '</td>\
-                    <td>' + escapeHtml(r.providerName || 'Unassigned') + '</td>\
+                    <td>' + escapeHtml(r.state || '--') + '</td>\
+                    <td>' + escapeHtml(r.city || '--') + '</td>\
+                    <td>' + escapeHtml(r.careType || '--') + '</td>\
+                    <td>' + escapeHtml(r.familyGroup || '--') + '</td>\
                     <td>' + dateStr + '</td>\
-                    <td><span class="status-badge ' + status + '">' + (status.replace('_', ' ').replace(/\b\w/g, function(l) { return l.toUpperCase(); })) + '</span></td>\
                     <td><div class="admin-action-btns">\
-                        <button class="admin-action-btn view" title="View &amp; Allocate" onclick="adminViewServiceRequest(\'' + doc.id + '\')"><i class="fas fa-eye"></i></button>\
+                        <button class="admin-action-btn view" title="View Details" onclick="adminViewCareRequest(\'' + doc.id + '\')"><i class="fas fa-eye"></i></button>\
                     </div></td>\
                 </tr>';
             });
         }).catch(function(err) {
-            tbody.innerHTML = '<tr><td colspan="8" style="text-align:center; padding:30px; color:#DC2626;">Error loading service requests.</td></tr>';
+            tbody.innerHTML = '<tr><td colspan="9" style="text-align:center; padding:30px; color:#DC2626;">Error loading care requests.</td></tr>';
         });
 
         initModalClose('srDetailModal');
     }
 
-    window.adminViewServiceRequest = function(id) {
-        var r = window._srCache[id];
-        if (!r) {
-            showNotification('Request data not found.', 'error');
-            return;
-        }
-
-        var modal = document.getElementById('srDetailModal');
-        if (!modal) return;
-
-        document.getElementById('srDetailName').textContent = r.name || '--';
-        document.getElementById('srDetailEmail').textContent = r.email || '--';
-        document.getElementById('srDetailPhone').textContent = r.phone || '--';
-        document.getElementById('srDetailDate').textContent = FirebaseServices.formatTimestamp(r.createdAt);
-        document.getElementById('srDetailCareType').textContent = r.careType || '--';
-        document.getElementById('srDetailNotes').textContent = r.notes || '--';
-
-        var status = r.status || 'new';
-        document.getElementById('srDetailStatusBadge').textContent = status.replace('_', ' ').replace(/\b\w/g, function(l) { return l.toUpperCase(); });
-        document.getElementById('srDetailStatusBadge').className = 'status-badge ' + status;
-
-        if (r.providerName) {
-            document.getElementById('srDetailCurrentProvider').innerHTML = '<i class="fas fa-check-circle" style="color:#2F7D4A;"></i> Allocated to <strong>' + escapeHtml(r.providerName) + '</strong>';
-        } else {
-            document.getElementById('srDetailCurrentProvider').innerHTML = '<i class="fas fa-circle-info"></i> Not yet allocated';
-        }
-
-        var select = document.getElementById('srDetailProviderSelect');
-        select.innerHTML = '<option value="">-- Choose a provider --</option>';
-
-        FirebaseServices.users.getByRole('provider').then(function(snap) {
+    window.adminViewCareRequest = function(id) {
+        FirebaseServices.contactMessages.getAll().then(function(snap) {
+            var r = null;
             snap.forEach(function(doc) {
-                var u = doc.data();
-                var name = u.facilityName || u.name || u.firstName + ' ' + (u.lastName || '');
-                var selected = (doc.id === r.providerId) ? ' selected' : '';
-                select.innerHTML += '<option value="' + doc.id + '" data-name="' + escapeHtml(name) + '"' + selected + '>' + escapeHtml(name) + ' (' + escapeHtml(u.email || '') + ')</option>';
+                if (doc.id === id) r = doc.data();
             });
-        }).catch(function() {});
-
-        select.setAttribute('data-request-id', id);
-
-        modal.classList.add('active');
-    };
-
-    var srAllocateBtn = document.getElementById('srDetailAllocateBtn');
-    if (srAllocateBtn) {
-        srAllocateBtn.addEventListener('click', function() {
-            var select = document.getElementById('srDetailProviderSelect');
-            var requestId = select.getAttribute('data-request-id');
-            var providerId = select.value;
-            if (!providerId) {
-                showNotification('Please select a provider.', 'error');
+            if (!r) {
+                showNotification('Request data not found.', 'error');
                 return;
             }
-            var providerName = select.options[select.selectedIndex].getAttribute('data-name');
 
-            srAllocateBtn.disabled = true;
-            srAllocateBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Allocating...';
+            var modal = document.getElementById('srDetailModal');
+            if (!modal) return;
 
-            db.collection('contactMessages').doc(requestId).update({
-                providerId: providerId,
-                providerName: providerName,
-                status: 'assigned',
-                allocatedAt: firebase.firestore.FieldValue.serverTimestamp()
-            }).then(function() {
-                showNotification('Request allocated to ' + providerName, 'success');
-                document.getElementById('srDetailModal').classList.remove('active');
-                srAllocateBtn.disabled = false;
-                srAllocateBtn.innerHTML = '<i class="fas fa-paper-plane"></i> Allocate Request';
-                loadAdminServiceRequests();
-            }).catch(function(err) {
-                showNotification('Error allocating request.', 'error');
-                srAllocateBtn.disabled = false;
-                srAllocateBtn.innerHTML = '<i class="fas fa-paper-plane"></i> Allocate Request';
-            });
+            document.getElementById('srDetailName').textContent = r.name || '--';
+            document.getElementById('srDetailEmail').textContent = r.email || '--';
+            document.getElementById('srDetailPhone').textContent = r.phone || '--';
+            document.getElementById('srDetailDate').textContent = FirebaseServices.formatTimestamp(r.createdAt);
+            document.getElementById('srDetailCareType').textContent = r.careType || '--';
+            document.getElementById('srDetailFamilyGroup').textContent = r.familyGroup || '--';
+            document.getElementById('srDetailState').textContent = r.state || '--';
+            document.getElementById('srDetailCity').textContent = r.city || '--';
+            var addonsEl = document.getElementById('srDetailAddons');
+            var addons = r.addons || [];
+            addonsEl.innerHTML = addons.length ? addons.map(function(a) { return '<span class="badge">' + escapeHtml(a) + '</span>'; }).join(' ') : 'None';
+            document.getElementById('srDetailNotes').textContent = r.notes || '--';
+
+            var status = r.status || 'new';
+            document.getElementById('srDetailStatusBadge').textContent = status.replace('_', ' ').replace(/\b\w/g, function(l) { return l.toUpperCase(); });
+            document.getElementById('srDetailStatusBadge').className = 'status-badge ' + status;
+
+            var reviewedEl = document.getElementById('srDetailReviewed');
+            if (reviewedEl) {
+                reviewedEl.checked = r.reviewed === true;
+                reviewedEl.onchange = function() {
+                    FirebaseServices.contactMessages.update(id, { reviewed: reviewedEl.checked }).catch(function(err) {
+                        showNotification('Error updating review status.', 'error');
+                    });
+                };
+            }
+
+            modal.classList.add('active');
         });
-    }
+    };
 
     // --- REFERRALS ---
     // Cache of loaded referral (care request) docs, keyed by id, so the full-screen
@@ -3661,20 +3037,6 @@ document.addEventListener('DOMContentLoaded', function() {
         });
     }
     
-    function poplateProviderSelect(selectedId) {
-        var sel = document.getElementById('communityProviderSelect');
-        if (!sel) return;
-        sel.innerHTML = '<option value="">-- No provider linked --</option>';
-        FirebaseServices.users.getByRole('provider').then(function(snap) {
-            snap.forEach(function(doc) {
-                var u = doc.data();
-                var name = escapeHtml(u.name || u.firstName + ' ' + (u.lastName || ''));
-                var facility = u.facilityName ? ' (' + escapeHtml(u.facilityName) + ')' : '';
-                sel.innerHTML += '<option value="' + doc.id + '"' + (doc.id === selectedId ? ' selected' : '') + '>' + name + facility + '</option>';
-            });
-        }).catch(function() {});
-    }
-    
     window.adminViewUser = function(uid) {
         FirebaseServices.users.getById(uid).then(function(doc) {
             if (!doc.exists) { showNotification('User not found.', 'error'); return; }
@@ -3694,42 +3056,6 @@ document.addEventListener('DOMContentLoaded', function() {
             loadAdminTab(document.querySelector('.sidebar-nav a.active').getAttribute('data-tab'));
         }).catch(function(err) {
             showNotification('Error: ' + err.message, 'error');
-        });
-    };
-    
-    window.adminEditCommunity = function(id) {
-        FirebaseServices.facilities.getById(id).then(function(doc) {
-            if (!doc.exists) return;
-            var f = doc.data();
-            document.getElementById('communityModalTitle').textContent = 'Edit Community';
-            var form = document.getElementById('communityForm');
-            form.reset();
-            form.querySelector('input[name="communityId"]').value = id;
-            form.querySelector('input[name="facilityName"]').value = f.facilityName || '';
-            form.querySelector('select[name="facilityType"]').value = f.facilityType || '';
-            form.querySelector('input[name="city"]').value = f.city || '';
-            form.querySelector('input[name="state"]').value = f.state || '';
-            form.querySelector('input[name="phone"]').value = f.phone || '';
-            form.querySelector('input[name="email"]').value = f.email || '';
-            form.querySelector('input[name="pricingFrom"]').value = f.pricingFrom || '';
-            form.querySelector('input[name="vacancies"]').value = f.vacancies || '';
-            form.querySelector('textarea[name="description"]').value = f.description || '';
-            form.querySelector('input[name="petFriendly"]').checked = f.petFriendly || false;
-            form.querySelector('input[name="privateRooms"]').checked = f.privateRooms || false;
-            form.querySelector('input[name="vaBenefits"]').checked = f.vaBenefits || false;
-            form.querySelector('input[name="memoryCare"]').checked = f.memoryCare || false;
-            poplateProviderSelect(f.providerId || '');
-            document.getElementById('communityModal').classList.add('active');
-        });
-    };
-    
-    window.adminDeleteCommunity = function(id) {
-        if (!confirm('Are you sure you want to delete this community? This cannot be undone.')) return;
-        FirebaseServices.facilities.remove(id).then(function() {
-            showNotification('Community deleted.', 'success');
-            loadAdminCommunities();
-        }).catch(function(err) {
-            showNotification('Error deleting community: ' + err.message, 'error');
         });
     };
     
@@ -3931,32 +3257,13 @@ document.addEventListener('DOMContentLoaded', function() {
     
     window.adminUpdateApplicationStatus = function(id, status) {
         if (status === 'approved') {
-            // Pre-populate create account form from application data
-            FirebaseServices.applications.getById(id).then(function(doc) {
-                if (!doc.exists) return;
-                var a = doc.data();
-                if (a.type === 'provider') {
-                    var names = (a.name || '').split(' ');
-                    document.getElementById('providerCreateForm').querySelector('input[name="firstName"]').value = names[0] || '';
-                    document.getElementById('providerCreateForm').querySelector('input[name="lastName"]').value = names.slice(1).join(' ') || '';
-                    document.getElementById('providerCreateForm').querySelector('input[name="email"]').value = a.email || '';
-                    document.getElementById('providerCreateForm').querySelector('input[name="phone"]').value = a.phone || '';
-                    document.getElementById('providerCreateForm').querySelector('input[name="facilityName"]').value = a.facilityName || '';
-                    // Store application ID for status update on submit
-                    window._pendingApproveId = id;
-                    document.getElementById('providerCreateModal').classList.add('active');
-                    showNotification('Application data loaded into create form. Set a password and submit.', 'success');
-                } else if (a.type === 'career') {
-                    var names = (a.name || '').split(' ');
-                    document.getElementById('caregiverCreateForm').querySelector('input[name="firstName"]').value = names[0] || '';
-                    document.getElementById('caregiverCreateForm').querySelector('input[name="lastName"]').value = names.slice(1).join(' ') || '';
-                    document.getElementById('caregiverCreateForm').querySelector('input[name="email"]').value = a.email || '';
-                    document.getElementById('caregiverCreateForm').querySelector('input[name="phone"]').value = a.phone || '';
-                    window._pendingApproveId = id;
-                    document.getElementById('caregiverCreateModal').classList.add('active');
-                    showNotification('Application data loaded into create form. Set a password and submit.', 'success');
-                }
+            FirebaseServices.applications.updateStatus(id, 'approved').then(function() {
+                showNotification('Application approved.', 'success');
+                loadAdminApplications();
+            }).catch(function(err) {
+                showNotification('Error: ' + err.message, 'error');
             });
+            return;
         } else {
             if (!confirm('Mark this application as ' + status + '?')) return;
             FirebaseServices.applications.updateStatus(id, status).then(function() {
@@ -4035,8 +3342,6 @@ document.addEventListener('DOMContentLoaded', function() {
                 overlay.remove();
                 // Reload all admin tables since roles may have shifted
                 if (typeof loadAdminFamilies === 'function') loadAdminFamilies();
-                if (typeof loadAdminProviders === 'function') loadAdminProviders();
-                if (typeof loadAdminCaregivers === 'function') loadAdminCaregivers();
                 if (typeof loadAdminAdmins === 'function') loadAdminAdmins();
             }).catch(function(err) {
                 showNotification('Error: ' + err.message, 'error');
