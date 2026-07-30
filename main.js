@@ -322,6 +322,64 @@ document.addEventListener('DOMContentLoaded', function() {
         });
     }
     
+    // Service Request Info buttons
+    var srModal = document.getElementById('serviceRequestModal');
+    var srForm = document.getElementById('serviceRequestForm');
+    var srCareType = document.getElementById('srCareType');
+    var srConfirm = document.getElementById('serviceRequestConfirm');
+
+    document.querySelectorAll('.request-info-btn').forEach(function(btn) {
+        btn.addEventListener('click', function() {
+            var careType = this.getAttribute('data-care-type');
+            if (srCareType) srCareType.value = careType;
+            if (srForm) srForm.style.display = '';
+            if (srConfirm) srConfirm.style.display = 'none';
+            if (srForm) srForm.reset();
+            if (srCareType) srCareType.value = careType;
+            if (srModal) srModal.classList.add('active');
+        });
+    });
+
+    if (srForm) {
+        srForm.addEventListener('submit', function(e) {
+            e.preventDefault();
+            if (!validateForm(srForm)) return;
+
+            var fd = new FormData(srForm);
+            var data = {};
+            fd.forEach(function(val, key) { data[key] = val; });
+            data.source = 'service_page_request';
+            data.status = 'new';
+
+            var btn = srForm.querySelector('button[type="submit"]');
+            var origText = btn.innerHTML;
+            btn.disabled = true;
+            btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Submitting...';
+
+            FirebaseServices.contactMessages.create(data).then(function() {
+                srForm.style.display = 'none';
+                if (srConfirm) srConfirm.style.display = '';
+                btn.disabled = false;
+                btn.innerHTML = origText;
+            }).catch(function(err) {
+                showNotification('Error submitting request. Please try again.', 'error');
+                btn.disabled = false;
+                btn.innerHTML = origText;
+            });
+        });
+    }
+
+    document.querySelectorAll('.service-modal-close').forEach(function(el) {
+        el.addEventListener('click', function() {
+            if (srModal) srModal.classList.remove('active');
+        });
+    });
+    if (srModal) {
+        srModal.addEventListener('click', function(e) {
+            if (e.target === srModal) srModal.classList.remove('active');
+        });
+    }
+
     // Contact Form
     var contactForm = document.getElementById('contactForm');
     if (contactForm) {
@@ -882,7 +940,7 @@ document.addEventListener('DOMContentLoaded', function() {
                 var isPartner = f.activePartner !== false;
                 var partnerBadge = isPartner ? '<span class="search-result-partner-badge"><i class="fas fa-handshake"></i> Partner</span>' : '';
                 var partnerDesc = isPartner && f.description ? '<p class="search-result-desc">' + escapeHtml(f.description.substring(0, 100)) + '</p>' : '';
-                var partnerReqBtn = isPartner ? '<button class="btn btn-gold partner-request-btn" data-partner="' + escapeHtml(f.facilityName || '') + '" data-partner-id="' + escapeHtml(f.providerId || '') + '" style="width:100%;margin-top:8px;padding:8px;font-size:13px;"><i class="fas fa-paper-plane"></i> Request Info</button>' : '';
+                var partnerReqBtn = isPartner ? '<button class="btn btn-gold partner-request-btn" data-partner="' + escapeHtml(f.facilityName || '') + '" data-partner-id="' + escapeHtml(f.providerId || '') + '" data-facility-id="' + escapeHtml(f.id || '') + '" data-care-types="' + escapeHtml((f.careTypes || []).join(', ')) + '" data-city="' + escapeHtml(f.city || '') + '" data-state="' + escapeHtml(f.state || '') + '" style="width:100%;margin-top:8px;padding:8px;font-size:13px;"><i class="fas fa-paper-plane"></i> Request Info</button>' : '';
                 html += '<div class="search-result-card' + (isPartner ? ' partner-card' : '') + '">' +
                     saveBtnHtml +
                     partnerBadge +
@@ -933,24 +991,67 @@ document.addEventListener('DOMContentLoaded', function() {
             }
             
             // Partner request info buttons
+            // These create a proper referral (careRequests doc) so it shows up in
+            // Admin > Referrals for allocation, and in the provider's portal once
+            // allocated - same pipeline as the main "Request a Recommendation" form.
             resultsContainer.querySelectorAll('.partner-request-btn').forEach(function(btn) {
                 btn.addEventListener('click', function() {
-                    var partnerName = this.getAttribute('data-partner');
+                    var partnerName = btn.getAttribute('data-partner');
+                    var partnerId = btn.getAttribute('data-partner-id');
+                    var facilityId = btn.getAttribute('data-facility-id');
+                    var careTypes = btn.getAttribute('data-care-types');
+                    var city = btn.getAttribute('data-city');
+                    var state = btn.getAttribute('data-state');
+
                     if (!auth.currentUser) {
                         showNotification('Please log in or sign up as a family to request info.', 'success');
                         setTimeout(function() { window.location.href = 'login.html'; }, 2000);
                         return;
                     }
-                    db.collection('contactMessages').add({
-                        name: auth.currentUser.email,
-                        userId: auth.currentUser.uid,
-                        subject: 'Interest in ' + partnerName,
-                        message: 'I am interested in learning more about ' + partnerName + '. Please send me information.',
-                        createdAt: firebase.firestore.FieldValue.serverTimestamp()
+
+                    btn.disabled = true;
+                    var origBtnHtml = btn.innerHTML;
+                    btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Sending...';
+
+                    // Pull the family's saved name/phone if we have them, so the
+                    // referral in admin/provider views isn't just an email address.
+                    db.collection('users').doc(auth.currentUser.uid).get().then(function(userDoc) {
+                        var u = userDoc.exists ? userDoc.data() : {};
+                        var familyName = u.name || ((u.firstName || '') + ' ' + (u.lastName || '')).trim() || auth.currentUser.displayName || auth.currentUser.email;
+
+                        var data = {
+                            familyName: familyName,
+                            userId: auth.currentUser.uid,
+                            email: auth.currentUser.email,
+                            phone: u.phone || '',
+                            careType: careTypes || '',
+                            location: [city, state].filter(Boolean).join(', '),
+                            notes: 'Requested info on ' + partnerName + ' via search results.',
+                            source: 'partner_request_info',
+                            facilityId: facilityId || '',
+                            createdAt: firebase.firestore.FieldValue.serverTimestamp()
+                        };
+
+                        // We already know which partner they want info from, so
+                        // pre-allocate it to that provider instead of leaving it
+                        // in an "unassigned" queue for admin to guess at. Admin
+                        // can still reassign it from the Referrals tab if needed.
+                        if (partnerId) {
+                            data.providerId = partnerId;
+                            data.providerName = partnerName;
+                            data.status = 'assigned';
+                        } else {
+                            data.status = 'new';
+                        }
+
+                        return FirebaseServices.careRequests.create(data);
                     }).then(function() {
                         showNotification('Your request has been sent to ' + partnerName + '. An advisor will follow up.', 'success');
+                        btn.innerHTML = '<i class="fas fa-check"></i> Requested';
                     }).catch(function(err) {
                         showNotification('Error sending request. Please try again.', 'error');
+                        btn.disabled = false;
+                        btn.innerHTML = origBtnHtml;
                     });
                 });
             });
@@ -1886,6 +1987,7 @@ document.addEventListener('DOMContentLoaded', function() {
             case 'providers': loadAdminProviders(); break;
             case 'caregivers': loadAdminCaregivers(); break;
             case 'communities': loadAdminCommunities(); break;
+            case 'servicerequests': loadAdminServiceRequests(); break;
             case 'referrals': loadAdminReferrals(); break;
             case 'appointments': loadAdminAppointments(); break;
             case 'resources': loadAdminResources(); break;
@@ -2365,6 +2467,123 @@ document.addEventListener('DOMContentLoaded', function() {
         initModalClose('communityModal');
     }
     
+    // --- SERVICE REQUESTS ---
+    window._srCache = window._srCache || {};
+
+    function loadAdminServiceRequests() {
+        var tbody = document.getElementById('serviceRequestsTableBody');
+        if (!tbody) return;
+
+        FirebaseServices.contactMessages.getAll().then(function(snap) {
+            if (snap.empty) {
+                tbody.innerHTML = '<tr><td colspan="8" style="text-align:center; padding:30px; color:#6B7280;">No service requests found.</td></tr>';
+                return;
+            }
+            tbody.innerHTML = '';
+            snap.forEach(function(doc) {
+                var r = doc.data();
+                window._srCache[doc.id] = r;
+                var dateStr = FirebaseServices.formatTimestamp(r.createdAt);
+                var status = r.status || 'new';
+
+                tbody.innerHTML += '<tr data-status="' + status + '">\
+                    <td><strong>' + escapeHtml(r.name || '--') + '</strong></td>\
+                    <td>' + escapeHtml(r.email || '--') + '</td>\
+                    <td>' + escapeHtml(r.phone || '--') + '</td>\
+                    <td>' + escapeHtml(r.careType || r.subject || '--') + '</td>\
+                    <td>' + escapeHtml(r.providerName || 'Unassigned') + '</td>\
+                    <td>' + dateStr + '</td>\
+                    <td><span class="status-badge ' + status + '">' + (status.replace('_', ' ').replace(/\b\w/g, function(l) { return l.toUpperCase(); })) + '</span></td>\
+                    <td><div class="admin-action-btns">\
+                        <button class="admin-action-btn view" title="View &amp; Allocate" onclick="adminViewServiceRequest(\'' + doc.id + '\')"><i class="fas fa-eye"></i></button>\
+                    </div></td>\
+                </tr>';
+            });
+        }).catch(function(err) {
+            tbody.innerHTML = '<tr><td colspan="8" style="text-align:center; padding:30px; color:#DC2626;">Error loading service requests.</td></tr>';
+        });
+
+        initModalClose('srDetailModal');
+    }
+
+    window.adminViewServiceRequest = function(id) {
+        var r = window._srCache[id];
+        if (!r) {
+            showNotification('Request data not found.', 'error');
+            return;
+        }
+
+        var modal = document.getElementById('srDetailModal');
+        if (!modal) return;
+
+        document.getElementById('srDetailName').textContent = r.name || '--';
+        document.getElementById('srDetailEmail').textContent = r.email || '--';
+        document.getElementById('srDetailPhone').textContent = r.phone || '--';
+        document.getElementById('srDetailDate').textContent = FirebaseServices.formatTimestamp(r.createdAt);
+        document.getElementById('srDetailCareType').textContent = r.careType || '--';
+        document.getElementById('srDetailNotes').textContent = r.notes || '--';
+
+        var status = r.status || 'new';
+        document.getElementById('srDetailStatusBadge').textContent = status.replace('_', ' ').replace(/\b\w/g, function(l) { return l.toUpperCase(); });
+        document.getElementById('srDetailStatusBadge').className = 'status-badge ' + status;
+
+        if (r.providerName) {
+            document.getElementById('srDetailCurrentProvider').innerHTML = '<i class="fas fa-check-circle" style="color:#2F7D4A;"></i> Allocated to <strong>' + escapeHtml(r.providerName) + '</strong>';
+        } else {
+            document.getElementById('srDetailCurrentProvider').innerHTML = '<i class="fas fa-circle-info"></i> Not yet allocated';
+        }
+
+        var select = document.getElementById('srDetailProviderSelect');
+        select.innerHTML = '<option value="">-- Choose a provider --</option>';
+
+        FirebaseServices.users.getByRole('provider').then(function(snap) {
+            snap.forEach(function(doc) {
+                var u = doc.data();
+                var name = u.facilityName || u.name || u.firstName + ' ' + (u.lastName || '');
+                var selected = (doc.id === r.providerId) ? ' selected' : '';
+                select.innerHTML += '<option value="' + doc.id + '" data-name="' + escapeHtml(name) + '"' + selected + '>' + escapeHtml(name) + ' (' + escapeHtml(u.email || '') + ')</option>';
+            });
+        }).catch(function() {});
+
+        select.setAttribute('data-request-id', id);
+
+        modal.classList.add('active');
+    };
+
+    var srAllocateBtn = document.getElementById('srDetailAllocateBtn');
+    if (srAllocateBtn) {
+        srAllocateBtn.addEventListener('click', function() {
+            var select = document.getElementById('srDetailProviderSelect');
+            var requestId = select.getAttribute('data-request-id');
+            var providerId = select.value;
+            if (!providerId) {
+                showNotification('Please select a provider.', 'error');
+                return;
+            }
+            var providerName = select.options[select.selectedIndex].getAttribute('data-name');
+
+            srAllocateBtn.disabled = true;
+            srAllocateBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Allocating...';
+
+            db.collection('contactMessages').doc(requestId).update({
+                providerId: providerId,
+                providerName: providerName,
+                status: 'assigned',
+                allocatedAt: firebase.firestore.FieldValue.serverTimestamp()
+            }).then(function() {
+                showNotification('Request allocated to ' + providerName, 'success');
+                document.getElementById('srDetailModal').classList.remove('active');
+                srAllocateBtn.disabled = false;
+                srAllocateBtn.innerHTML = '<i class="fas fa-paper-plane"></i> Allocate Request';
+                loadAdminServiceRequests();
+            }).catch(function(err) {
+                showNotification('Error allocating request.', 'error');
+                srAllocateBtn.disabled = false;
+                srAllocateBtn.innerHTML = '<i class="fas fa-paper-plane"></i> Allocate Request';
+            });
+        });
+    }
+
     // --- REFERRALS ---
     // Cache of loaded referral (care request) docs, keyed by id, so the full-screen
     // detail/allocate modal can read them without an extra Firestore round trip.

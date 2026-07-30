@@ -29,6 +29,7 @@
             <a href="#" data-tab="providers"><i class="fas fa-hospital"></i> Providers</a>
             <a href="#" data-tab="caregivers"><i class="fas fa-user-nurse"></i> Caregivers</a>
             <a href="#" data-tab="communities"><i class="fas fa-building"></i> Communities</a>
+            <a href="#" data-tab="servicerequests"><i class="fas fa-file-invoice"></i> Service Requests</a>
             <a href="#" data-tab="referrals"><i class="fas fa-link"></i> Referrals</a>
             <a href="#" data-tab="appointments"><i class="fas fa-calendar-alt"></i> Appointments</a>
             <a href="#" data-tab="resources"><i class="fas fa-newspaper"></i> Resources</a>
@@ -340,6 +341,71 @@
                             <button type="submit" class="btn btn-gold">Save Community</button>
                         </div>
                     </form>
+                </div>
+            </div>
+        </div>
+
+        <!-- ==================== SERVICE REQUESTS TAB ==================== -->
+        <div class="portal-tab" id="tab-servicerequests">
+            <div class="admin-tab-header">
+                <div><h2 class="admin-tab-title">Service Requests</h2><p class="admin-tab-subtitle">Review info requests from the Services page and allocate to providers.</p></div>
+            </div>
+            <div class="table-responsive">
+<table class="admin-table" id="serviceRequestsTable">
+                <thead><tr><th>Name</th><th>Email</th><th>Phone</th><th>Care Type</th><th>Provider</th><th>Date</th><th>Status</th><th>Actions</th></tr></thead>
+                <tbody id="serviceRequestsTableBody">
+                    <tr><td colspan="8" class="admin-loading">Loading service requests...</td></tr>
+                </tbody>
+            </table>
+</div>
+
+            <!-- SERVICE REQUEST DETAIL / ALLOCATE MODAL -->
+            <div class="admin-modal admin-modal-fullscreen" id="srDetailModal">
+                <div class="admin-modal-content">
+                    <div class="admin-modal-header">
+                        <div class="admin-modal-header-info">
+                            <h3>Service Request Details</h3>
+                            <span class="status-badge" id="srDetailStatusBadge">--</span>
+                        </div>
+                        <button class="admin-modal-close">&times;</button>
+                    </div>
+                    <div class="admin-modal-body">
+                        <div class="request-detail-grid">
+                            <div>
+                                <div class="request-detail-section">
+                                    <h4><i class="fas fa-user"></i> Contact Info</h4>
+                                    <div class="request-detail-fields">
+                                        <div class="request-detail-field"><label>Name</label><span id="srDetailName">--</span></div>
+                                        <div class="request-detail-field"><label>Email</label><span id="srDetailEmail">--</span></div>
+                                        <div class="request-detail-field"><label>Phone</label><span id="srDetailPhone">--</span></div>
+                                        <div class="request-detail-field"><label>Submitted</label><span id="srDetailDate">--</span></div>
+                                    </div>
+                                </div>
+                                <div class="request-detail-section">
+                                    <h4><i class="fas fa-notes-medical"></i> Request Details</h4>
+                                    <div class="request-detail-fields">
+                                        <div class="request-detail-field"><label>Care Type</label><span id="srDetailCareType">--</span></div>
+                                        <div class="request-detail-field full-width"><label>Notes</label><span id="srDetailNotes">--</span></div>
+                                    </div>
+                                </div>
+                            </div>
+                            <div>
+                                <div class="request-allocate-panel">
+                                    <h4><i class="fas fa-share-square"></i> Allocate to Provider</h4>
+                                    <div class="request-current-provider" id="srDetailCurrentProvider"><i class="fas fa-circle-info"></i> Not yet allocated</div>
+                                    <div class="form-group">
+                                        <label>Select Provider</label>
+                                        <select id="srDetailProviderSelect"><option value="">-- Choose a provider --</option></select>
+                                    </div>
+                                    <button type="button" class="btn btn-gold btn-full" id="srDetailAllocateBtn" style="width:100%; margin-top:10px;"><i class="fas fa-paper-plane"></i> Allocate Request</button>
+                                    <div class="request-timeline" id="srDetailTimelineSteps"></div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="admin-modal-actions">
+                        <button type="button" class="btn btn-outline admin-modal-close-btn">Close</button>
+                    </div>
                 </div>
             </div>
         </div>
