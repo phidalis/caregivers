@@ -10,11 +10,12 @@
 
 window.EmailNotifications = (function() {
 
-    // The Render server serves both the website and this endpoint on the
-    // same domain, so a relative URL works. If the site is ever hosted
-    // somewhere else, set this to the full Render URL, e.g.:
-    // 'https://your-app.onrender.com/api/send-email'
-    var EMAIL_API_URL = '/api/send-email';
+    // The Render server serves the website and the email API on the same
+    // domain. This absolute URL works whether the page is opened from the
+    // live site or from local files.
+    var EMAIL_API_BASE = 'https://caregivers-y0cb.onrender.com';
+    var EMAIL_API_URL = EMAIL_API_BASE + '/api/send-email';
+    var WAKE_URL = EMAIL_API_BASE + '/api/health';
 
     var SITE_NAME = 'Mercy Senior Solutions';
     var SITE_PHONE = '(341) 618-9792';
@@ -243,6 +244,15 @@ window.EmailNotifications = (function() {
 
     // ---------- Public API ----------
 
+    // Wakes the Render server in the background so emails send fast.
+    function wake() {
+        try {
+            fetch(WAKE_URL, { method: 'GET' }).catch(function() {});
+        } catch (e) {
+            // Ignore - waking is optional.
+        }
+    }
+
     function getTypes() {
         return deepClone(TYPES);
     }
@@ -315,6 +325,17 @@ window.EmailNotifications = (function() {
         load: loadConfig,
         save: saveConfig,
         send: send,
-        sendTest: sendTest
+        sendTest: sendTest,
+        wake: wake
     };
+})();
+
+// Silently wake the Render server whenever a page opens, so the instance
+// is warm and emails send instantly instead of waiting for a cold start.
+(function wakeSilently() {
+    try {
+        fetch(WAKE_URL, { method: 'GET' }).catch(function() {});
+    } catch (e) {
+        // Ignore - waking is optional and must never block the page.
+    }
 })();
