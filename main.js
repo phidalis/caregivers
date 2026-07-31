@@ -211,6 +211,9 @@ document.addEventListener('DOMContentLoaded', function() {
             btn.classList.add('loading');
             
             FirebaseServices.careRequests.create(data).then(function() {
+                if (typeof EmailNotifications !== 'undefined') {
+                    EmailNotifications.send('care_request', data).catch(function(e) { console.warn(e); });
+                }
                 careForm.innerHTML = '<div class="inline-confirm">' +
                     '<div class="inline-confirm-icon"><i class="fas fa-check"></i></div>' +
                     '<h3>Request Submitted!</h3>' +
@@ -254,6 +257,9 @@ document.addEventListener('DOMContentLoaded', function() {
             btn.classList.add('loading');
             
             FirebaseServices.applications.create(data).then(function() {
+                if (typeof EmailNotifications !== 'undefined') {
+                    EmailNotifications.send('career', data).catch(function(e) { console.warn(e); });
+                }
                 FirebaseServices.activity.log({
                     type: 'application',
                     description: 'New career application from ' + data.name,
@@ -299,6 +305,9 @@ document.addEventListener('DOMContentLoaded', function() {
             btn.classList.add('loading');
             
             FirebaseServices.applications.create(data).then(function() {
+                if (typeof EmailNotifications !== 'undefined') {
+                    EmailNotifications.send('provider', data).catch(function(e) { console.warn(e); });
+                }
                 FirebaseServices.activity.log({
                     type: 'application',
                     description: 'New provider application: ' + data.facilityName,
@@ -350,6 +359,9 @@ document.addEventListener('DOMContentLoaded', function() {
             btn.classList.add('loading');
             
             FirebaseServices.contactMessages.create(data).then(function() {
+                if (typeof EmailNotifications !== 'undefined') {
+                    EmailNotifications.send('contact', data).catch(function(e) { console.warn(e); });
+                }
                 showNotification('Your message has been sent. We will respond within 24 hours.', 'success');
                 contactForm.reset();
                 btn.disabled = false;
@@ -769,6 +781,9 @@ document.addEventListener('DOMContentLoaded', function() {
             btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Submitting...';
 
             FirebaseServices.facilitiesRequest.create(data).then(function() {
+                if (typeof EmailNotifications !== 'undefined') {
+                    EmailNotifications.send('find_care', data).catch(function(e) { console.warn(e); });
+                }
                 fcForm.style.display = 'none';
                 document.getElementById('findCareConfirm').style.display = '';
                 btn.disabled = false;
@@ -1663,6 +1678,7 @@ document.addEventListener('DOMContentLoaded', function() {
             case 'payments': loadAdminPayments(); break;
             case 'media': loadAdminMedia(); break;
             case 'content': loadAdminContent(); break;
+            case 'emailtemplates': loadAdminEmailTemplates(); break;
             case 'settings': loadAdminSettings(); break;
         }
     }
@@ -3073,6 +3089,108 @@ document.addEventListener('DOMContentLoaded', function() {
         if (c.footer) { var fp=document.querySelector('.footer-col p');if(fp&&c.footer.description)fp.textContent=c.footer.description;var cp=document.querySelector('.footer-bottom p');if(cp&&c.footer.copyright)cp.textContent=c.footer.copyright; }
     }
     
+    // --- EMAIL TEMPLATES ---
+    function loadAdminEmailTemplates() {
+        var list = document.getElementById('emailTemplatesList');
+        var typeSelect = document.getElementById('emailTestType');
+        var fromNameEl = document.getElementById('emailTplFromName');
+        var adminEmailEl = document.getElementById('emailTplAdminEmail');
+
+        if (!list || typeof EmailNotifications === 'undefined') return;
+
+        var types = EmailNotifications.getTypes();
+        if (typeSelect) {
+            typeSelect.innerHTML = '';
+            Object.keys(types).forEach(function(key) {
+                typeSelect.innerHTML += '<option value="' + key + '">' + types[key] + '</option>';
+            });
+        }
+
+        EmailNotifications.load().then(function(config) {
+            if (fromNameEl) fromNameEl.value = config.fromName || '';
+            if (adminEmailEl) adminEmailEl.value = config.adminEmail || '';
+
+            list.innerHTML = '';
+            Object.keys(types).forEach(function(key) {
+                var t = config.templates[key] || {};
+                list.innerHTML += '<div class="admin-content-card">' +
+                    '<h4><i class="fas fa-envelope-open-text" style="margin-right:8px; color:#D4A33A;"></i>' + types[key] + '</h4>' +
+                    '<div class="admin-form-grid">' +
+                    '<div class="form-group"><label>Subject (sent to the person who submitted)</label><input type="text" class="et-client-subject" data-type="' + key + '" value="' + escapeHtml(t.clientSubject || '') + '"></div>' +
+                    '<div class="form-group"><label>Admin Subject (sent to you)</label><input type="text" class="et-admin-subject" data-type="' + key + '" value="' + escapeHtml(t.adminSubject || '') + '"></div>' +
+                    '<div class="form-group" style="grid-column: 1 / -1;"><label>Message (sent to the person who submitted)</label><textarea class="et-client-body" data-type="' + key + '" rows="6">' + escapeHtml(t.clientBody || '') + '</textarea></div>' +
+                    '<div class="form-group" style="grid-column: 1 / -1;"><label>Message (sent to you)</label><textarea class="et-admin-body" data-type="' + key + '" rows="6">' + escapeHtml(t.adminBody || '') + '</textarea></div>' +
+                    '</div></div>';
+            });
+        });
+    }
+
+    function saveEmailTemplates() {
+        if (typeof EmailNotifications === 'undefined') {
+            showNotification('Email service not loaded.', 'error');
+            return;
+        }
+        var types = EmailNotifications.getTypes();
+        var templates = {};
+        Object.keys(types).forEach(function(key) {
+            var subjectEl = document.querySelector('.et-client-subject[data-type="' + key + '"]');
+            var adminSubjectEl = document.querySelector('.et-admin-subject[data-type="' + key + '"]');
+            var bodyEl = document.querySelector('.et-client-body[data-type="' + key + '"]');
+            var adminBodyEl = document.querySelector('.et-admin-body[data-type="' + key + '"]');
+            templates[key] = {
+                clientSubject: subjectEl ? subjectEl.value : '',
+                clientBody: bodyEl ? bodyEl.value : '',
+                adminSubject: adminSubjectEl ? adminSubjectEl.value : '',
+                adminBody: adminBodyEl ? adminBodyEl.value : ''
+            };
+        });
+        var config = {
+            fromName: document.getElementById('emailTplFromName').value,
+            adminEmail: document.getElementById('emailTplAdminEmail').value,
+            templates: templates
+        };
+        var btn = document.getElementById('saveEmailTemplatesBtn');
+        var orig = btn.innerHTML;
+        btn.disabled = true;
+        btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Saving...';
+        EmailNotifications.save(config).then(function() {
+            showNotification('Email templates saved.', 'success');
+            btn.disabled = false;
+            btn.innerHTML = orig;
+        }).catch(function(err) {
+            showNotification('Error saving templates: ' + err.message, 'error');
+            btn.disabled = false;
+            btn.innerHTML = orig;
+        });
+    }
+
+    var saveEmailTemplatesBtn = document.getElementById('saveEmailTemplatesBtn');
+    if (saveEmailTemplatesBtn) {
+        saveEmailTemplatesBtn.addEventListener('click', saveEmailTemplates);
+    }
+
+    var sendEmailTestBtn = document.getElementById('sendEmailTestBtn');
+    if (sendEmailTestBtn) {
+        sendEmailTestBtn.addEventListener('click', function() {
+            var type = document.getElementById('emailTestType').value;
+            var email = document.getElementById('emailTestRecipient').value.trim();
+            if (!type || !email) {
+                showNotification('Choose a template and enter a recipient email.', 'error');
+                return;
+            }
+            var btn = this;
+            var orig = btn.innerHTML;
+            btn.disabled = true;
+            btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Sending...';
+            EmailNotifications.sendTest(type, email).then(function(ok) {
+                btn.disabled = false;
+                btn.innerHTML = orig;
+                if (ok) showNotification('Test email sent to ' + email + '.', 'success');
+                else showNotification('Could not send test email. Check that RESEND_API_KEY is set on Render.', 'error');
+            });
+        });
+    }
+
     // --- SETTINGS ---
     function loadAdminSettings() {
         auth.onAuthStateChanged(function(user) {

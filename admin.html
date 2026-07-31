@@ -38,6 +38,7 @@
             <a href="#" data-tab="payments"><i class="fas fa-credit-card"></i> Payments</a>
             <a href="#" data-tab="media"><i class="fas fa-photo-film"></i> Media Library</a>
             <a href="#" data-tab="content"><i class="fas fa-globe"></i> Website Content</a>
+            <a href="#" data-tab="emailtemplates"><i class="fas fa-envelope"></i> Email Notifications</a>
             <a href="#" data-tab="settings"><i class="fas fa-gear"></i> Settings</a>
             <a href="login.html" class="sidebar-logout"><i class="fas fa-sign-out-alt"></i> Logout</a>
         </nav>
@@ -740,6 +741,38 @@
             </div>
         </div>
 
+        <!-- ==================== EMAIL NOTIFICATIONS TAB ==================== -->
+        <div class="portal-tab" id="tab-emailtemplates">
+            <div class="admin-tab-header">
+                <div><h2 class="admin-tab-title">Email Notifications</h2><p class="admin-tab-subtitle">Edit the automated emails sent when someone submits a form. Use placeholders like {{name}}, {{email}}, {{phone}}, {{city}}, {{careType}} and {{details}} (a full summary of the submission) - they are filled in automatically.</p></div>
+            </div>
+            <div class="admin-content-sections">
+                <div class="admin-content-card">
+                    <h4>General Settings</h4>
+                    <div class="admin-form-grid">
+                        <div class="form-group"><label>From Name (shown on all emails)</label><input type="text" id="emailTplFromName" placeholder="Mercy Senior Solutions"></div>
+                        <div class="form-group"><label>Admin Notification Email</label><input type="email" id="emailTplAdminEmail" placeholder="info@mercyseniorsolutions.com"></div>
+                    </div>
+                </div>
+                <div id="emailTemplatesList">
+                    <div class="admin-loading" style="text-align:center; padding:40px;">Loading templates...</div>
+                </div>
+                <div class="admin-content-card">
+                    <h4>Save</h4>
+                    <button class="btn btn-gold" id="saveEmailTemplatesBtn"><i class="fas fa-save"></i> Save Email Templates</button>
+                </div>
+                <div class="admin-content-card">
+                    <h4>Send a Test Email</h4>
+                    <p style="color:#6B7280; margin-bottom:16px;">Send a sample notification email to preview how your templates look.</p>
+                    <div class="admin-form-grid">
+                        <div class="form-group"><label>Template</label><select id="emailTestType"></select></div>
+                        <div class="form-group"><label>Recipient Email</label><input type="email" id="emailTestRecipient" placeholder="you@example.com"></div>
+                    </div>
+                    <button class="btn btn-outline" id="sendEmailTestBtn"><i class="fas fa-paper-plane"></i> Send Test Email</button>
+                </div>
+            </div>
+        </div>
+
         <!-- ==================== SETTINGS TAB ==================== -->
         <div class="portal-tab" id="tab-settings">
             <div class="admin-tab-header">
@@ -778,6 +811,7 @@
     <script src="firebase-config.js"></script>
     <script src="cloudinary-config.js"></script>
     <script src="firebase-services.js"></script>
+    <script src="email-service.js"></script>
     <script src="main.js"></script>
 </body>
 </html>
