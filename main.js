@@ -201,6 +201,8 @@ document.addEventListener('DOMContentLoaded', function() {
             formData.forEach(function(value, key) {
                 data[key] = value;
             });
+            data.status = 'new';
+            data.source = 'request_caregiver_form';
             
             var btn = careForm.querySelector('button[type="submit"]');
             var origText = btn.innerHTML;
@@ -242,6 +244,7 @@ document.addEventListener('DOMContentLoaded', function() {
             formData.forEach(function(value, key) {
                 data[key] = value;
             });
+            data.certifications = formData.getAll('certifications');
             data.type = 'career';
             
             var btn = careerForm.querySelector('button[type="submit"]');
@@ -251,13 +254,14 @@ document.addEventListener('DOMContentLoaded', function() {
             btn.classList.add('loading');
             
             FirebaseServices.applications.create(data).then(function() {
-                return FirebaseServices.activity.log({
+                FirebaseServices.activity.log({
                     type: 'application',
                     description: 'New career application from ' + data.name,
                     icon: 'fas fa-user-plus',
                     color: 'blue'
+                }).catch(function(logErr) {
+                    console.warn('Activity log skipped:', logErr);
                 });
-            }).then(function() {
                 showNotification('Your application has been submitted. We will review it and get back to you soon.', 'success');
                 careerForm.reset();
                 btn.disabled = false;
@@ -285,6 +289,7 @@ document.addEventListener('DOMContentLoaded', function() {
             formData.forEach(function(value, key) {
                 data[key] = value;
             });
+            data.paymentOptions = formData.getAll('paymentOptions');
             data.type = 'provider';
             
             var btn = providerForm.querySelector('button[type="submit"]');
@@ -294,13 +299,14 @@ document.addEventListener('DOMContentLoaded', function() {
             btn.classList.add('loading');
             
             FirebaseServices.applications.create(data).then(function() {
-                return FirebaseServices.activity.log({
+                FirebaseServices.activity.log({
                     type: 'application',
                     description: 'New provider application: ' + data.facilityName,
                     icon: 'fas fa-hospital',
                     color: 'gold'
+                }).catch(function(logErr) {
+                    console.warn('Activity log skipped:', logErr);
                 });
-            }).then(function() {
                 providerForm.innerHTML = '<div class="inline-confirm">' +
                     '<div class="inline-confirm-icon"><i class="fas fa-check"></i></div>' +
                     '<h3>Application Submitted!</h3>' +
@@ -762,7 +768,7 @@ document.addEventListener('DOMContentLoaded', function() {
             btn.disabled = true;
             btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Submitting...';
 
-            FirebaseServices.contactMessages.create(data).then(function() {
+            FirebaseServices.facilitiesRequest.create(data).then(function() {
                 fcForm.style.display = 'none';
                 document.getElementById('findCareConfirm').style.display = '';
                 btn.disabled = false;
@@ -1188,7 +1194,7 @@ document.addEventListener('DOMContentLoaded', function() {
     
     var page = window.location.pathname.split('/').pop() || 'index.html';
     
-    var portalPages = ['admin.html', 'family-portal.html', 'provider-portal.html', 'caregiver-portal.html'];
+    var portalPages = ['admin.html', 'family-portal.html', 'caregiver-portal.html'];
     
     if (portalPages.indexOf(page) !== -1) {
         auth.onAuthStateChanged(function(user) {
@@ -1209,13 +1215,6 @@ document.addEventListener('DOMContentLoaded', function() {
                 
                 // Admin guard
                 if (page === 'admin.html' && role !== 'admin') {
-                    auth.signOut();
-                    window.location.href = 'login.html';
-                    return;
-                }
-                
-                // Provider guard
-                if (page === 'provider-portal.html' && role !== 'provider' && role !== 'admin') {
                     auth.signOut();
                     window.location.href = 'login.html';
                     return;
@@ -1244,14 +1243,6 @@ document.addEventListener('DOMContentLoaded', function() {
                     initUserAvatar(document.getElementById('familyAvatar'), userName, user.uid, userData.profilePhoto);
                     loadFamilyDashboard(user.uid);
                     loadPortalReferral(user.uid, userName, 'family');
-                }
-                
-                if (page === 'provider-portal.html') {
-                    var provNameEl = document.getElementById('providerName');
-                    if (provNameEl) provNameEl.textContent = userData.facilityName || userName;
-                    initUserAvatar(document.getElementById('providerAvatar'), userName, user.uid, userData.profilePhoto);
-                    loadProviderDashboard(user.uid);
-                    loadPortalReferral(user.uid, userName, 'provider');
                 }
                 
                 if (page === 'caregiver-portal.html') {
@@ -1661,6 +1652,8 @@ document.addEventListener('DOMContentLoaded', function() {
         switch(tabId) {
             case 'users': loadAdminUsers(); break;
             case 'servicerequests': loadAdminCareRequests(); break;
+            case 'carerequests': loadAdminActualCareRequests(); break;
+            case 'contactmessages': loadAdminContactMessages(); break;
             case 'referrals': loadAdminReferrals(); break;
             case 'appointments': loadAdminAppointments(); break;
             case 'resources': loadAdminResources(); break;
@@ -1700,6 +1693,7 @@ document.addEventListener('DOMContentLoaded', function() {
                         <button class="admin-action-btn view" onclick="adminViewUser(\'' + doc.id + '\')"><i class="fas fa-eye"></i></button>\
                         <button class="admin-action-btn edit" onclick="adminToggleUserActive(\'' + doc.id + '\', ' + (u.active !== false) + ')"><i class="fas fa-power-off"></i></button>\
                         <button class="admin-action-btn edit" onclick="adminChangeUserRole(\'' + doc.id + '\', \'' + (u.role || 'caregiver') + '\')" title="Change Role"><i class="fas fa-user-tag"></i></button>\
+                        <button class="admin-action-btn delete" title="Delete" onclick="adminDeleteUser(\'caregiver\', \'' + doc.id + '\')"><i class="fas fa-trash"></i></button>\
                     </div></td>\
                 </tr>';
             });
@@ -1777,6 +1771,7 @@ document.addEventListener('DOMContentLoaded', function() {
                         <button class="admin-action-btn view" onclick="adminViewUser(\'' + item.id + '\')"><i class="fas fa-eye"></i></button>\
                         <button class="admin-action-btn edit" onclick="adminToggleUserActive(\'' + item.id + '\', ' + (u.active !== false) + ')"><i class="fas fa-power-off"></i></button>\
                         <button class="admin-action-btn edit" onclick="adminChangeUserRole(\'' + item.id + '\', \'' + (u.role || 'family') + '\')" title="Change Role"><i class="fas fa-user-tag"></i></button>\
+                        <button class="admin-action-btn delete" title="Delete" onclick="adminDeleteUser(\'family\', \'' + item.id + '\')"><i class="fas fa-trash"></i></button>\
                     </div></td>\
                 </tr>';
                 
@@ -1883,9 +1878,9 @@ document.addEventListener('DOMContentLoaded', function() {
         var tbody = document.getElementById('serviceRequestsTableBody');
         if (!tbody) return;
 
-        FirebaseServices.contactMessages.getAll().then(function(snap) {
+        FirebaseServices.facilitiesRequest.getAll().then(function(snap) {
             if (snap.empty) {
-                tbody.innerHTML = '<tr><td colspan="9" style="text-align:center; padding:30px; color:#6B7280;">No care requests found.</td></tr>';
+                tbody.innerHTML = '<tr><td colspan="9" style="text-align:center; padding:30px; color:#6B7280;">No facility requests found.</td></tr>';
                 return;
             }
             tbody.innerHTML = '';
@@ -1905,18 +1900,19 @@ document.addEventListener('DOMContentLoaded', function() {
                     <td>' + dateStr + '</td>\
                     <td><div class="admin-action-btns">\
                         <button class="admin-action-btn view" title="View Details" onclick="adminViewCareRequest(\'' + doc.id + '\')"><i class="fas fa-eye"></i></button>\
+                        <button class="admin-action-btn delete" title="Delete" onclick="adminDeleteFacilityRequest(\'' + doc.id + '\')"><i class="fas fa-trash"></i></button>\
                     </div></td>\
                 </tr>';
             });
         }).catch(function(err) {
-            tbody.innerHTML = '<tr><td colspan="9" style="text-align:center; padding:30px; color:#DC2626;">Error loading care requests.</td></tr>';
+            tbody.innerHTML = '<tr><td colspan="9" style="text-align:center; padding:30px; color:#DC2626;">Error loading facility requests.</td></tr>';
         });
 
         initModalClose('srDetailModal');
     }
 
     window.adminViewCareRequest = function(id) {
-        FirebaseServices.contactMessages.getAll().then(function(snap) {
+        FirebaseServices.facilitiesRequest.getAll().then(function(snap) {
             var r = null;
             snap.forEach(function(doc) {
                 if (doc.id === id) r = doc.data();
@@ -1947,6 +1943,155 @@ document.addEventListener('DOMContentLoaded', function() {
             document.getElementById('srDetailStatusBadge').className = 'status-badge ' + status;
 
             var reviewedEl = document.getElementById('srDetailReviewed');
+            if (reviewedEl) {
+                reviewedEl.checked = r.reviewed === true;
+                reviewedEl.onchange = function() {
+                    FirebaseServices.facilitiesRequest.update(id, { reviewed: reviewedEl.checked }).catch(function(err) {
+                        showNotification('Error updating review status.', 'error');
+                    });
+                };
+            }
+
+            modal.classList.add('active');
+        });
+    };
+
+    // --- CARE REQUESTS (people requesting a caregiver, from the Request a Caregiver form) ---
+    function loadAdminActualCareRequests() {
+        var tbody = document.getElementById('careRequestsTableBody');
+        if (!tbody) return;
+
+        FirebaseServices.careRequests.getAll().then(function(snap) {
+            if (snap.empty) {
+                tbody.innerHTML = '<tr><td colspan="9" style="text-align:center; padding:30px; color:#6B7280;">No care requests found.</td></tr>';
+                return;
+            }
+            tbody.innerHTML = '';
+            snap.forEach(function(doc) {
+                var r = doc.data();
+                var dateStr = FirebaseServices.formatTimestamp(r.createdAt);
+
+                tbody.innerHTML += '<tr>\
+                    <td><strong>' + escapeHtml(r.name || '--') + '</strong></td>\
+                    <td>' + escapeHtml(r.phone || '--') + '</td>\
+                    <td>' + escapeHtml(r.email || '--') + '</td>\
+                    <td>' + escapeHtml(r.city || '--') + '</td>\
+                    <td>' + escapeHtml(r.careType || '--') + '</td>\
+                    <td>' + escapeHtml(r.hoursNeeded || '--') + '</td>\
+                    <td>' + escapeHtml(r.startDate || '--') + '</td>\
+                    <td>' + dateStr + '</td>\
+                    <td><div class="admin-action-btns">\
+                        <button class="admin-action-btn view" title="View Details" onclick="adminViewActualCareRequest(\'' + doc.id + '\')"><i class="fas fa-eye"></i></button>\
+                        <button class="admin-action-btn delete" title="Delete" onclick="adminDeleteCareRequest(\'' + doc.id + '\')"><i class="fas fa-trash"></i></button>\
+                    </div></td>\
+                </tr>';
+            });
+        }).catch(function(err) {
+            tbody.innerHTML = '<tr><td colspan="9" style="text-align:center; padding:30px; color:#DC2626;">Error loading care requests.</td></tr>';
+        });
+
+        initModalClose('acrDetailModal');
+    }
+
+    window.adminViewActualCareRequest = function(id) {
+        FirebaseServices.careRequests.getById(id).then(function(doc) {
+            if (!doc.exists) {
+                showNotification('Request data not found.', 'error');
+                return;
+            }
+            var r = doc.data();
+
+            var modal = document.getElementById('acrDetailModal');
+            if (!modal) return;
+
+            document.getElementById('acrDetailName').textContent = r.name || '--';
+            document.getElementById('acrDetailEmail').textContent = r.email || '--';
+            document.getElementById('acrDetailPhone').textContent = r.phone || '--';
+            document.getElementById('acrDetailDate').textContent = FirebaseServices.formatTimestamp(r.createdAt);
+            document.getElementById('acrDetailCity').textContent = r.city || '--';
+            document.getElementById('acrDetailCareType').textContent = r.careType || '--';
+            document.getElementById('acrDetailHours').textContent = r.hoursNeeded || '--';
+            document.getElementById('acrDetailDays').textContent = r.daysNeeded || '--';
+            document.getElementById('acrDetailStartDate').textContent = r.startDate || '--';
+            document.getElementById('acrDetailBudget').textContent = r.budget || '--';
+            document.getElementById('acrDetailComments').textContent = r.comments || '--';
+
+            var status = r.status || 'new';
+            document.getElementById('acrDetailStatusBadge').textContent = status.replace('_', ' ').replace(/\b\w/g, function(l) { return l.toUpperCase(); });
+            document.getElementById('acrDetailStatusBadge').className = 'status-badge ' + status;
+
+            var reviewedEl = document.getElementById('acrDetailReviewed');
+            if (reviewedEl) {
+                reviewedEl.checked = r.reviewed === true;
+                reviewedEl.onchange = function() {
+                    FirebaseServices.careRequests.update(id, { reviewed: reviewedEl.checked }).catch(function(err) {
+                        showNotification('Error updating review status.', 'error');
+                    });
+                };
+            }
+
+            modal.classList.add('active');
+        }).catch(function(err) {
+            showNotification('Error loading request details.', 'error');
+        });
+    };
+
+    // --- CONTACT MESSAGES (general inquiries from the Contact Us form) ---
+    function loadAdminContactMessages() {
+        var tbody = document.getElementById('contactMessagesTableBody');
+        if (!tbody) return;
+
+        FirebaseServices.contactMessages.getAll().then(function(snap) {
+            if (snap.empty) {
+                tbody.innerHTML = '<tr><td colspan="6" style="text-align:center; padding:30px; color:#6B7280;">No contact messages found.</td></tr>';
+                return;
+            }
+            tbody.innerHTML = '';
+            snap.forEach(function(doc) {
+                var r = doc.data();
+                var dateStr = FirebaseServices.formatTimestamp(r.createdAt);
+
+                tbody.innerHTML += '<tr>\
+                    <td><strong>' + escapeHtml(r.name || '--') + '</strong></td>\
+                    <td>' + escapeHtml(r.phone || '--') + '</td>\
+                    <td>' + escapeHtml(r.email || '--') + '</td>\
+                    <td>' + escapeHtml(r.subject || '--') + '</td>\
+                    <td>' + dateStr + '</td>\
+                    <td><div class="admin-action-btns">\
+                        <button class="admin-action-btn view" title="View Details" onclick="adminViewContactMessage(\'' + doc.id + '\')"><i class="fas fa-eye"></i></button>\
+                        <button class="admin-action-btn delete" title="Delete" onclick="adminDeleteContactMessage(\'' + doc.id + '\')"><i class="fas fa-trash"></i></button>\
+                    </div></td>\
+                </tr>';
+            });
+        }).catch(function(err) {
+            tbody.innerHTML = '<tr><td colspan="6" style="text-align:center; padding:30px; color:#DC2626;">Error loading contact messages.</td></tr>';
+        });
+
+        initModalClose('cmDetailModal');
+    }
+
+    window.adminViewContactMessage = function(id) {
+        FirebaseServices.contactMessages.getAll().then(function(snap) {
+            var r = null;
+            snap.forEach(function(doc) {
+                if (doc.id === id) r = doc.data();
+            });
+            if (!r) {
+                showNotification('Message data not found.', 'error');
+                return;
+            }
+
+            var modal = document.getElementById('cmDetailModal');
+            if (!modal) return;
+
+            document.getElementById('cmDetailName').textContent = r.name || '--';
+            document.getElementById('cmDetailEmail').textContent = r.email || '--';
+            document.getElementById('cmDetailPhone').textContent = r.phone || '--';
+            document.getElementById('cmDetailDate').textContent = FirebaseServices.formatTimestamp(r.createdAt);
+            document.getElementById('cmDetailSubject').textContent = r.subject || '--';
+            document.getElementById('cmDetailMessage').textContent = r.message || '--';
+
+            var reviewedEl = document.getElementById('cmDetailReviewed');
             if (reviewedEl) {
                 reviewedEl.checked = r.reviewed === true;
                 reviewedEl.onchange = function() {
@@ -1993,6 +2138,7 @@ document.addEventListener('DOMContentLoaded', function() {
                     <td><div class="admin-action-btns">\
                         <button class="admin-action-btn view" title="View &amp; Allocate" onclick="adminViewReferral(\'' + doc.id + '\')"><i class="fas fa-eye"></i></button>\
                         <button class="admin-action-btn edit" title="Quick status update" onclick="adminUpdateReferralStatus(\'' + doc.id + '\', \'' + status + '\')"><i class="fas fa-edit"></i></button>\
+                        <button class="admin-action-btn delete" title="Delete" onclick="adminDeleteReferral(\'' + doc.id + '\')"><i class="fas fa-trash"></i></button>\
                     </div></td>\
                 </tr>';
             });
@@ -2125,6 +2271,8 @@ document.addEventListener('DOMContentLoaded', function() {
     function loadAdminApplications() {
         var tbody = document.getElementById('applicationsTableBody');
         if (!tbody) return;
+
+        initModalClose('appDetailModal');
         
         FirebaseServices.applications.getAll().then(function(snap) {
             if (snap.empty) {
@@ -2138,7 +2286,7 @@ document.addEventListener('DOMContentLoaded', function() {
                 var status = a.status || 'pending';
                 var typeLabel = a.type === 'provider' ? 'Provider' : 'Career';
                 
-                tbody.innerHTML += '<tr>\
+                tbody.innerHTML += '<tr data-status="' + status + '">\
                     <td><strong>' + escapeHtml(a.name || a.facilityName || '--') + '</strong></td>\
                     <td>' + typeLabel + '</td>\
                     <td>' + escapeHtml(a.email || '--') + '</td>\
@@ -2146,8 +2294,9 @@ document.addEventListener('DOMContentLoaded', function() {
                     <td>' + dateStr + '</td>\
                     <td><span class="status-badge ' + status + '">' + (status.charAt(0).toUpperCase() + status.slice(1)) + '</span></td>\
                     <td><div class="admin-action-btns">\
-                        <button class="admin-action-btn view" onclick="adminUpdateApplicationStatus(\'' + doc.id + '\', \'approved\')"><i class="fas fa-check"></i></button>\
-                        <button class="admin-action-btn delete" onclick="adminUpdateApplicationStatus(\'' + doc.id + '\', \'rejected\')"><i class="fas fa-times"></i></button>\
+                        <button class="admin-action-btn view" title="View Details" onclick="adminViewApplication(\'' + doc.id + '\')"><i class="fas fa-eye"></i></button>\
+                        <button class="admin-action-btn edit" title="Change Status" onclick="adminChangeApplicationStatus(\'' + doc.id + '\', \'' + status + '\')"><i class="fas fa-edit"></i></button>\
+                        <button class="admin-action-btn delete" title="Delete" onclick="adminDeleteApplication(\'' + doc.id + '\')"><i class="fas fa-trash"></i></button>\
                     </div></td>\
                 </tr>';
             });
@@ -2155,6 +2304,18 @@ document.addEventListener('DOMContentLoaded', function() {
             tbody.innerHTML = '<tr><td colspan="7" style="text-align:center; padding:30px; color:#DC2626;">Error loading applications.</td></tr>';
         });
     }
+
+    // Applications status filter (client-side, on already-loaded rows)
+    document.querySelectorAll('#tab-applications .admin-filter-bar [data-filter]').forEach(function(btn) {
+        btn.addEventListener('click', function() {
+            document.querySelectorAll('#tab-applications .admin-filter-bar [data-filter]').forEach(function(b) { b.classList.remove('active'); });
+            this.classList.add('active');
+            var filter = this.getAttribute('data-filter');
+            document.querySelectorAll('#applicationsTableBody tr[data-status]').forEach(function(row) {
+                row.style.display = (filter === 'all' || row.getAttribute('data-status') === filter) ? '' : 'none';
+            });
+        });
+    });
     
     // --- TESTIMONIALS ---
     function loadAdminTestimonials() {
@@ -2342,7 +2503,7 @@ document.addEventListener('DOMContentLoaded', function() {
             var startOfMonth = new Date(now.getFullYear(), now.getMonth(), 1);
             
             if (snap.empty) {
-                tbody.innerHTML = '<tr><td colspan="5" style="text-align:center; padding:30px; color:#6B7280;">No payments found.</td></tr>';
+                tbody.innerHTML = '<tr><td colspan="6" style="text-align:center; padding:30px; color:#6B7280;">No payments found.</td></tr>';
                 return;
             }
             
@@ -2366,6 +2527,9 @@ document.addEventListener('DOMContentLoaded', function() {
                     <td>' + escapeHtml(p.type || '--') + '</td>\
                     <td>' + dateStr + '</td>\
                     <td><span class="status-badge ' + status + '">' + (status.charAt(0).toUpperCase() + status.slice(1)) + '</span></td>\
+                    <td><div class="admin-action-btns">\
+                        <button class="admin-action-btn delete" title="Delete" onclick="adminDeletePayment(\'' + doc.id + '\')"><i class="fas fa-trash"></i></button>\
+                    </div></td>\
                 </tr>';
             });
             
@@ -2373,7 +2537,7 @@ document.addEventListener('DOMContentLoaded', function() {
             setFallback('adminMonthRevenue', FirebaseServices.formatCurrency(totalMonth));
             setFallback('adminTotalPayments', count.toString());
         }).catch(function(err) {
-            tbody.innerHTML = '<tr><td colspan="5" style="text-align:center; padding:30px; color:#DC2626;">Error loading payments.</td></tr>';
+            tbody.innerHTML = '<tr><td colspan="6" style="text-align:center; padding:30px; color:#DC2626;">Error loading payments.</td></tr>';
         });
     }
     
@@ -2979,6 +3143,7 @@ document.addEventListener('DOMContentLoaded', function() {
                     <td><div class="admin-action-btns">\
                         <button class="admin-action-btn edit" onclick="adminEditAdminRole(\'' + doc.id + '\', \'' + (u.role || 'admin') + '\')"><i class="fas fa-edit"></i></button>\
                         <button class="admin-action-btn edit" onclick="adminToggleUserActive(\'' + doc.id + '\', ' + (u.active !== false) + ')"><i class="fas fa-power-off"></i></button>\
+                        <button class="admin-action-btn delete" title="Delete" onclick="adminDeleteUser(\'admin\', \'' + doc.id + '\')"><i class="fas fa-trash"></i></button>\
                     </div></td>\
                 </tr>';
             });
@@ -3076,8 +3241,7 @@ document.addEventListener('DOMContentLoaded', function() {
     // ==========================================
     // REQUEST DETAIL / ALLOCATE-TO-PROVIDER MODAL
     // Guest submits a request -> lands here as a referral ("new") -> admin
-    // opens the full-screen detail modal and allocates it to a provider ->
-    // the provider then sees it in their portal (FirebaseServices.referrals.getByProvider).
+    // opens the full-screen detail modal and allocates it to a provider.
     // ==========================================
 
     function populateReferralProviderSelect(selectedId) {
@@ -3174,7 +3338,7 @@ document.addEventListener('DOMContentLoaded', function() {
             refAllocateBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Allocating...';
             
             FirebaseServices.referrals.update(id, updateData).then(function() {
-                showNotification('Request allocated to ' + providerName + '. They will see it in their portal.', 'success');
+                showNotification('Request allocated to ' + providerName + '.', 'success');
                 modal.classList.remove('active');
                 loadAdminReferrals();
             }).catch(function(err) {
@@ -3256,23 +3420,157 @@ document.addEventListener('DOMContentLoaded', function() {
     };
     
     window.adminUpdateApplicationStatus = function(id, status) {
-        if (status === 'approved') {
-            FirebaseServices.applications.updateStatus(id, 'approved').then(function() {
-                showNotification('Application approved.', 'success');
-                loadAdminApplications();
-            }).catch(function(err) {
-                showNotification('Error: ' + err.message, 'error');
-            });
-            return;
-        } else {
-            if (!confirm('Mark this application as ' + status + '?')) return;
-            FirebaseServices.applications.updateStatus(id, status).then(function() {
-                showNotification('Application ' + status + '.', 'success');
-                loadAdminApplications();
-            }).catch(function(err) {
-                showNotification('Error: ' + err.message, 'error');
-            });
-        }
+        FirebaseServices.applications.updateStatus(id, status).then(function() {
+            showNotification('Application ' + status + '.', 'success');
+            loadAdminApplications();
+        }).catch(function(err) {
+            showNotification('Error: ' + err.message, 'error');
+        });
+    };
+
+    window.adminViewApplication = function(id) {
+        FirebaseServices.applications.getById(id).then(function(doc) {
+            if (!doc.exists) { showNotification('Application not found.', 'error'); return; }
+            var a = doc.data();
+            var status = a.status || 'pending';
+            var isProvider = a.type === 'provider';
+
+            document.getElementById('appDetailStatusBadge').className = 'status-badge ' + status;
+            document.getElementById('appDetailStatusBadge').textContent = status.charAt(0).toUpperCase() + status.slice(1);
+            document.getElementById('appDetailStatusInfo').innerHTML = '<i class="fas fa-circle-info"></i> Current status: <strong>' + status.charAt(0).toUpperCase() + status.slice(1) + '</strong>';
+            document.getElementById('appDetailStatusSelect').value = status;
+
+            document.getElementById('appDetailTitle').textContent = isProvider ? 'Provider Application' : 'Career Application';
+            document.getElementById('appDetailTypeHeading').innerHTML = isProvider ? '<i class="fas fa-hospital"></i> Facility Info' : '<i class="fas fa-user"></i> Applicant Info';
+
+            function field(label, value, full) {
+                return '<div class="request-detail-field' + (full ? ' full-width' : '') + '"><label>' + label + '</label><span>' + escapeHtml(value == null || value === '' ? '--' : String(value)) + '</span></div>';
+            }
+
+            var html = '';
+            if (isProvider) {
+                html += field('Facility Name', a.facilityName);
+                html += field('License Number', a.licenseNumber);
+                html += field('Admissions Director', a.admissionsDirector);
+                html += field('Phone', a.phone);
+                html += field('Email', a.email);
+                html += field('Type of Care', a.careType);
+                html += field('Payment Options', (a.paymentOptions && a.paymentOptions.length ? a.paymentOptions.join(', ') : '--'));
+                html += field('Availability', a.availability);
+            } else {
+                html += field('Full Name', a.name);
+                html += field('Phone', a.phone);
+                html += field('Email', a.email);
+                html += field('Address', a.address);
+                html += field('Experience', a.experience);
+                html += field('Availability', a.availability);
+                html += field('Certifications', (a.certifications && a.certifications.length ? a.certifications.join(', ') : '--'));
+                html += field('References', a.references, true);
+            }
+            html += field('Submitted', FirebaseServices.formatTimestamp(a.createdAt), true);
+            document.getElementById('appDetailFields').innerHTML = html;
+
+            var sel = document.getElementById('appDetailStatusSelect');
+            var updateBtn = document.getElementById('appDetailUpdateStatusBtn');
+            updateBtn.onclick = function() {
+                if (sel.value === status) { showNotification('Status is already ' + status + '.', 'success'); return; }
+                if (!confirm('Change this application status to ' + sel.value + '?')) return;
+                FirebaseServices.applications.updateStatus(id, sel.value).then(function() {
+                    showNotification('Application status updated to ' + sel.value + '.', 'success');
+                    document.getElementById('appDetailModal').classList.remove('active');
+                    loadAdminApplications();
+                }).catch(function(err) {
+                    showNotification('Error: ' + err.message, 'error');
+                });
+            };
+
+            document.getElementById('appDetailModal').classList.add('active');
+        }).catch(function(err) {
+            showNotification('Error loading application details.', 'error');
+        });
+    };
+
+    window.adminChangeApplicationStatus = function(id, currentStatus) {
+        var next = prompt('Change application status.\n\nCurrent: ' + currentStatus + '\nOptions: pending, approved, rejected', currentStatus);
+        if (!next || next === currentStatus) return;
+        FirebaseServices.applications.updateStatus(id, next).then(function() {
+            showNotification('Application status updated to ' + next + '.', 'success');
+            loadAdminApplications();
+        }).catch(function(err) {
+            showNotification('Error: ' + err.message, 'error');
+        });
+    };
+
+    window.adminDeleteApplication = function(id) {
+        if (!confirm('Delete this application permanently?')) return;
+        FirebaseServices.applications.remove(id).then(function() {
+            showNotification('Application deleted.', 'success');
+            loadAdminApplications();
+        }).catch(function(err) {
+            showNotification('Error: ' + err.message, 'error');
+        });
+    };
+    
+    window.adminDeleteUser = function(role, uid) {
+        if (!confirm('Delete this ' + role + ' account permanently? This cannot be undone.')) return;
+        FirebaseServices.users.remove(uid).then(function() {
+            showNotification(role.charAt(0).toUpperCase() + role.slice(1) + ' account deleted.', 'success');
+            if (role === 'admin') loadAdminAdmins();
+            else if (role === 'caregiver') loadAdminCaregivers();
+            else loadAdminFamilies();
+        }).catch(function(err) {
+            showNotification('Error: ' + err.message, 'error');
+        });
+    };
+    
+    window.adminDeleteFacilityRequest = function(id) {
+        if (!confirm('Delete this facility request permanently?')) return;
+        db.collection('facilitiesRequest').doc(id).delete().then(function() {
+            showNotification('Facility request deleted.', 'success');
+            loadAdminCareRequests();
+        }).catch(function(err) {
+            showNotification('Error: ' + err.message, 'error');
+        });
+    };
+    
+    window.adminDeleteCareRequest = function(id) {
+        if (!confirm('Delete this care request permanently?')) return;
+        FirebaseServices.careRequests.remove(id).then(function() {
+            showNotification('Care request deleted.', 'success');
+            loadAdminActualCareRequests();
+        }).catch(function(err) {
+            showNotification('Error: ' + err.message, 'error');
+        });
+    };
+    
+    window.adminDeleteContactMessage = function(id) {
+        if (!confirm('Delete this contact message permanently?')) return;
+        db.collection('contactMessages').doc(id).delete().then(function() {
+            showNotification('Contact message deleted.', 'success');
+            loadAdminContactMessages();
+        }).catch(function(err) {
+            showNotification('Error: ' + err.message, 'error');
+        });
+    };
+    
+    window.adminDeleteReferral = function(id) {
+        if (!confirm('Delete this referral permanently?')) return;
+        db.collection('referrals').doc(id).delete().then(function() {
+            showNotification('Referral deleted.', 'success');
+            loadAdminReferrals();
+        }).catch(function(err) {
+            showNotification('Error: ' + err.message, 'error');
+        });
+    };
+    
+    window.adminDeletePayment = function(id) {
+        if (!confirm('Delete this payment record permanently?')) return;
+        db.collection('payments').doc(id).delete().then(function() {
+            showNotification('Payment record deleted.', 'success');
+            loadAdminPayments();
+        }).catch(function(err) {
+            showNotification('Error: ' + err.message, 'error');
+        });
     };
     
     window.adminUpdateShiftStatus = function(id, status) {
@@ -3796,595 +4094,7 @@ document.addEventListener('DOMContentLoaded', function() {
             console.error('Error loading referrals:', err);
         });
     }
-    
-    // ==========================================
-    // PROVIDER PORTAL LOADER
-    // ==========================================
-    function loadProviderDashboard(userId) {
-        var providerId = userId;
-        
-        // Load linked facility data (vacancies, pricing from facilities doc)
-        FirebaseServices.facilities.getByProvider(providerId).then(function(snap) {
-            if (!snap.empty) {
-                var fac = snap.docs[0].data();
-                var vacEl = document.getElementById('providerVacancies');
-                if (vacEl) vacEl.textContent = fac.vacancies || '0';
-                var resEl = document.getElementById('providerResidents');
-                if (resEl) resEl.textContent = fac.totalBeds ? (fac.totalBeds - (fac.vacancies || 0)) : '--';
-                var revEl = document.getElementById('providerRevenue');
-                if (revEl) revEl.textContent = fac.pricingFrom ? '$' + fac.pricingFrom + '+/mo' : '$--';
-            } else {
-                setFallback('providerVacancies');
-                setFallback('providerResidents');
-                setFallback('providerRevenue');
-            }
-        }).catch(function() {
-            setFallback('providerVacancies');
-            setFallback('providerResidents');
-            setFallback('providerRevenue');
-        });
-        
-        // Load referrals
-        FirebaseServices.referrals.getByProvider(providerId).then(function(snap) {
-            var el = document.getElementById('providerIncomingReferrals');
-            if (el) el.textContent = snap.size;
-            
-            var tbody = document.getElementById('providerReferralsTable');
-            if (!tbody) return;
-            
-            if (snap.empty) {
-                tbody.innerHTML = '<tr><td colspan="5" style="text-align:center; padding:30px; color:#6B7280;">No referrals yet.</td></tr>';
-                return;
-            }
-            
-            tbody.innerHTML = '';
-            snap.forEach(function(doc) {
-                var r = doc.data();
-                var dateStr = FirebaseServices.formatTimestamp(r.createdAt);
-                var statusClass = r.status === 'assigned' ? 'assigned' : r.status === 'contacted' ? 'pending' : r.status === 'admitted' ? 'green' : 'active';
-                var statusLabel = r.status.charAt(0).toUpperCase() + r.status.slice(1).replace('_', ' ');
-                
-                tbody.innerHTML += '\
-                    <tr>\
-                        <td><strong>' + escapeHtml(r.familyName) + '</strong></td>\
-                        <td>' + escapeHtml(r.careType) + '</td>\
-                        <td>' + escapeHtml(r.budget) + '</td>\
-                        <td>' + dateStr + '</td>\
-                        <td><span class="status-badge ' + statusClass + '">' + statusLabel + '</span></td>\
-                    </tr>\
-                ';
-            });
-        }).catch(function() { setFallback('providerIncomingReferrals'); });
-        
-        // Load vacancies (per-room table only, stat cards read from facility doc)
-        FirebaseServices.vacancies.getByProvider(providerId).then(function(snap) {
-            var totalAvailable = 0;
-            var totalOccupied = 0;
-            var tbody = document.getElementById('providerVacanciesTable');
-            
-            if (snap.empty) {
-                if (tbody) tbody.innerHTML = '<tr><td colspan="5" style="text-align:center; padding:30px; color:#6B7280;">No vacancy data. Add your facility vacancies to get started.</td></tr>';
-                return;
-            }
-            
-            tbody.innerHTML = '';
-            snap.forEach(function(doc) {
-                var v = doc.data();
-                totalAvailable += v.available || 0;
-                totalOccupied += v.occupied || 0;
-                var rate = v.occupied && v.available ? Math.round((v.occupied / (v.occupied + v.available)) * 100) : 0;
-                
-                tbody.innerHTML += '\
-                    <tr>\
-                        <td>' + escapeHtml(v.roomType) + '</td>\
-                        <td>' + v.available + '</td>\
-                        <td>' + v.occupied + '</td>\
-                        <td>' + rate + '%</td>\
-                        <td>' + FirebaseServices.formatCurrency(v.monthlyPrice) + '/mo</td>\
-                    </tr>\
-                ';
-            });
-        }).catch(function() {});
-        
-        // Load full referrals list
-        loadProviderAllReferrals(userId);
-        
-        // Load vacancies management table
-        loadProviderVacanciesManage(userId);
-        
-        // Load settings
-        loadProviderSettings(userId);
-        
-        // Load photos
-        loadProviderPhotos(userId);
-    }
-    
-    // ==========================================
-    // PROVIDER PORTAL - ALL REFERRALS
-    // ==========================================
-    
-    function loadProviderAllReferrals(userId, filter) {
-        var tbody = document.getElementById('providerAllReferralsTable');
-        if (!tbody) return;
-        
-        FirebaseServices.referrals.getByProvider(userId).then(function(snap) {
-            if (snap.empty) {
-                tbody.innerHTML = '<tr><td colspan="8" style="text-align:center; padding:40px; color:#6B7280;">No referrals yet.</td></tr>';
-                return;
-            }
-            
-            tbody.innerHTML = '';
-            snap.forEach(function(doc) {
-                var r = doc.data();
-                var docId = doc.id;
-                
-                if (filter && filter !== 'all' && r.status !== filter) return;
-                
-                var dateStr = FirebaseServices.formatTimestamp(r.createdAt);
-                var statusClass = 'active';
-                var statusLabel = r.status.charAt(0).toUpperCase() + r.status.slice(1).replace('_', ' ');
-                if (r.status === 'assigned') statusClass = 'assigned';
-                else if (r.status === 'contacted') statusClass = 'pending';
-                else if (r.status === 'tour_scheduled') statusClass = 'review';
-                else if (r.status === 'admitted') statusClass = 'green';
-                
-                var actions = '';
-                if (r.status === 'new' || r.status === 'assigned') {
-                    actions = '<button class="btn btn-sm btn-primary prov-ref-action" data-id="' + docId + '" data-status="contacted">Contact</button>';
-                } else if (r.status === 'contacted') {
-                    actions = '<button class="btn btn-sm btn-gold prov-ref-action" data-id="' + docId + '" data-status="tour_scheduled">Schedule Tour</button>';
-                } else if (r.status === 'tour_scheduled') {
-                    actions = '<button class="btn btn-sm btn-primary prov-ref-action" data-id="' + docId + '" data-status="admitted">Admit</button>';
-                } else {
-                    actions = '<span style="color:#6B7280; font-size:13px;">Completed</span>';
-                }
-                
-                tbody.innerHTML += '\
-                    <tr>\
-                        <td><strong>' + escapeHtml(r.familyName || 'N/A') + '</strong></td>\
-                        <td>' + escapeHtml(r.patientName || '--') + '</td>\
-                        <td>' + escapeHtml(r.careType) + '</td>\
-                        <td>' + escapeHtml(r.budget) + '</td>\
-                        <td>' + escapeHtml(r.timeline || '--') + '</td>\
-                        <td>' + dateStr + '</td>\
-                        <td><span class="status-badge ' + statusClass + '">' + statusLabel + '</span></td>\
-                        <td>' + actions + '</td>\
-                    </tr>\
-                ';
-            });
-            
-            // Attach action handlers
-            document.querySelectorAll('.prov-ref-action').forEach(function(btn) {
-                btn.addEventListener('click', function() {
-                    var refId = this.getAttribute('data-id');
-                    var newStatus = this.getAttribute('data-status');
-                    FirebaseServices.referrals.updateStatus(refId, newStatus).then(function() {
-                        loadProviderAllReferrals(userId, filter);
-                        loadProviderDashboard(userId);
-                    });
-                });
-            });
-        });
-    }
-    
-    // Filter buttons
-    document.querySelectorAll('.ref-filter').forEach(function(btn) {
-        btn.addEventListener('click', function() {
-            document.querySelectorAll('.ref-filter').forEach(function(b) {
-                b.classList.remove('active');
-                b.classList.remove('btn-primary');
-                b.classList.add('btn-outline');
-            });
-            this.classList.add('active');
-            this.classList.add('btn-primary');
-            this.classList.remove('btn-outline');
-            
-            var filter = this.getAttribute('data-filter');
-            var provUser = auth.currentUser;
-            if (provUser) loadProviderAllReferrals(provUser.uid, filter);
-        });
-    });
-    
-    // ==========================================
-    // PROVIDER PORTAL - VACANCY MANAGEMENT
-    // ==========================================
-    
-    function loadProviderVacanciesManage(userId) {
-        var tbody = document.getElementById('providerVacanciesManageTable');
-        if (!tbody) return;
-        
-        FirebaseServices.vacancies.getByProvider(userId).then(function(snap) {
-            if (snap.empty) {
-                tbody.innerHTML = '<tr><td colspan="6" style="text-align:center; padding:30px; color:#6B7280;">No vacancies added yet.</td></tr>';
-                return;
-            }
-            
-            tbody.innerHTML = '';
-            snap.forEach(function(doc) {
-                var v = doc.data();
-                var docId = doc.id;
-                var rate = v.occupied && v.available ? Math.round((v.occupied / (v.occupied + v.available)) * 100) : 0;
-                
-                tbody.innerHTML += '\
-                    <tr>\
-                        <td><strong>' + escapeHtml(v.roomType) + '</strong></td>\
-                        <td>' + v.available + '</td>\
-                        <td>' + v.occupied + '</td>\
-                        <td>' + rate + '%</td>\
-                        <td>' + FirebaseServices.formatCurrency(v.monthlyPrice) + '/mo</td>\
-                        <td>\
-                            <button class="btn btn-sm btn-outline prov-vac-edit" data-id="' + docId + '" data-type="' + escapeHtml(v.roomType) + '" data-price="' + v.monthlyPrice + '" data-available="' + v.available + '" data-occupied="' + v.occupied + '" style="margin-right: 6px;"><i class="fas fa-edit"></i></button>\
-                            <button class="btn btn-sm btn-outline prov-vac-delete" data-id="' + docId + '" style="color: #DC2626; border-color: #DC2626;"><i class="fas fa-trash"></i></button>\
-                        </td>\
-                    </tr>\
-                ';
-            });
-            
-            // Edit handlers
-            document.querySelectorAll('.prov-vac-edit').forEach(function(btn) {
-                btn.addEventListener('click', function() {
-                    document.getElementById('vacRoomType').value = this.getAttribute('data-type');
-                    document.getElementById('vacPrice').value = this.getAttribute('data-price');
-                    document.getElementById('vacAvailable').value = this.getAttribute('data-available');
-                    document.getElementById('vacOccupied').value = this.getAttribute('data-occupied');
-                    document.getElementById('vacEditId').value = this.getAttribute('data-id');
-                    document.getElementById('vacancySubmitBtn').innerHTML = '<i class="fas fa-save"></i> Update Vacancy';
-                    document.getElementById('vacancyCancelBtn').style.display = 'inline-block';
-                });
-            });
-            
-            // Delete handlers
-            document.querySelectorAll('.prov-vac-delete').forEach(function(btn) {
-                btn.addEventListener('click', function() {
-                    if (!confirm('Delete this vacancy?')) return;
-                    var vacId = this.getAttribute('data-id');
-                    db.collection('vacancies').doc(vacId).delete().then(function() {
-                        loadProviderVacanciesManage(userId);
-                        loadProviderDashboard(userId);
-                        syncFacilityVacancies(userId);
-                    });
-                });
-            });
-        });
-    }
-    
-    // Vacancy form
-    var vacancyForm = document.getElementById('vacancyForm');
-    if (vacancyForm) {
-        vacancyForm.addEventListener('submit', function(e) {
-            e.preventDefault();
-            var errEl = document.getElementById('vacancyError');
-            var successEl = document.getElementById('vacancySuccess');
-            errEl.style.display = 'none';
-            successEl.style.display = 'none';
-            
-            var user = auth.currentUser;
-            if (!user) return;
-            
-            var data = {
-                providerId: user.uid,
-                roomType: document.getElementById('vacRoomType').value,
-                monthlyPrice: parseInt(document.getElementById('vacPrice').value),
-                available: parseInt(document.getElementById('vacAvailable').value),
-                occupied: parseInt(document.getElementById('vacOccupied').value)
-            };
-            
-            var editId = document.getElementById('vacEditId').value;
-            
-            var promise;
-            if (editId) {
-                promise = db.collection('vacancies').doc(editId).update(data);
-            } else {
-                promise = FirebaseServices.vacancies.create(data);
-            }
-            
-            promise.then(function() {
-                successEl.textContent = editId ? 'Vacancy updated!' : 'Vacancy added!';
-                successEl.style.display = 'block';
-                vacancyForm.reset();
-                document.getElementById('vacEditId').value = '';
-                document.getElementById('vacancySubmitBtn').innerHTML = '<i class="fas fa-save"></i> Save Vacancy';
-                document.getElementById('vacancyCancelBtn').style.display = 'none';
-                loadProviderVacanciesManage(user.uid);
-                loadProviderDashboard(user.uid);
-                syncFacilityVacancies(user.uid);
-                setTimeout(function() { successEl.style.display = 'none'; }, 3000);
-            }).catch(function(err) {
-                errEl.textContent = 'Error: ' + err.message;
-                errEl.style.display = 'block';
-            });
-        });
-        
-        var vacCancelBtn = document.getElementById('vacancyCancelBtn');
-        if (vacCancelBtn) {
-            vacCancelBtn.addEventListener('click', function() {
-                vacancyForm.reset();
-                document.getElementById('vacEditId').value = '';
-                document.getElementById('vacancySubmitBtn').innerHTML = '<i class="fas fa-save"></i> Save Vacancy';
-                this.style.display = 'none';
-            });
-        }
-    }
-    
-    function syncFacilityVacancies(providerId) {
-        FirebaseServices.vacancies.getByProvider(providerId).then(function(snap) {
-            var totalAvailable = 0;
-            snap.forEach(function(doc) {
-                totalAvailable += doc.data().available || 0;
-            });
-            return FirebaseServices.facilities.getByProvider(providerId).then(function(facSnap) {
-                if (!facSnap.empty) {
-                    return FirebaseServices.facilities.update(facSnap.docs[0].id, { vacancies: totalAvailable });
-                }
-            });
-        }).catch(function(err) {
-            console.error('Error syncing facility vacancies:', err);
-        });
-    }
-    
-    // ==========================================
-    // PROVIDER PORTAL - PRICING
-    // ==========================================
-    
-    var pricingForm = document.getElementById('pricingForm');
-    if (pricingForm) {
-        // Load existing pricing
-        auth.onAuthStateChanged(function(user) {
-            if (user && window.location.pathname.indexOf('provider-portal') !== -1) {
-                db.collection('providerPricing').doc(user.uid).get().then(function(doc) {
-                    if (doc.exists) {
-                        var p = doc.data();
-                        if (document.getElementById('priceBase')) document.getElementById('priceBase').value = p.base || '';
-                        if (document.getElementById('priceAssisted')) document.getElementById('priceAssisted').value = p.assisted || '';
-                        if (document.getElementById('priceMemory')) document.getElementById('priceMemory').value = p.memory || '';
-                        if (document.getElementById('priceSkilled')) document.getElementById('priceSkilled').value = p.skilled || '';
-                        if (document.getElementById('priceNotes')) document.getElementById('priceNotes').value = p.notes || '';
-                    }
-                });
-            }
-        });
-        
-        pricingForm.addEventListener('submit', function(e) {
-            e.preventDefault();
-            var successEl = document.getElementById('pricingSuccess');
-            var user = auth.currentUser;
-            if (!user) return;
-            
-            var data = {
-                base: parseInt(document.getElementById('priceBase').value) || 0,
-                assisted: parseInt(document.getElementById('priceAssisted').value) || 0,
-                memory: parseInt(document.getElementById('priceMemory').value) || 0,
-                skilled: parseInt(document.getElementById('priceSkilled').value) || 0,
-                notes: document.getElementById('priceNotes').value.trim(),
-                updatedAt: firebase.firestore.FieldValue.serverTimestamp()
-            };
-            
-            db.collection('providerPricing').doc(user.uid).set(data, { merge: true }).then(function() {
-                // Also update linked facility pricing
-                var prices = [data.base, data.assisted, data.memory, data.skilled].filter(function(p) { return p > 0; });
-                var priceMin = prices.length ? Math.min.apply(null, prices) : 0;
-                var priceMax = prices.length ? Math.max.apply(null, prices) : 0;
-                return FirebaseServices.facilities.getByProvider(user.uid).then(function(facSnap) {
-                    if (!facSnap.empty) {
-                        return FirebaseServices.facilities.update(facSnap.docs[0].id, {
-                            pricingFrom: priceMin,
-                            pricingTo: priceMax
-                        });
-                    }
-                });
-            }).then(function() {
-                successEl.textContent = 'Pricing saved!';
-                successEl.style.display = 'block';
-                setTimeout(function() { successEl.style.display = 'none'; }, 3000);
-            }).catch(function(err) {
-                successEl.textContent = 'Error: ' + err.message;
-                successEl.style.display = 'block';
-                successEl.style.background = '#FEF2F2';
-                successEl.style.color = '#DC2626';
-            });
-        });
-    }
-    
-    // ==========================================
-    // PROVIDER PORTAL - PHOTOS
-    // ==========================================
-    
-    var photoUploadArea = document.getElementById('photoUploadArea');
-    var photoFileInput = document.getElementById('photoFileInput');
-    var photoFileName = document.getElementById('photoFileName');
-    var photoUploadBtn = document.getElementById('photoUploadBtn');
-    
-    if (photoUploadArea && photoFileInput) {
-        photoUploadArea.addEventListener('click', function() {
-            photoFileInput.click();
-        });
-        
-        photoFileInput.addEventListener('change', function() {
-            if (this.files.length > 0) {
-                var names = Array.from(this.files).map(function(f) { return f.name; }).join(', ');
-                photoFileName.textContent = this.files.length + ' file(s): ' + names;
-                photoFileName.style.display = 'block';
-                photoUploadBtn.style.display = 'inline-block';
-            }
-        });
-        
-        if (photoUploadBtn) {
-            photoUploadBtn.addEventListener('click', function() {
-                if (!photoFileInput.files.length || !auth.currentUser) return;
-                
-                var user = auth.currentUser;
-                var category = document.getElementById('photoCategory').value;
-                var files = photoFileInput.files;
-                var uploaded = 0;
-                
-                photoUploadBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Uploading...';
-                photoUploadBtn.disabled = true;
-                
-                Array.from(files).forEach(function(file) {
-                    var storageRef = storage.ref('facility-photos/' + user.uid + '/' + Date.now() + '_' + file.name);
-                    storageRef.put(file).then(function() {
-                        return storageRef.getDownloadURL();
-                    }).then(function(url) {
-                        return db.collection('facilityPhotos').add({
-                            userId: user.uid,
-                            fileName: file.name,
-                            fileUrl: url,
-                            category: category,
-                            createdAt: firebase.firestore.FieldValue.serverTimestamp()
-                        });
-                    }).then(function() {
-                        uploaded++;
-                        if (uploaded === files.length) {
-                            photoFileName.textContent = 'All photos uploaded!';
-                            photoUploadBtn.innerHTML = '<i class="fas fa-check"></i> Done';
-                            photoUploadBtn.style.background = '#2F7D4A';
-                            photoFileInput.value = '';
-                            loadProviderPhotos(user.uid);
-                            setTimeout(function() {
-                                photoUploadBtn.style.display = 'none';
-                                photoFileName.style.display = 'none';
-                                photoUploadBtn.innerHTML = '<i class="fas fa-upload"></i> Upload';
-                                photoUploadBtn.style.background = '';
-                                photoUploadBtn.disabled = false;
-                            }, 2000);
-                        }
-                    }).catch(function(err) {
-                        photoFileName.textContent = 'Upload failed: ' + err.message;
-                        photoFileName.style.color = '#DC2626';
-                        photoUploadBtn.innerHTML = '<i class="fas fa-upload"></i> Upload';
-                        photoUploadBtn.disabled = false;
-                    });
-                });
-            });
-        }
-    }
-    
-    function loadProviderPhotos(userId) {
-        var grid = document.getElementById('providerPhotosGrid');
-        if (!grid) return;
-        
-        db.collection('facilityPhotos').where('userId', '==', userId).orderBy('createdAt', 'desc').get().then(function(snap) {
-            if (snap.empty) {
-                grid.innerHTML = '<div style="text-align:center; padding:40px; color:#6B7280; grid-column: 1/-1;">No photos uploaded yet.</div>';
-                return;
-            }
-            
-            grid.innerHTML = '';
-            snap.forEach(function(doc) {
-                var p = doc.data();
-                grid.innerHTML += '\
-                    <div style="position: relative; border-radius: 12px; overflow: hidden; aspect-ratio: 4/3;">\
-                        <img src="' + p.fileUrl + '" alt="' + escapeHtml(p.fileName) + '" style="width: 100%; height: 100%; object-fit: cover;">\
-                        <div style="position: absolute; bottom: 0; left: 0; right: 0; background: linear-gradient(transparent, rgba(0,0,0,0.7)); padding: 8px 12px;">\
-                            <span style="color: white; font-size: 12px;">' + escapeHtml(p.category) + '</span>\
-                        </div>\
-                        <button class="prov-photo-delete" data-id="' + doc.id + '" style="position: absolute; top: 8px; right: 8px; background: rgba(0,0,0,0.5); border: none; color: white; width: 28px; height: 28px; border-radius: 50%; cursor: pointer; font-size: 12px;"><i class="fas fa-times"></i></button>\
-                    </div>\
-                ';
-            });
-            
-            document.querySelectorAll('.prov-photo-delete').forEach(function(btn) {
-                btn.addEventListener('click', function() {
-                    if (!confirm('Delete this photo?')) return;
-                    var photoId = this.getAttribute('data-id');
-                    db.collection('facilityPhotos').doc(photoId).delete().then(function() {
-                        loadProviderPhotos(userId);
-                    });
-                });
-            });
-        });
-    }
-    
-    // ==========================================
-    // PROVIDER PORTAL - SETTINGS
-    // ==========================================
-    
-    function loadProviderSettings(userId) {
-        db.collection('users').doc(userId).get().then(function(doc) {
-            if (!doc.exists) return;
-            var u = doc.data();
-            
-            var setIf = function(id, val) { var el = document.getElementById(id); if (el) el.value = val || ''; };
-            setIf('provFacilityName', u.facilityName);
-            setIf('provContactName', u.name);
-            setIf('provEmail', u.email);
-            setIf('provPhone', u.phone);
-            setIf('provAddress', u.address);
-            setIf('provCity', u.city);
-            setIf('provState', u.state);
-            setIf('provDescription', u.description);
-        });
-        
-        // Also read from linked facility doc for additional fields
-        FirebaseServices.facilities.getByProvider(userId).then(function(snap) {
-            if (!snap.empty) {
-                var f = snap.docs[0].data();
-                var setIf = function(id, val) { var el = document.getElementById(id); if (el) el.value = val || ''; };
-                setIf('provAddress', f.address || f.city ? (f.address || '') : '');
-                setIf('provCity', f.city);
-                setIf('provState', f.state);
-                setIf('provDescription', f.description);
-            }
-        }).catch(function() {});
-    }
-    
-    var provSettingsForm = document.getElementById('providerSettingsForm');
-    if (provSettingsForm) {
-        provSettingsForm.addEventListener('submit', function(e) {
-            e.preventDefault();
-            var successEl = document.getElementById('providerSettingsSuccess');
-            var user = auth.currentUser;
-            if (!user) return;
-            
-            var facilityName = document.getElementById('provFacilityName').value.trim();
-            
-            db.collection('users').doc(user.uid).update({
-                facilityName: facilityName,
-                name: document.getElementById('provContactName').value.trim(),
-                phone: document.getElementById('provPhone').value.trim(),
-                address: document.getElementById('provAddress').value.trim(),
-                city: document.getElementById('provCity').value.trim(),
-                state: document.getElementById('provState').value.trim(),
-                description: document.getElementById('provDescription').value.trim()
-            }).then(function() {
-                // Also update linked facility doc
-                return FirebaseServices.facilities.getByProvider(user.uid).then(function(snap) {
-                    if (!snap.empty) {
-                        return FirebaseServices.facilities.update(snap.docs[0].id, {
-                            facilityName: facilityName,
-                            address: document.getElementById('provAddress').value.trim(),
-                            city: document.getElementById('provCity').value.trim(),
-                            state: document.getElementById('provState').value.trim(),
-                            description: document.getElementById('provDescription').value.trim()
-                        });
-                    } else if (facilityName) {
-                        // Create facility doc if none exists
-                        return FirebaseServices.facilities.create({
-                            facilityName: facilityName,
-                            providerId: user.uid,
-                            providerName: document.getElementById('provContactName').value.trim(),
-                            city: document.getElementById('provCity').value.trim(),
-                            state: document.getElementById('provState').value.trim(),
-                            status: 'active'
-                        });
-                    }
-                });
-            }).then(function() {
-                successEl.textContent = 'Facility profile updated!';
-                successEl.style.display = 'block';
-                var nameEl = document.getElementById('providerName');
-                if (nameEl && facilityName) nameEl.textContent = facilityName;
-                setTimeout(function() { successEl.style.display = 'none'; }, 3000);
-            }).catch(function(err) {
-                successEl.textContent = 'Error: ' + err.message;
-                successEl.style.display = 'block';
-                successEl.style.background = '#FEF2F2';
-                successEl.style.color = '#DC2626';
-            });
-        });
-    }
-    
-    // ==========================================
+// ==========================================
     // CAREGIVER PORTAL LOADER
     // ==========================================
     function loadCaregiverDashboard(userId) {

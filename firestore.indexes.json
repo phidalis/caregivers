@@ -33,14 +33,6 @@
       ]
     },
     {
-      "collectionGroup": "vacancies",
-      "queryScope": "COLLECTION",
-      "fields": [
-        { "fieldPath": "providerId", "order": "ASCENDING" },
-        { "fieldPath": "createdAt", "order": "DESCENDING" }
-      ]
-    },
-    {
       "collectionGroup": "shifts",
       "queryScope": "COLLECTION",
       "fields": [

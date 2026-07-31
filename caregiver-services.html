@@ -183,16 +183,16 @@
             <div class="form-card animate-on-scroll">
                 <form id="careRequestForm">
                     <div class="form-grid">
-                        <div class="form-group"><label>Full Name *</label><input type="text" required placeholder="Enter your full name"></div>
-                        <div class="form-group"><label>Phone *</label><input type="tel" required placeholder="(555) 123-4567"></div>
-                        <div class="form-group"><label>Email *</label><input type="email" required placeholder="you@example.com"></div>
-                        <div class="form-group"><label>City</label><input type="text" placeholder="Enter your city"></div>
-                        <div class="form-group"><label>Hours Needed</label><select><option>Select hours</option><option>4 hours/day</option><option>8 hours/day</option><option>12 hours/day</option><option>24 hours (Live-in)</option></select></div>
-                        <div class="form-group"><label>Days Needed</label><select><option>Select days</option><option>Weekdays</option><option>Weekends</option><option>Every Day</option><option>Custom Schedule</option></select></div>
-                        <div class="form-group"><label>Type of Care *</label><select required><option>Select care type</option><option>Companion Care</option><option>Personal Care</option><option>Live-In Care</option><option>Overnight Care</option><option>Hospital Sitting</option></select></div>
-                        <div class="form-group"><label>Preferred Start Date</label><input type="date"></div>
-                        <div class="form-group"><label>Budget Range</label><select><option>Select budget</option><option>Under $15/hour</option><option>$15 - $25/hour</option><option>$25 - $35/hour</option><option>$35+/hour</option></select></div>
-                        <div class="form-group"><label>Comments</label><textarea placeholder="Tell us about your loved one's needs..."></textarea></div>
+                        <div class="form-group"><label>Full Name *</label><input type="text" name="name" required placeholder="Enter your full name"></div>
+                        <div class="form-group"><label>Phone *</label><input type="tel" name="phone" required placeholder="(555) 123-4567"></div>
+                        <div class="form-group"><label>Email *</label><input type="email" name="email" required placeholder="you@example.com"></div>
+                        <div class="form-group"><label>City</label><input type="text" name="city" placeholder="Enter your city"></div>
+                        <div class="form-group"><label>Hours Needed</label><select name="hoursNeeded"><option value="">Select hours</option><option>4 hours/day</option><option>8 hours/day</option><option>12 hours/day</option><option>24 hours (Live-in)</option></select></div>
+                        <div class="form-group"><label>Days Needed</label><select name="daysNeeded"><option value="">Select days</option><option>Weekdays</option><option>Weekends</option><option>Every Day</option><option>Custom Schedule</option></select></div>
+                        <div class="form-group"><label>Type of Care *</label><select name="careType" required><option value="">Select care type</option><option>Companion Care</option><option>Personal Care</option><option>Live-In Care</option><option>Overnight Care</option><option>Hospital Sitting</option></select></div>
+                        <div class="form-group"><label>Preferred Start Date</label><input type="date" name="startDate"></div>
+                        <div class="form-group"><label>Budget Range</label><select name="budget"><option value="">Select budget</option><option>Under $15/hour</option><option>$15 - $25/hour</option><option>$25 - $35/hour</option><option>$35+/hour</option></select></div>
+                        <div class="form-group"><label>Comments</label><textarea name="comments" placeholder="Tell us about your loved one's needs..."></textarea></div>
                     </div>
                     <button type="submit" class="btn btn-primary btn-full" style="margin-top: 20px;"><i class="fas fa-paper-plane"></i> Submit Care Request</button>
                 </form>

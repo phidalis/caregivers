@@ -122,7 +122,6 @@
         function redirectByRole(role) {
             var dest = 'family-portal.html';
             if (role === 'admin') dest = 'admin.html';
-            else if (role === 'provider') dest = 'provider-portal.html';
             else if (role === 'caregiver') dest = 'caregiver-portal.html';
 
             showSuccess('Login successful! Redirecting...');
@@ -315,7 +314,6 @@
                     if (doc.exists) {
                         var role = doc.data().role;
                         if (role === 'admin') window.location.href = 'admin.html';
-                        else if (role === 'provider') window.location.href = 'provider-portal.html';
                         else if (role === 'caregiver') window.location.href = 'caregiver-portal.html';
                         else window.location.href = 'family-portal.html';
                     }

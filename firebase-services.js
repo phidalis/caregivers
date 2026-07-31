@@ -168,6 +168,7 @@ const FirebaseServices = {
             return await db.collection('applications').where('type', '==', type).get();
         },
         create: async (data) => {
+            data.createdAt = firebase.firestore.FieldValue.serverTimestamp();
             const docRef = await db.collection('applications').add(data);
             return { id: docRef.id, ...data };
         },
@@ -190,27 +191,6 @@ const FirebaseServices = {
         countPending: async () => {
             const snapshot = await db.collection('applications').where('status', '==', 'pending').get();
             return snapshot.size;
-        }
-    },
-
-    providers: {
-        getAll: async () => {
-            return await db.collection('providers').orderBy('createdAt', 'desc').get();
-        },
-        getById: async (id) => {
-            return await db.collection('providers').doc(id).get();
-        },
-        create: async (data) => {
-            const docRef = await db.collection('providers').add(data);
-            return { id: docRef.id, ...data };
-        },
-        update: async (id, data) => {
-            await db.collection('providers').doc(id).update(data);
-            return { id, ...data };
-        },
-        remove: async (id) => {
-            await db.collection('providers').doc(id).delete();
-            return true;
         }
     },
 
@@ -307,44 +287,6 @@ const FirebaseServices = {
         count: async () => {
             const snapshot = await db.collection('facilities').get();
             return snapshot.size;
-        }
-    },
-
-    vacancies: {
-        getByProvider: async (providerId) => {
-            return await db.collection('vacancies').where('providerId', '==', providerId).get();
-        },
-        getAll: async () => {
-            return await db.collection('vacancies').orderBy('createdAt', 'desc').get();
-        },
-        create: async (data) => {
-            const docRef = await db.collection('vacancies').add(data);
-            return { id: docRef.id, ...data };
-        },
-        update: async (id, data) => {
-            await db.collection('vacancies').doc(id).update(data);
-            return { id, ...data };
-        },
-        remove: async (id) => {
-            await db.collection('vacancies').doc(id).delete();
-            return true;
-        }
-    },
-
-    providerPricing: {
-        getByProvider: async (providerId) => {
-            return await db.collection('providerPricing').where('providerId', '==', providerId).get();
-        },
-        set: async (providerId, data) => {
-            const snapshot = await db.collection('providerPricing').where('providerId', '==', providerId).get();
-            if (!snapshot.empty) {
-                const doc = snapshot.docs[0];
-                await db.collection('providerPricing').doc(doc.id).update(data);
-                return { id: doc.id, ...data };
-            } else {
-                const docRef = await db.collection('providerPricing').add({ providerId, ...data });
-                return { id: docRef.id, providerId, ...data };
-            }
         }
     },
 
@@ -456,10 +398,9 @@ const FirebaseServices = {
             limitCount = limitCount || 50;
             return await db.collection('activityLog').orderBy('timestamp', 'desc').limit(limitCount).get();
         },
-        log: async (action, details) => {
+        log: async (data) => {
             const docRef = await db.collection('activityLog').add({
-                action,
-                details,
+                ...data,
                 timestamp: firebase.firestore.FieldValue.serverTimestamp()
             });
             return { id: docRef.id };
@@ -559,6 +500,27 @@ const FirebaseServices = {
         },
         update: async (id, data) => {
             await db.collection('contactMessages').doc(id).update(data);
+        }
+    },
+
+    facilitiesRequest: {
+        getAll: async () => {
+            return await db.collection('facilitiesRequest').orderBy('createdAt', 'desc').get();
+        },
+        getById: async (id) => {
+            return await db.collection('facilitiesRequest').doc(id).get();
+        },
+        create: async (data) => {
+            data.createdAt = firebase.firestore.FieldValue.serverTimestamp();
+            const docRef = await db.collection('facilitiesRequest').add(data);
+            return { id: docRef.id, ...data };
+        },
+        countUnread: async () => {
+            const snapshot = await db.collection('facilitiesRequest').where('read', '==', false).get();
+            return snapshot.size;
+        },
+        update: async (id, data) => {
+            await db.collection('facilitiesRequest').doc(id).update(data);
         }
     },
 

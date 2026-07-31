@@ -137,38 +137,34 @@
                 <div class="split-right animate-on-scroll">
                     <h2>Apply <span class="gold">Now</span></h2>
                     <p>Submit your application and our HR team will reach out within 48 hours.</p>
-                    <form id="careerForm">
+                    <form id="careerForm" action="javascript:void(0);">
                         <div class="form-grid">
-                            <div class="form-group"><label>Full Name *</label><input type="text" required placeholder="Enter your full name"></div>
-                            <div class="form-group"><label>Phone *</label><input type="tel" required placeholder="(555) 123-4567"></div>
-                            <div class="form-group"><label>Email *</label><input type="email" required placeholder="you@example.com"></div>
-                            <div class="form-group"><label>Address</label><input type="text" placeholder="City, State"></div>
+                            <div class="form-group"><label>Full Name *</label><input type="text" name="name" required placeholder="Enter your full name"></div>
+                            <div class="form-group"><label>Phone *</label><input type="tel" name="phone" required placeholder="(555) 123-4567"></div>
+                            <div class="form-group"><label>Email *</label><input type="email" name="email" required placeholder="you@example.com"></div>
+                            <div class="form-group"><label>Address</label><input type="text" name="address" placeholder="City, State"></div>
                             <div class="form-group">
                                 <label>Experience</label>
-                                <select><option>Select experience</option><option>Less than 1 year</option><option>1-3 years</option><option>3-5 years</option><option>5+ years</option></select>
+                                <select name="experience"><option>Select experience</option><option>Less than 1 year</option><option>1-3 years</option><option>3-5 years</option><option>5+ years</option></select>
                             </div>
                             <div class="form-group">
                                 <label>Availability</label>
-                                <select><option>Select availability</option><option>Full Time</option><option>Part Time</option><option>Weekends Only</option><option>Flexible</option></select>
-                            </div>
-                            <div class="form-group">
-                                <label>Resume Upload</label>
-                                <div class="file-upload"><input type="file" accept=".pdf,.doc,.docx"><span class="file-label"><i class="fas fa-cloud-arrow-up"></i> Choose File</span></div>
+                                <select name="availability"><option>Select availability</option><option>Full Time</option><option>Part Time</option><option>Weekends Only</option><option>Flexible</option></select>
                             </div>
                             <div class="form-group full-width">
                                 <label>References</label>
-                                <textarea placeholder="Please provide at least two professional references (name, relationship, phone/email)." rows="3"></textarea>
+                                <textarea name="references" placeholder="Please provide at least two professional references (name, relationship, phone/email)." rows="3"></textarea>
                             </div>
                             <div class="form-group">
                                 <label>Certifications</label>
                                 <div class="checkbox-grid">
-                                    <label class="checkbox-label"><input type="checkbox"> CNA</label>
-                                    <label class="checkbox-label"><input type="checkbox"> CPR</label>
-                                    <label class="checkbox-label"><input type="checkbox"> Driver License</label>
+                                    <label class="checkbox-label"><input type="checkbox" name="certifications" value="CNA"> CNA</label>
+                                    <label class="checkbox-label"><input type="checkbox" name="certifications" value="CPR"> CPR</label>
+                                    <label class="checkbox-label"><input type="checkbox" name="certifications" value="Driver License"> Driver License</label>
                                 </div>
                             </div>
                         </div>
-                        <label class="checkbox-label" style="margin: 16px 0;"><input type="checkbox" required> I authorize a background check</label>
+                        <label class="checkbox-label" style="margin: 16px 0;"><input type="checkbox" name="backgroundCheckConsent" required> I authorize a background check</label>
                         <button type="submit" class="btn btn-gold btn-full"><i class="fas fa-briefcase"></i> Submit Application</button>
                     </form>
                 </div>

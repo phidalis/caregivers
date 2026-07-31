@@ -26,7 +26,9 @@
         <nav class="sidebar-nav">
             <a href="#" class="active" data-tab="dashboard"><i class="fas fa-th-large"></i> Dashboard</a>
             <a href="#" data-tab="users"><i class="fas fa-users"></i> Users</a>
-            <a href="#" data-tab="servicerequests"><i class="fas fa-file-invoice"></i> Care Requests</a>
+            <a href="#" data-tab="servicerequests"><i class="fas fa-file-invoice"></i> Facility Requests</a>
+            <a href="#" data-tab="carerequests"><i class="fas fa-hand-holding-heart"></i> Care Requests</a>
+            <a href="#" data-tab="contactmessages"><i class="fas fa-envelope-open-text"></i> Contact Messages</a>
             <a href="#" data-tab="referrals"><i class="fas fa-link"></i> Referrals</a>
             <a href="#" data-tab="appointments"><i class="fas fa-calendar-alt"></i> Appointments</a>
             <a href="#" data-tab="resources"><i class="fas fa-newspaper"></i> Resources</a>
@@ -253,25 +255,25 @@
                 </div>
             </div>
         </div>
-        <!-- ==================== CARE REQUESTS TAB ==================== -->
+        <!-- ==================== FACILITY REQUESTS TAB ==================== -->
         <div class="portal-tab" id="tab-servicerequests">
             <div class="admin-tab-header">
-                <div><h2 class="admin-tab-title">Care Requests</h2><p class="admin-tab-subtitle">Review incoming requests from the Find Care form. Find facilities offline and reach out to clients.</p></div>
+                <div><h2 class="admin-tab-title">Facility Requests</h2><p class="admin-tab-subtitle">Review incoming requests from the Find Care form. Find facilities offline and reach out to clients.</p></div>
             </div>
             <div class="table-responsive">
 <table class="admin-table" id="serviceRequestsTable">
                 <thead><tr><th>Name</th><th>Email</th><th>Phone</th><th>State</th><th>City</th><th>Care Type</th><th>Family Group</th><th>Date</th><th>Actions</th></tr></thead>
                 <tbody id="serviceRequestsTableBody">
-                    <tr><td colspan="9" class="admin-loading">Loading care requests...</td></tr>
+                    <tr><td colspan="9" class="admin-loading">Loading facility requests...</td></tr>
                 </tbody>
             </table>
 </div>
 
-            <!-- CARE REQUEST DETAIL MODAL -->
+            <!-- FACILITY REQUEST DETAIL MODAL -->
             <div class="admin-modal admin-modal-fullscreen" id="srDetailModal">
                 <div class="admin-modal-content">
                     <div class="admin-modal-header">
-                        <h3>Care Request Details</h3>
+                        <h3>Facility Request Details</h3>
                         <button class="admin-modal-close">&times;</button>
                     </div>
                     <div class="admin-modal-body">
@@ -304,6 +306,128 @@
                                     <div class="request-current-provider" id="srDetailCurrentProvider"><i class="fas fa-circle-info"></i> <span id="srDetailStatusBadge" class="status-badge">new</span></div>
                                     <div class="admin-form-checks" style="margin-top:12px;">
                                         <label class="admin-check"><input type="checkbox" id="srDetailReviewed"> Mark as Reviewed</label>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="admin-modal-actions">
+                        <button type="button" class="btn btn-outline admin-modal-close-btn">Close</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- ==================== CARE REQUESTS TAB (people requesting a caregiver) ==================== -->
+        <div class="portal-tab" id="tab-carerequests">
+            <div class="admin-tab-header">
+                <div><h2 class="admin-tab-title">Care Requests</h2><p class="admin-tab-subtitle">Review incoming requests from the Request a Caregiver form. Match families with an available caregiver.</p></div>
+            </div>
+            <div class="table-responsive">
+<table class="admin-table" id="careRequestsTable">
+                <thead><tr><th>Name</th><th>Phone</th><th>Email</th><th>City</th><th>Care Type</th><th>Hours Needed</th><th>Start Date</th><th>Date</th><th>Actions</th></tr></thead>
+                <tbody id="careRequestsTableBody">
+                    <tr><td colspan="9" class="admin-loading">Loading care requests...</td></tr>
+                </tbody>
+            </table>
+</div>
+
+            <!-- CARE REQUEST DETAIL MODAL -->
+            <div class="admin-modal admin-modal-fullscreen" id="acrDetailModal">
+                <div class="admin-modal-content">
+                    <div class="admin-modal-header">
+                        <h3>Care Request Details</h3>
+                        <button class="admin-modal-close">&times;</button>
+                    </div>
+                    <div class="admin-modal-body">
+                        <div class="request-detail-grid">
+                            <div>
+                                <div class="request-detail-section">
+                                    <h4><i class="fas fa-user"></i> Contact Info</h4>
+                                    <div class="request-detail-fields">
+                                        <div class="request-detail-field"><label>Name</label><span id="acrDetailName">--</span></div>
+                                        <div class="request-detail-field"><label>Email</label><span id="acrDetailEmail">--</span></div>
+                                        <div class="request-detail-field"><label>Phone</label><span id="acrDetailPhone">--</span></div>
+                                        <div class="request-detail-field"><label>Submitted</label><span id="acrDetailDate">--</span></div>
+                                    </div>
+                                </div>
+                                <div class="request-detail-section">
+                                    <h4><i class="fas fa-notes-medical"></i> Care Details</h4>
+                                    <div class="request-detail-fields">
+                                        <div class="request-detail-field"><label>City</label><span id="acrDetailCity">--</span></div>
+                                        <div class="request-detail-field"><label>Type of Care</label><span id="acrDetailCareType">--</span></div>
+                                        <div class="request-detail-field"><label>Hours Needed</label><span id="acrDetailHours">--</span></div>
+                                        <div class="request-detail-field"><label>Days Needed</label><span id="acrDetailDays">--</span></div>
+                                        <div class="request-detail-field"><label>Preferred Start Date</label><span id="acrDetailStartDate">--</span></div>
+                                        <div class="request-detail-field"><label>Budget Range</label><span id="acrDetailBudget">--</span></div>
+                                        <div class="request-detail-field full-width"><label>Comments</label><span id="acrDetailComments">--</span></div>
+                                    </div>
+                                </div>
+                            </div>
+                            <div>
+                                <div class="request-allocate-panel">
+                                    <h4><i class="fas fa-check-circle"></i> Status</h4>
+                                    <div class="request-current-provider" id="acrDetailCurrentProvider"><i class="fas fa-circle-info"></i> <span id="acrDetailStatusBadge" class="status-badge">new</span></div>
+                                    <div class="admin-form-checks" style="margin-top:12px;">
+                                        <label class="admin-check"><input type="checkbox" id="acrDetailReviewed"> Mark as Reviewed</label>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="admin-modal-actions">
+                        <button type="button" class="btn btn-outline admin-modal-close-btn">Close</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- ==================== CONTACT MESSAGES TAB ==================== -->
+        <div class="portal-tab" id="tab-contactmessages">
+            <div class="admin-tab-header">
+                <div><h2 class="admin-tab-title">Contact Messages</h2><p class="admin-tab-subtitle">Review incoming messages from the general Contact Us form.</p></div>
+            </div>
+            <div class="table-responsive">
+<table class="admin-table" id="contactMessagesTable">
+                <thead><tr><th>Name</th><th>Phone</th><th>Email</th><th>Subject</th><th>Date</th><th>Actions</th></tr></thead>
+                <tbody id="contactMessagesTableBody">
+                    <tr><td colspan="6" class="admin-loading">Loading contact messages...</td></tr>
+                </tbody>
+            </table>
+</div>
+
+            <!-- CONTACT MESSAGE DETAIL MODAL -->
+            <div class="admin-modal admin-modal-fullscreen" id="cmDetailModal">
+                <div class="admin-modal-content">
+                    <div class="admin-modal-header">
+                        <h3>Contact Message Details</h3>
+                        <button class="admin-modal-close">&times;</button>
+                    </div>
+                    <div class="admin-modal-body">
+                        <div class="request-detail-grid">
+                            <div>
+                                <div class="request-detail-section">
+                                    <h4><i class="fas fa-user"></i> Contact Info</h4>
+                                    <div class="request-detail-fields">
+                                        <div class="request-detail-field"><label>Name</label><span id="cmDetailName">--</span></div>
+                                        <div class="request-detail-field"><label>Email</label><span id="cmDetailEmail">--</span></div>
+                                        <div class="request-detail-field"><label>Phone</label><span id="cmDetailPhone">--</span></div>
+                                        <div class="request-detail-field"><label>Submitted</label><span id="cmDetailDate">--</span></div>
+                                    </div>
+                                </div>
+                                <div class="request-detail-section">
+                                    <h4><i class="fas fa-comment-dots"></i> Message</h4>
+                                    <div class="request-detail-fields">
+                                        <div class="request-detail-field"><label>Subject</label><span id="cmDetailSubject">--</span></div>
+                                        <div class="request-detail-field full-width"><label>Message</label><span id="cmDetailMessage">--</span></div>
+                                    </div>
+                                </div>
+                            </div>
+                            <div>
+                                <div class="request-allocate-panel">
+                                    <h4><i class="fas fa-check-circle"></i> Status</h4>
+                                    <div class="admin-form-checks" style="margin-top:12px;">
+                                        <label class="admin-check"><input type="checkbox" id="cmDetailReviewed"> Mark as Reviewed</label>
                                     </div>
                                 </div>
                             </div>
@@ -491,6 +615,47 @@
                 </tbody>
             </table>
 </div>
+
+            <!-- APPLICATION DETAIL MODAL -->
+            <div class="admin-modal admin-modal-fullscreen" id="appDetailModal">
+                <div class="admin-modal-content">
+                    <div class="admin-modal-header">
+                        <div class="admin-modal-header-info">
+                            <h3 id="appDetailTitle">Application Details</h3>
+                            <span class="status-badge" id="appDetailStatusBadge">--</span>
+                        </div>
+                        <button class="admin-modal-close">&times;</button>
+                    </div>
+                    <div class="admin-modal-body">
+                        <div class="request-detail-grid">
+                            <div>
+                                <div class="request-detail-section">
+                                    <h4 id="appDetailTypeHeading"><i class="fas fa-user"></i> Contact Info</h4>
+                                    <div class="request-detail-fields" id="appDetailFields"></div>
+                                </div>
+                            </div>
+                            <div>
+                                <div class="request-allocate-panel">
+                                    <h4><i class="fas fa-check-circle"></i> Status</h4>
+                                    <div class="request-current-provider" id="appDetailStatusInfo"></div>
+                                    <div class="form-group" style="margin-top:12px;">
+                                        <label>Update Status</label>
+                                        <select id="appDetailStatusSelect">
+                                            <option value="pending">Pending</option>
+                                            <option value="approved">Approved</option>
+                                            <option value="rejected">Rejected</option>
+                                        </select>
+                                    </div>
+                                    <button type="button" class="btn btn-gold btn-full" id="appDetailUpdateStatusBtn" style="width:100%; margin-top:10px;"><i class="fas fa-save"></i> Update Status</button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="admin-modal-actions">
+                        <button type="button" class="btn btn-outline admin-modal-close-btn">Close</button>
+                    </div>
+                </div>
+            </div>
         </div>
 
         <!-- ==================== SHIFTS TAB ==================== -->
@@ -545,9 +710,9 @@
             </div>
             <div class="table-responsive">
 <table class="admin-table" id="paymentsTable">
-                <thead><tr><th>From</th><th>Amount</th><th>Type</th><th>Date</th><th>Status</th></tr></thead>
+                <thead><tr><th>From</th><th>Amount</th><th>Type</th><th>Date</th><th>Status</th><th>Actions</th></tr></thead>
                 <tbody id="paymentsTableBody">
-                    <tr><td colspan="5" class="admin-loading">Loading payments...</td></tr>
+                    <tr><td colspan="6" class="admin-loading">Loading payments...</td></tr>
                 </tbody>
             </table>
 </div>
