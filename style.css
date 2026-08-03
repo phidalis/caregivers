@@ -3862,6 +3862,58 @@ input, textarea, select {
   background: #D4A33A;
 }
 
+.chat-location-btn {
+  width: 44px;
+  height: 44px;
+  border-radius: 12px;
+  background: #F5F7FA;
+  color: #081B3A;
+  border: 1px solid #E5E7EB;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.3s ease;
+  flex-shrink: 0;
+}
+
+.chat-location-btn:hover {
+  background: #E5E7EB;
+}
+
+.chat-location-btn:disabled {
+  opacity: 0.5;
+  cursor: default;
+}
+
+.chat-typing {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  padding: 4px 20px 10px;
+}
+
+.chat-typing span {
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+  background: #9CA3AF;
+  display: inline-block;
+  animation: chatTypingBounce 1.2s infinite ease-in-out;
+}
+
+.chat-typing span:nth-child(2) { animation-delay: 0.15s; }
+.chat-typing span:nth-child(3) { animation-delay: 0.3s; }
+
+@keyframes chatTypingBounce {
+  0%, 60%, 100% { transform: translateY(0); opacity: 0.5; }
+  30% { transform: translateY(-4px); opacity: 1; }
+}
+
+.chat-message.received p {
+  white-space: pre-wrap;
+}
+
 /* Auth Page */
 .auth-page {
   display: flex;
@@ -5699,6 +5751,81 @@ input, textarea, select {
   margin-bottom: 12px;
   padding-bottom: 8px;
   border-bottom: 1px solid #E5E7EB;
+}
+
+/* CMS Hero Slideshow Images */
+.cms-hero-images-wrap {
+  margin-top: 20px;
+  padding-top: 16px;
+  border-top: 1px solid #E5E7EB;
+}
+
+.cms-hero-images-wrap h5 {
+  font-family: 'Playfair Display', serif;
+  color: #081B3A;
+  font-size: 16px;
+  margin-bottom: 6px;
+}
+
+.cms-hero-images-hint {
+  color: #6B7280;
+  font-size: 13px;
+  margin-bottom: 16px;
+}
+
+.cms-hero-loading {
+  color: #6B7280;
+  padding: 16px 0;
+}
+
+.cms-hero-image-card {
+  display: grid;
+  grid-template-columns: 220px 1fr;
+  gap: 16px;
+  background: #F5F7FA;
+  border: 1px solid #E5E7EB;
+  border-radius: 10px;
+  padding: 16px;
+  margin-bottom: 12px;
+}
+
+.cms-hero-preview img {
+  width: 100%;
+  height: 130px;
+  object-fit: cover;
+  border-radius: 8px;
+  display: block;
+}
+
+.cms-hero-fields .form-group {
+  margin-bottom: 10px;
+}
+
+.cms-hero-actions {
+  display: flex;
+  gap: 8px;
+  margin-top: 10px;
+  flex-wrap: wrap;
+}
+
+.cms-hero-empty-card {
+  display: flex;
+  gap: 8px;
+  margin-top: 12px;
+}
+
+.cms-hero-empty-card input {
+  flex: 1;
+  padding: 10px 14px;
+  border: 1px solid #D1D5DB;
+  border-radius: 8px;
+  font-size: 14px;
+}
+
+@media (max-width: 640px) {
+  .cms-hero-image-card {
+    grid-template-columns: 1fr;
+  }
 }
 
 /* Status badges */

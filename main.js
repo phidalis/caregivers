@@ -113,72 +113,10 @@ document.addEventListener('DOMContentLoaded', function() {
     });
     
     // ------------------------------------------
-    // LIVE CHAT WIDGET
+    // TALK TO A SENIOR OFFICER
+    // (self-contained widget lives in senior-officer-chat.js)
     // ------------------------------------------
-    
-    var chatButton = document.querySelector('.chat-toggle');
-    var chatPopup = document.querySelector('.chat-popup');
-    var chatClose = document.querySelector('.chat-close');
-    var chatForm = document.querySelector('.chat-form');
-    var chatInput = document.querySelector('.chat-input');
-    var chatMessages = document.querySelector('.chat-messages');
-    
-    if (chatButton) {
-        chatButton.addEventListener('click', function() {
-            chatPopup.classList.toggle('active');
-            if (chatPopup.classList.contains('active')) {
-                chatInput.focus();
-            }
-        });
-    }
-    
-    if (chatClose) {
-        chatClose.addEventListener('click', function() {
-            chatPopup.classList.remove('active');
-        });
-    }
-    
-    if (chatForm) {
-        chatForm.addEventListener('submit', function(e) {
-            e.preventDefault();
-            var message = chatInput.value.trim();
-            if (message === '') return;
-            
-            var userMsg = document.createElement('div');
-            userMsg.className = 'chat-message sent';
-            userMsg.innerHTML = '<p>' + escapeHtml(message) + '</p>';
-            chatMessages.appendChild(userMsg);
-            
-            chatInput.value = '';
-            chatMessages.scrollTop = chatMessages.scrollHeight;
-            
-            setTimeout(function() {
-                var advisorMsg = document.createElement('div');
-                advisorMsg.className = 'chat-message received';
-                var isOnline = typeof isWithinBusinessHours === 'function' && isWithinBusinessHours();
-                var responses;
-                if (isOnline) {
-                    responses = [
-                        'Thank you for reaching out. A Senior Advisor will be with you shortly.',
-                        'We appreciate your message. How can we help you find the right care for your loved one?',
-                        'Welcome to Mercy Senior Solutions. Our team is here to guide you through every step.',
-                        'Thank you for your interest. Would you like to schedule a free consultation?'
-                    ];
-                } else {
-                    responses = [
-                        'Thank you for your message. Our office is currently closed. We have received your inquiry and will respond on the next business day.',
-                        'We appreciate you reaching out. A team member will follow up during our next business day (Mon-Fri 8am-6pm).',
-                        'Your message has been received. For urgent matters, please call (341) 618-9792.'
-                    ];
-                }
-                var randomResponse = responses[Math.floor(Math.random() * responses.length)];
-                advisorMsg.innerHTML = '<p>' + randomResponse + '</p>';
-                chatMessages.appendChild(advisorMsg);
-                chatMessages.scrollTop = chatMessages.scrollHeight;
-            }, 1500);
-        });
-    }
-    
+
     function escapeHtml(text) {
         var div = document.createElement('div');
         div.appendChild(document.createTextNode(text));
@@ -2874,7 +2812,7 @@ document.addEventListener('DOMContentLoaded', function() {
             story: 'Founded in 2020, Mercy Senior Solutions started with a simple idea: make finding senior care easier.',
             values: ['Compassion','Integrity','Excellence','Community'], image: ''
         },
-        chat: { welcomeMessage: 'Welcome to Mercy Senior Solutions. How can we help you today?', headerTitle: 'Talk to a Senior Advisor' }
+        chat: { welcomeMessage: 'Welcome to Mercy Senior Solutions. I\'m your Senior Officer assistant. Ask me anything about our services, or share your city/state and I can help point you to the nearest facility.', headerTitle: 'Talk to a Senior Officer' }
     };
     
     var CMS_SECTIONS = [
@@ -2943,6 +2881,7 @@ document.addEventListener('DOMContentLoaded', function() {
         container.querySelectorAll('.cms-img-upload-btn').forEach(function(btn) {
             btn.addEventListener('click', function() { openCmsImageUpload(this.getAttribute('data-target')); });
         });
+        loadCmsHeroImages();
     }
     
     function renderCmsFields(key, data) {
@@ -2950,6 +2889,11 @@ document.addEventListener('DOMContentLoaded', function() {
         if (key === 'hero') {
             html += cmsIn('Main Headline','headline',data.headline) + cmsIn('Sub Headline','subHeadline',data.subHeadline) + cmsTx('Description','description',data.description);
             html += '<div class="admin-form-grid">' + cmsIn('Button 1 Text','btn1Text',data.btn1Text) + cmsIn('Button 1 Link','btn1Link',data.btn1Link) + cmsIn('Button 2 Text','btn2Text',data.btn2Text) + cmsIn('Button 2 Link','btn2Link',data.btn2Link) + cmsIn('Button 3 Text','btn3Text',data.btn3Text) + cmsIn('Button 3 Link','btn3Link',data.btn3Link) + '</div>';
+            html += '<div class="cms-hero-images-wrap">';
+            html += '<h5><i class="fas fa-images" style="color:#D4A33A; margin-right:8px;"></i>Hero Slideshow Images</h5>';
+            html += '<p class="cms-hero-images-hint">These are the Unsplash / uploaded images that rotate on the homepage hero section. Add, update, or remove them below. Use "Update This Image" to change only one slide.</p>';
+            html += '<div id="cmsHeroImagesManager"><div class="cms-hero-loading"><i class="fas fa-spinner fa-spin"></i> Loading hero slideshow images...</div></div>';
+            html += '</div>';
         } else if (key === 'stats') {
             (data.items||[]).forEach(function(s,i) { html += '<div class="cms-repeater"><h5>Stat '+(i+1)+'</h5><div class="admin-form-grid">' + cmsIn('Number','items.'+i+'.number',s.number) + cmsIn('Suffix (+ or %)','items.'+i+'.suffix',s.suffix) + cmsIn('Label','items.'+i+'.label',s.label) + '</div></div>'; });
         } else if (key === 'welcome') {
@@ -3028,6 +2972,102 @@ document.addEventListener('DOMContentLoaded', function() {
             if (result&&result.event==='success') { var url=result.info.secure_url; var fieldEl=document.querySelector('.cms-field[data-field="'+fieldPath+'"]'); if(fieldEl) fieldEl.value=url; showNotification('Image uploaded. Click Save to apply.','success'); }
         });
     }
+    
+    // --- HERO SLIDESHOW IMAGE MANAGER (Website Content > Hero Section) ---
+    function loadCmsHeroImages() {
+        var manager = document.getElementById('cmsHeroImagesManager');
+        if (!manager) return;
+        if (typeof FirebaseServices === 'undefined' || !FirebaseServices.heroImages) { manager.innerHTML = '<div class="cms-hero-loading">Hero images unavailable.</div>'; return; }
+        FirebaseServices.heroImages.getAll().then(function(snap) {
+            var images = [];
+            snap.forEach(function(doc) {
+                var d = doc.data();
+                d._id = doc.id;
+                images.push(d);
+            });
+            renderCmsHeroImages(images);
+        }).catch(function() {
+            manager.innerHTML = '<div class="cms-hero-loading">Could not load hero images.</div>';
+        });
+    }
+    
+    function renderCmsHeroImages(images) {
+        var manager = document.getElementById('cmsHeroImagesManager');
+        if (!manager) return;
+        var html = '<div class="cms-hero-actions">';
+        html += '<button class="btn btn-gold" onclick="cmsHeroUpload()" type="button"><i class="fas fa-cloud-arrow-up"></i> Upload New Hero Image</button>';
+        html += '</div>';
+        if (!images.length) {
+            html += '<div class="cms-hero-loading">No hero images yet. Upload one above or paste an image URL below.</div>';
+            html += '<div class="cms-hero-empty-card"><input type="text" id="cmsHeroUrlNew" placeholder="https://images.unsplash.com/..." onkeydown="if(event.key===\'Enter\')cmsHeroAddByUrl()"><button class="btn btn-gold" onclick="cmsHeroAddByUrl()" type="button"><i class="fas fa-plus"></i> Add Image</button></div>';
+        } else {
+            images.forEach(function(img) {
+                html += '<div class="cms-hero-image-card">';
+                html += '<div class="cms-hero-preview"><img src="' + escapeHtml(img.url || '') + '" alt="' + escapeHtml(img.caption || 'Hero image') + '" onerror="this.src=\'https://via.placeholder.com/640x360?text=No+image\'"></div>';
+                html += '<div class="cms-hero-fields">';
+                html += '<div class="form-group"><label>Image URL</label><input type="text" id="cmsHeroUrl_' + img._id + '" value="' + escapeHtml(img.url || '') + '" placeholder="https://images.unsplash.com/..."></div>';
+                html += '<div class="admin-form-grid">';
+                html += '<div class="form-group"><label>Caption</label><input type="text" id="cmsHeroCaption_' + img._id + '" value="' + escapeHtml(img.caption || '') + '" placeholder="e.g. Caregiver supporting a senior"></div>';
+                html += '<div class="form-group"><label>Position (order)</label><input type="number" id="cmsHeroOrder_' + img._id + '" value="' + (img.order || 0) + '" min="0"></div>';
+                html += '</div>';
+                html += '<div class="form-group"><label class="admin-check" style="display:flex; align-items:center; gap:8px; margin:0;"><input type="checkbox" id="cmsHeroActive_' + img._id + '" ' + (img.active !== false ? 'checked' : '') + '> Show in slideshow</label></div>';
+                html += '<div class="cms-hero-actions">';
+                html += '<button class="btn btn-gold btn-sm" onclick="cmsHeroSaveImage(\'' + img._id + '\')" type="button"><i class="fas fa-save"></i> Update This Image</button>';
+                html += '<button class="btn btn-outline btn-sm" onclick="cmsHeroDeleteImage(\'' + img._id + '\')" type="button"><i class="fas fa-trash"></i> Delete</button>';
+                html += '</div>';
+                html += '</div>';
+                html += '</div>';
+            });
+        }
+        manager.innerHTML = html;
+    }
+    
+    window.cmsHeroSaveImage = function(id) {
+        var urlEl = document.getElementById('cmsHeroUrl_' + id);
+        if (!urlEl) return;
+        var url = urlEl.value.trim();
+        if (!url) { showNotification('Image URL is required.', 'error'); return; }
+        var data = {
+            url: url,
+            caption: document.getElementById('cmsHeroCaption_' + id).value.trim() || 'Hero Image',
+            order: parseInt(document.getElementById('cmsHeroOrder_' + id).value) || 0,
+            active: document.getElementById('cmsHeroActive_' + id).checked
+        };
+        FirebaseServices.heroImages.update(id, data).then(function() {
+            showNotification('Hero image updated.', 'success');
+            loadCmsHeroImages();
+        }).catch(function(err) {
+            showNotification('Error updating image: ' + err.message, 'error');
+        });
+    };
+    
+    window.cmsHeroDeleteImage = function(id) {
+        if (!confirm('Remove this image from the hero slideshow?')) return;
+        FirebaseServices.heroImages.remove(id).then(function() {
+            showNotification('Hero image removed.', 'success');
+            loadCmsHeroImages();
+        }).catch(function(err) {
+            showNotification('Error removing image: ' + err.message, 'error');
+        });
+    };
+    
+    window.cmsHeroUpload = function() {
+        openCloudinaryWidget('hero', function() { loadCmsHeroImages(); });
+    };
+    
+    window.cmsHeroAddByUrl = function() {
+        var urlEl = document.getElementById('cmsHeroUrlNew');
+        var url = urlEl ? urlEl.value.trim() : '';
+        if (!url) { showNotification('Enter an image URL first.', 'error'); return; }
+        FirebaseServices.heroImages.getAll().then(function(snap) {
+            return FirebaseServices.heroImages.add({ url: url, caption: 'Hero Image', order: snap.size, active: true });
+        }).then(function() {
+            showNotification('Hero image added.', 'success');
+            loadCmsHeroImages();
+        }).catch(function(err) {
+            showNotification('Error adding image: ' + err.message, 'error');
+        });
+    };
     
     // --- WEBSITE CONTENT LOADER (Guest pages) ---
     function loadWebsiteContent() {
@@ -3779,7 +3819,7 @@ document.addEventListener('DOMContentLoaded', function() {
     // CLOUDINARY UPLOAD WIDGET
     // ==========================================
     
-    function openCloudinaryWidget(type) {
+    function openCloudinaryWidget(type, onSuccess) {
         if (typeof CloudinaryConfig === 'undefined') {
             showNotification('Cloudinary not configured.', 'error');
             return;
@@ -3821,7 +3861,8 @@ document.addEventListener('DOMContentLoaded', function() {
                 
                 FirebaseServices.heroImages.add(imageData).then(function() {
                     showNotification('Image uploaded successfully!', 'success');
-                    loadAdminMedia();
+                    if (typeof onSuccess === 'function') onSuccess();
+                    else loadAdminMedia();
                 }).catch(function(err) {
                     showNotification('Error saving image: ' + err.message, 'error');
                 });

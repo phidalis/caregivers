@@ -533,6 +533,9 @@ const FirebaseServices = {
             const docRef = await db.collection('heroImages').add(data);
             return { id: docRef.id, ...data };
         },
+        update: async (id, data) => {
+            await db.collection('heroImages').doc(id).update(data);
+        },
         remove: async (id) => {
             await db.collection('heroImages').doc(id).delete();
             return true;

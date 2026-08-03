@@ -1,0 +1,951 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Mercy Senior Solutions — Senior Officer Chat Admin</title>
+  <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@300;400;500;600;700&family=Cormorant+Garamond:wght@700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+  <script type="module">
+    import { initializeApp }        from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
+    import { getAuth, signInWithEmailAndPassword, signOut, onAuthStateChanged }
+                                    from "https://www.gstatic.com/firebasejs/10.12.0/firebase-auth.js";
+    import { getFirestore, doc, getDoc, setDoc, getDocs, addDoc, deleteDoc,
+             collection, serverTimestamp, query, orderBy, limit }
+                                    from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
+
+    const firebaseConfig = {
+      apiKey: "AIzaSyAJokepO6XMuekfmiulWW1-kq13jxX5AQI",
+      authDomain: "caregivers-6fd93.firebaseapp.com",
+      databaseURL: "https://caregivers-6fd93.firebaseio.com",
+      projectId: "caregivers-6fd93",
+      storageBucket: "caregivers-6fd93.firebasestorage.app",
+      messagingSenderId: "341618979293",
+      appId: "1:341618979293:web:d078675abd7412aaf10634",
+      measurementId: "G-BTSSHKGG25",
+    };
+    const app  = initializeApp(firebaseConfig);
+    const auth = getAuth(app);
+    const db   = getFirestore(app);
+
+    window._fb = { auth, db, signInWithEmailAndPassword, signOut, onAuthStateChanged,
+                   doc, getDoc, setDoc, getDocs, addDoc, deleteDoc,
+                   collection, serverTimestamp, query, orderBy, limit };
+
+    onAuthStateChanged(auth, async user => {
+      if (!user) { showLogin(); return; }
+      const snap = await getDoc(doc(db, 'users', user.uid));
+      if (!snap.exists() || snap.data().role !== 'admin') {
+        await signOut(auth);
+        showLogin('Access denied.');
+        return;
+      }
+      document.getElementById('adminEmail').textContent = user.email;
+      showApp();
+      loadAll();
+    });
+  </script>
+  <style>
+    :root {
+      --brand:#081B3A; --brand-dark:#16315F; --pink:#D4A33A; --gold:#B8860B;
+      --dark2:#0A1F40; --dark3:#081B3A;
+      --text:#2A2A2A; --text-muted:#888; --light:#F4F6FB;
+      --white:#fff; --sidebar-w:230px;
+      --radius:10px; --shadow:0 2px 12px rgba(0,0,0,0.10);
+    }
+    *,*::before,*::after{box-sizing:border-box;margin:0;padding:0;}
+    body{font-family:'DM Sans',sans-serif;background:#EFF2F7;color:var(--text);min-height:100vh;}
+
+    /* ── LOGIN ── */
+    #login-screen{display:none;min-height:100vh;background:linear-gradient(135deg,#081B3A,#16315F);display:flex;align-items:center;justify-content:center;}
+    .login-card{background:#fff;border-radius:18px;padding:40px 36px;width:360px;box-shadow:0 20px 60px rgba(0,0,0,0.35);text-align:center;}
+    .login-logo{font-family:'Cormorant Garamond',serif;font-size:28px;font-weight:700;color:var(--brand);margin-bottom:4px;line-height:1.1;}
+    .login-logo span{color:var(--gold);}
+    .login-sub{font-size:12px;color:var(--text-muted);margin-bottom:28px;letter-spacing:1px;text-transform:uppercase;}
+    .login-card input{width:100%;border:1.5px solid #d6dcea;border-radius:8px;padding:11px 14px;font-size:14px;font-family:inherit;margin-bottom:12px;outline:none;transition:border-color .2s;}
+    .login-card input:focus{border-color:var(--brand);}
+    .login-btn{width:100%;background:linear-gradient(135deg,var(--brand),var(--brand-dark));color:#fff;border:none;border-radius:8px;padding:12px;font-size:14px;font-weight:600;cursor:pointer;transition:opacity .2s;}
+    .login-btn:hover{opacity:.9;}
+    #loginError{color:#e53;font-size:13px;margin-top:8px;min-height:18px;}
+
+    /* ── APP SHELL ── */
+    #app-screen{display:none;}
+    .shell{display:flex;min-height:100vh;}
+    .sidebar{width:var(--sidebar-w);background:var(--dark2);display:flex;flex-direction:column;position:fixed;top:0;left:0;height:100vh;z-index:100;}
+    .sidebar-logo{padding:22px 18px 14px;border-bottom:1px solid rgba(255,255,255,0.08);}
+    .sidebar-logo a{font-family:'Cormorant Garamond',serif;font-size:20px;font-weight:700;color:var(--gold);text-decoration:none;line-height:1.15;display:block;}
+    .sidebar-logo a span{color:#fff;}
+    .sidebar-logo p{font-size:10px;color:rgba(255,255,255,0.45);letter-spacing:1px;text-transform:uppercase;margin-top:3px;}
+    .sidebar-nav{flex:1;overflow-y:auto;padding:10px 0;}
+    .nav-label{font-size:10px;color:rgba(255,255,255,0.3);letter-spacing:1px;text-transform:uppercase;padding:12px 18px 5px;}
+    .nav-item{display:flex;align-items:center;gap:10px;padding:10px 18px;color:rgba(255,255,255,0.6);cursor:pointer;font-size:13.5px;transition:background .15s,color .15s;border-radius:0;}
+    .nav-item:hover{background:rgba(255,255,255,0.05);color:#fff;}
+    .nav-item.active{background:linear-gradient(90deg,rgba(212,163,58,0.28),transparent);color:#fff;border-left:3px solid var(--gold);}
+    .nav-item i{width:16px;text-align:center;font-size:13px;}
+    .sidebar-footer{padding:14px 18px;border-top:1px solid rgba(255,255,255,0.08);display:flex;align-items:center;justify-content:space-between;}
+    .sidebar-user{font-size:11px;color:rgba(255,255,255,0.5);}
+    .sidebar-user strong{display:block;color:rgba(255,255,255,0.85);font-size:12px;}
+    .btn-logout{background:none;border:1px solid rgba(255,255,255,0.15);color:rgba(255,255,255,0.5);border-radius:6px;padding:5px 10px;cursor:pointer;font-size:12px;transition:all .15s;}
+    .btn-logout:hover{background:rgba(212,163,58,0.14);color:var(--gold);border-color:rgba(212,163,58,0.4);}
+
+    /* ── MAIN ── */
+    .main-wrap{margin-left:var(--sidebar-w);flex:1;display:flex;flex-direction:column;}
+    .topbar-admin{background:#fff;padding:0 28px;height:60px;display:flex;align-items:center;justify-content:space-between;border-bottom:1px solid #e4e9f4;box-shadow:0 1px 6px rgba(0,0,0,0.06);}
+    .topbar-admin h1{font-size:17px;font-weight:600;color:var(--text);}
+    .content-area{padding:28px;flex:1;}
+
+    /* ── PANELS ── */
+    .panel{display:none;}
+    .panel.active{display:block;}
+
+    /* ── CARDS ── */
+    .card{background:#fff;border-radius:var(--radius);box-shadow:var(--shadow);padding:24px;margin-bottom:20px;}
+    .card-title{font-size:15px;font-weight:600;color:var(--text);margin-bottom:16px;display:flex;align-items:center;gap:8px;}
+    .card-title i{color:var(--gold);}
+
+    /* ── FORM ELEMENTS ── */
+    .field{margin-bottom:16px;}
+    .field label{display:block;font-size:12.5px;font-weight:500;color:var(--text-muted);margin-bottom:5px;text-transform:uppercase;letter-spacing:.5px;}
+    .field input,.field textarea,.field select{width:100%;border:1.5px solid #d6dcea;border-radius:8px;padding:10px 13px;font-size:13.5px;font-family:inherit;outline:none;transition:border-color .2s;background:#fafbff;color:var(--text);}
+    .field input:focus,.field textarea:focus,.field select:focus{border-color:var(--brand);}
+    .field textarea{resize:vertical;min-height:80px;}
+    .field .hint{font-size:11px;color:var(--text-muted);margin-top:4px;}
+    .toggle-row{display:flex;align-items:center;justify-content:space-between;padding:10px 0;}
+    .toggle-label{font-size:13.5px;font-weight:500;}
+    .toggle{position:relative;width:44px;height:24px;}
+    .toggle input{opacity:0;width:0;height:0;}
+    .slider-tog{position:absolute;inset:0;background:#ccc;border-radius:24px;cursor:pointer;transition:.3s;}
+    .slider-tog:before{position:absolute;content:"";height:18px;width:18px;left:3px;bottom:3px;background:#fff;border-radius:50%;transition:.3s;}
+    input:checked + .slider-tog{background:var(--brand-dark);}
+    input:checked + .slider-tog:before{transform:translateX(20px);}
+
+    /* ── PROVIDER TABS ── */
+    .provider-tabs{display:flex;gap:8px;margin-bottom:20px;flex-wrap:wrap;}
+    .provider-tab{display:flex;align-items:center;gap:8px;padding:10px 16px;border-radius:10px;border:2px solid #d6dcea;background:#fff;cursor:pointer;transition:all .2s;font-size:13px;font-weight:500;color:var(--text-muted);}
+    .provider-tab:hover{border-color:var(--brand);color:var(--brand);}
+    .provider-tab.active{border-color:var(--brand);background:linear-gradient(135deg,#eef3fb,#fdf6e3);color:var(--brand);}
+    .provider-tab .prov-icon{font-size:18px;}
+    .provider-tab .prov-name{font-weight:600;}
+    .provider-tab .prov-badge{font-size:10px;background:#e4e9f4;color:var(--text-muted);border-radius:50px;padding:2px 7px;}
+    .provider-tab.active .prov-badge{background:var(--brand);color:#fff;}
+    .provider-section{display:none;}
+    .provider-section.active{display:block;}
+
+    /* ── BUTTONS ── */
+    .btn{display:inline-flex;align-items:center;gap:7px;padding:9px 18px;border-radius:8px;font-size:13.5px;font-weight:500;cursor:pointer;border:none;font-family:inherit;transition:opacity .2s,transform .15s;}
+    .btn:hover{opacity:.9;}
+    .btn:active{transform:scale(.98);}
+    .btn-primary{background:linear-gradient(135deg,var(--brand),var(--brand-dark));color:#fff;}
+    .btn-danger{background:#fee;color:#c00;border:1px solid #fcc;}
+    .btn-danger:hover{background:#fdd;}
+    .btn-outline{background:#fff;color:var(--brand);border:1.5px solid var(--brand);}
+    .btn-sm{padding:6px 12px;font-size:12px;}
+    .btn-row{display:flex;gap:10px;flex-wrap:wrap;}
+
+    /* ── KB TABLE ── */
+    .kb-table{width:100%;border-collapse:collapse;}
+    .kb-table th{text-align:left;font-size:11.5px;color:var(--text-muted);text-transform:uppercase;letter-spacing:.5px;padding:8px 10px;border-bottom:2px solid #e4e9f4;}
+    .kb-table td{padding:10px 10px;border-bottom:1px solid #f0f3f9;font-size:13px;vertical-align:top;}
+    .kb-table tr:last-child td{border-bottom:none;}
+    .kb-table tr:hover td{background:#fafbff;}
+    .kw-pill{display:inline-block;background:#e8f1fb;color:#16315F;border-radius:50px;padding:2px 9px;font-size:11px;margin:2px;}
+    .kw-pill.preset{background:#fdf3e3;color:#b07d13;}
+    .answer-preview{color:var(--text-muted);font-size:12px;max-width:280px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+    .source-badge{display:inline-block;font-size:10px;padding:2px 8px;border-radius:50px;font-weight:500;margin-left:6px;}
+    .source-badge.custom{background:#e8f1fb;color:#16315F;}
+    .source-badge.preset{background:#fdf3e3;color:#b07d13;}
+
+    /* ── STATS GRID ── */
+    .stats-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(140px,1fr));gap:14px;margin-bottom:22px;}
+    .stat-card{background:#fff;border-radius:var(--radius);padding:18px 16px;box-shadow:var(--shadow);border-left:4px solid var(--brand);}
+    .stat-card.pink{border-color:var(--gold);}
+    .stat-card.gold{border-color:var(--gold);}
+    .stat-card.green{border-color:#28a745;}
+    .stat-card .label{font-size:11px;color:var(--text-muted);text-transform:uppercase;letter-spacing:.5px;margin-bottom:6px;}
+    .stat-card .value{font-size:26px;font-weight:600;color:var(--text);line-height:1;}
+    .stat-card .sub{font-size:11px;color:var(--text-muted);margin-top:3px;}
+
+    /* ── CHAT LOG ── */
+    .log-item{border:1px solid #e4e9f4;border-radius:8px;padding:12px 14px;margin-bottom:10px;background:#fafbff;}
+    .log-meta{font-size:11px;color:var(--text-muted);margin-bottom:6px;display:flex;gap:10px;align-items:center;}
+    .log-source-badge{background:#e8f1fb;color:#16315F;border-radius:50px;padding:1px 8px;font-size:11px;}
+    .log-source-badge.ai{background:#fdf3e3;color:#b07d13;}
+    .log-q{font-size:13px;font-weight:500;margin-bottom:4px;}
+    .log-a{font-size:12px;color:var(--text-muted);}
+
+    /* ── MODAL ── */
+    .modal-overlay{display:none;position:fixed;inset:0;background:rgba(0,0,0,0.5);z-index:9999;align-items:center;justify-content:center;}
+    .modal-overlay.open{display:flex;}
+    .modal{background:#fff;border-radius:14px;width:520px;max-width:95vw;max-height:90vh;overflow-y:auto;box-shadow:0 20px 60px rgba(0,0,0,0.25);}
+    .modal-header{padding:18px 22px;border-bottom:1px solid #e4e9f4;display:flex;align-items:center;justify-content:space-between;}
+    .modal-header h3{font-size:15px;font-weight:600;}
+    .modal-close{background:none;border:none;cursor:pointer;font-size:18px;color:var(--text-muted);}
+    .modal-body{padding:22px;}
+    .modal-footer{padding:14px 22px;border-top:1px solid #e4e9f4;display:flex;gap:10px;justify-content:flex-end;}
+
+    /* ── TOAST ── */
+    #toast{position:fixed;bottom:28px;left:50%;transform:translateX(-50%) translateY(60px);background:#222;color:#fff;padding:10px 22px;border-radius:50px;font-size:13px;z-index:99999;opacity:0;transition:all .3s;pointer-events:none;}
+    #toast.show{opacity:1;transform:translateX(-50%) translateY(0);}
+
+    /* ── EMPTY ── */
+    .empty-state{text-align:center;padding:40px 20px;color:var(--text-muted);}
+    .empty-state i{font-size:36px;margin-bottom:10px;opacity:.4;}
+    .empty-state p{font-size:14px;}
+
+    /* ── KEY DISPLAY ── */
+    .key-display{font-family:monospace;background:#f4f6fb;border:1px solid #d6dcea;border-radius:6px;padding:8px 12px;font-size:13px;word-break:break-all;margin-top:6px;}
+
+    /* ── ACTIVE PROVIDER INDICATOR ── */
+    .active-provider-pill{display:inline-flex;align-items:center;gap:6px;background:linear-gradient(135deg,rgba(8,27,58,0.10),rgba(212,163,58,0.08));border:1px solid rgba(8,27,58,0.25);border-radius:50px;padding:4px 12px;font-size:12px;color:var(--brand);font-weight:500;}
+
+    @media(max-width:768px){
+      .sidebar{transform:translateX(-100%);transition:transform .3s;}
+      .sidebar.open{transform:translateX(0);}
+      .main-wrap{margin-left:0;}
+      .stats-grid{grid-template-columns:1fr 1fr;}
+      .provider-tabs{gap:6px;}
+      .provider-tab{padding:8px 12px;font-size:12px;}
+    }
+  </style>
+</head>
+<body>
+
+<!-- ═══════ LOGIN ═══════ -->
+<div id="login-screen">
+  <div class="login-card">
+    <div class="login-logo">Mercy <span>Senior</span> Solutions</div>
+    <div class="login-sub">Senior Officer Chat Admin</div>
+    <input type="email" id="loginEmail" placeholder="Admin email">
+    <input type="password" id="loginPass" placeholder="Password" onkeydown="if(event.key==='Enter')doLogin()">
+    <button class="login-btn" onclick="doLogin()"><i class="fas fa-sign-in-alt"></i> Sign In</button>
+    <div id="loginError"></div>
+  </div>
+</div>
+
+<!-- ═══════ APP ═══════ -->
+<div id="app-screen">
+  <div class="shell">
+
+    <!-- SIDEBAR -->
+    <aside class="sidebar" id="sidebar">
+      <div class="sidebar-logo">
+        <a href="index.html" target="_blank">Mercy <span>Senior</span> Solutions</a>
+        <p>AI Chat Admin</p>
+      </div>
+      <nav class="sidebar-nav">
+        <div class="nav-label">Overview</div>
+        <div class="nav-item active" data-panel="dashboard"><i class="fas fa-chart-pie"></i> Dashboard</div>
+
+        <div class="nav-label">AI Config</div>
+        <div class="nav-item" data-panel="settings"><i class="fas fa-comments"></i> AI Provider & API</div>
+        <div class="nav-item" data-panel="prompt"><i class="fas fa-comment-dots"></i> AI Personality</div>
+
+        <div class="nav-label">Knowledge Base</div>
+        <div class="nav-item" data-panel="kb"><i class="fas fa-book"></i> KB Entries</div>
+        <div class="nav-item" data-panel="logs"><i class="fas fa-comments"></i> Chat Logs</div>
+
+        <div class="nav-label">Links</div>
+        <div class="nav-item" onclick="window.open('admin.html')"><i class="fas fa-arrow-left"></i> Main Admin</div>
+        <div class="nav-item" onclick="window.open('index.html')"><i class="fas fa-external-link-alt"></i> View Site</div>
+      </nav>
+      <div class="sidebar-footer">
+        <div class="sidebar-user">
+          <span>Signed in as</span>
+          <strong id="adminEmail"></strong>
+        </div>
+        <button class="btn-logout" onclick="doLogout()"><i class="fas fa-sign-out-alt"></i></button>
+      </div>
+    </aside>
+
+    <!-- MAIN -->
+    <div class="main-wrap">
+      <div class="topbar-admin">
+        <h1 id="panelTitle">Dashboard</h1>
+        <div style="display:flex;gap:10px;align-items:center;">
+          <div id="active-provider-display" class="active-provider-pill" style="display:none;">
+            <i class="fas fa-circle" style="font-size:7px;"></i>
+            <span id="active-provider-name">—</span>
+          </div>
+          <div id="chat-status-pill" style="font-size:12px;padding:4px 12px;border-radius:50px;background:#e8f5e9;color:#2e7d32;font-weight:500;">
+            <i class="fas fa-circle" style="font-size:8px;margin-right:4px;"></i>Chat Online
+          </div>
+        </div>
+      </div>
+
+      <div class="content-area">
+
+        <!-- ── DASHBOARD ── -->
+        <div class="panel active" id="panel-dashboard">
+          <div class="stats-grid">
+            <div class="stat-card">
+              <div class="label">KB Entries</div>
+              <div class="value" id="stat-kb">—</div>
+              <div class="sub">Custom + preset items</div>
+            </div>
+            <div class="stat-card pink">
+              <div class="label">Chat Logs</div>
+              <div class="value" id="stat-logs">—</div>
+              <div class="sub">Conversations logged</div>
+            </div>
+            <div class="stat-card gold">
+              <div class="label">AI Provider</div>
+              <div class="value" id="stat-model" style="font-size:14px;margin-top:4px;">—</div>
+              <div class="sub" id="stat-model-sub">Active provider</div>
+            </div>
+            <div class="stat-card green">
+              <div class="label">Status</div>
+              <div class="value" id="stat-status" style="font-size:15px;margin-top:4px;">—</div>
+              <div class="sub">Chat widget</div>
+            </div>
+          </div>
+
+          <div class="card">
+            <div class="card-title"><i class="fas fa-bolt"></i> Quick Actions</div>
+            <div class="btn-row">
+              <button class="btn btn-primary" onclick="showPanel('kb')"><i class="fas fa-plus"></i> Add KB Entry</button>
+              <button class="btn btn-outline" onclick="showPanel('settings')"><i class="fas fa-key"></i> Update API Key</button>
+              <button class="btn btn-outline" onclick="showPanel('logs')"><i class="fas fa-comments"></i> View Chat Logs</button>
+            </div>
+          </div>
+
+          <div class="card">
+            <div class="card-title"><i class="fas fa-info-circle"></i> Integration Guide</div>
+            <p style="font-size:13.5px;line-height:1.8;color:var(--text-muted);">
+              Add the "Talk to a Senior Officer" widget to every page by pasting this line before <code>&lt;/body&gt;</code>:
+            </p>
+            <div class="key-display" style="margin-top:10px;">&lt;script src="senior-officer-chat.js"&gt;&lt;/script&gt;</div>
+            <p style="font-size:12px;color:var(--text-muted);margin-top:10px;">
+              The widget auto-loads your API key, provider choice, and knowledge base from Firestore on every page load.
+              Changes made here are live immediately — no redeployment needed.
+            </p>
+          </div>
+        </div>
+
+        <!-- ── API SETTINGS ── -->
+        <div class="panel" id="panel-settings">
+
+          <div class="card">
+            <div class="card-title"><i class="fas fa-plug"></i> Choose AI Provider</div>
+            <p style="font-size:13px;color:var(--text-muted);margin-bottom:16px;">Select which AI service powers the chat widget. You can switch at any time — only the active provider's key is used.</p>
+
+            <div class="provider-tabs">
+              <div class="provider-tab active" data-provider="gemini" onclick="switchProvider('gemini')">
+                <span class="prov-icon">✨</span>
+                <div>
+                  <div class="prov-name">Gemini</div>
+                  <div style="font-size:10px;opacity:.7;">Google AI</div>
+                </div>
+                <span class="prov-badge">Free tier</span>
+              </div>
+              <div class="provider-tab" data-provider="openai" onclick="switchProvider('openai')">
+                <span class="prov-icon">🤖</span>
+                <div>
+                  <div class="prov-name">OpenAI</div>
+                  <div style="font-size:10px;opacity:.7;">GPT-4o / GPT-4</div>
+                </div>
+                <span class="prov-badge">Paid</span>
+              </div>
+              <div class="provider-tab" data-provider="claude" onclick="switchProvider('claude')">
+                <span class="prov-icon">🧠</span>
+                <div>
+                  <div class="prov-name">Claude</div>
+                  <div style="font-size:10px;opacity:.7;">Anthropic</div>
+                </div>
+                <span class="prov-badge">Paid</span>
+              </div>
+              <div class="provider-tab" data-provider="groq" onclick="switchProvider('groq')">
+                <span class="prov-icon">⚡</span>
+                <div>
+                  <div class="prov-name">Groq</div>
+                  <div style="font-size:10px;opacity:.7;">Llama 3 · Mixtral</div>
+                </div>
+                <span class="prov-badge">Free</span>
+              </div>
+            </div>
+
+            <!-- GEMINI CONFIG -->
+            <div class="provider-section active" id="prov-gemini">
+              <div class="field">
+                <label>Gemini API Key</label>
+                <input type="password" id="cfg-gemini-key" placeholder="AIzaSy…">
+                <div class="hint">Get your free key at <a href="https://aistudio.google.com/app/apikey" target="_blank" style="color:var(--brand);">aistudio.google.com</a>. Stored securely in Firestore.</div>
+              </div>
+              <div class="field">
+                <label>Model</label>
+                <select id="cfg-gemini-model">
+                  <option value="gemini-2.0-flash">gemini-2.0-flash (Recommended — fast & cheap)</option>
+                  <option value="gemini-1.5-flash">gemini-1.5-flash</option>
+                  <option value="gemini-1.5-pro">gemini-1.5-pro (Most capable)</option>
+                  <option value="gemini-2.0-flash-lite">gemini-2.0-flash-lite (Fastest)</option>
+                </select>
+              </div>
+              <button class="btn btn-outline btn-sm" onclick="testApiKey('gemini')"><i class="fas fa-vial"></i> Test Gemini Key</button>
+            </div>
+
+            <!-- OPENAI CONFIG -->
+            <div class="provider-section" id="prov-openai">
+              <div class="field">
+                <label>OpenAI API Key</label>
+                <input type="password" id="cfg-openai-key" placeholder="sk-…">
+                <div class="hint">Get your key at <a href="https://platform.openai.com/api-keys" target="_blank" style="color:var(--brand);">platform.openai.com</a>. Requires a paid account.</div>
+              </div>
+              <div class="field">
+                <label>Model</label>
+                <select id="cfg-openai-model">
+                  <option value="gpt-4o-mini">gpt-4o-mini (Recommended — fast & affordable)</option>
+                  <option value="gpt-4o">gpt-4o (Most capable)</option>
+                  <option value="gpt-3.5-turbo">gpt-3.5-turbo (Cheapest)</option>
+                </select>
+              </div>
+              <button class="btn btn-outline btn-sm" onclick="testApiKey('openai')"><i class="fas fa-vial"></i> Test OpenAI Key</button>
+            </div>
+
+            <!-- CLAUDE CONFIG -->
+            <div class="provider-section" id="prov-claude">
+              <div class="field">
+                <label>Anthropic API Key</label>
+                <input type="password" id="cfg-claude-key" placeholder="sk-ant-…">
+                <div class="hint">Get your key at <a href="https://console.anthropic.com/settings/keys" target="_blank" style="color:var(--brand);">console.anthropic.com</a>. Requires a paid account.</div>
+              </div>
+              <div class="field">
+                <label>Model</label>
+                <select id="cfg-claude-model">
+                  <option value="claude-haiku-4-5-20251001">claude-haiku (Recommended — fast & affordable)</option>
+                  <option value="claude-sonnet-4-6">claude-sonnet (Balanced)</option>
+                </select>
+              </div>
+              <p style="font-size:12px;color:#b07d13;background:#fdf6e3;border:1px solid #ffe082;border-radius:8px;padding:10px 12px;margin-bottom:12px;">
+                ⚠️ <strong>Note:</strong> Claude API requires a backend proxy for browser use (CORS restriction). If testing from a local page, use Gemini, OpenAI, or Groq instead, or set up a proxy server.
+              </p>
+              <button class="btn btn-outline btn-sm" onclick="testApiKey('claude')"><i class="fas fa-vial"></i> Test Claude Key</button>
+            </div>
+
+            <!-- GROQ CONFIG -->
+            <div class="provider-section" id="prov-groq">
+              <div class="field">
+                <label>Groq API Key</label>
+                <input type="password" id="cfg-groq-key" placeholder="gsk_…">
+                <div class="hint">Get your free key at <a href="https://console.groq.com/keys" target="_blank" style="color:var(--brand);">console.groq.com</a>. No credit card required.</div>
+              </div>
+              <div class="field">
+                <label>Model</label>
+                <select id="cfg-groq-model">
+                  <option value="llama-3.3-70b-versatile">llama-3.3-70b-versatile (Recommended — smart & fast)</option>
+                  <option value="llama-3.1-8b-instant">llama-3.1-8b-instant (Fastest)</option>
+                  <option value="mixtral-8x7b-32768">mixtral-8x7b-32768 (Large context)</option>
+                  <option value="gemma2-9b-it">gemma2-9b-it (Google Gemma 2)</option>
+                </select>
+              </div>
+              <p style="font-size:12px;color:#1a6e2e;background:#e8f5e9;border:1px solid #a5d6a7;border-radius:8px;padding:10px 12px;margin-bottom:12px;">
+                ✅ <strong>Groq is 100% free</strong> with generous rate limits — great for production use. API format is OpenAI-compatible so it works seamlessly.
+              </p>
+              <button class="btn btn-outline btn-sm" onclick="testApiKey('groq')"><i class="fas fa-vial"></i> Test Groq Key</button>
+            </div>
+
+            <div style="margin-top:20px;padding-top:16px;border-top:1px solid #e4e9f4;display:flex;gap:10px;align-items:center;">
+              <div class="toggle-row" style="flex:1;">
+                <span class="toggle-label">Chat Widget Enabled</span>
+                <label class="toggle"><input type="checkbox" id="cfg-enabled" checked><span class="slider-tog"></span></label>
+              </div>
+            </div>
+
+            <div style="margin-top:16px;">
+              <button class="btn btn-primary" onclick="saveApiSettings()"><i class="fas fa-save"></i> Save & Activate Provider</button>
+            </div>
+          </div>
+        </div>
+
+        <!-- ── AI PERSONALITY ── -->
+        <div class="panel" id="panel-prompt">
+          <div class="card">
+            <div class="card-title"><i class="fas fa-comments"></i> AI Personality & System Prompt</div>
+            <div class="field">
+              <label>Bot Name</label>
+              <input type="text" id="cfg-botname" placeholder="Senior Officer" value="Senior Officer">
+              <div class="hint">The name the AI introduces itself as.</div>
+            </div>
+            <div class="field">
+              <label>System Prompt</label>
+              <textarea id="cfg-systemprompt" style="min-height:180px;" placeholder="You are the Senior Officer virtual assistant for Mercy Senior Solutions…"></textarea>
+              <div class="hint">This is the core instruction the AI follows. Be specific about tone, what to answer, and what to avoid.</div>
+            </div>
+            <div class="field">
+              <label>KB Match Threshold <span id="thresh-display">0.35</span></label>
+              <input type="range" id="cfg-threshold" min="0.1" max="0.9" step="0.05" value="0.35"
+                     oninput="document.getElementById('thresh-display').textContent=this.value">
+              <div class="hint">Higher = stricter KB matching before falling back to AI. 0.35 is a good default.</div>
+            </div>
+            <button class="btn btn-primary" onclick="savePromptSettings()"><i class="fas fa-save"></i> Save Personality</button>
+          </div>
+        </div>
+
+        <!-- ── KNOWLEDGE BASE ── -->
+        <div class="panel" id="panel-kb">
+          <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:16px;">
+            <div>
+              <h2 style="font-size:16px;font-weight:600;">Knowledge Base</h2>
+              <p style="font-size:12px;color:var(--text-muted);margin-top:2px;">Custom entries override built-in presets. Searched first before the AI is called.</p>
+            </div>
+            <button class="btn btn-primary" onclick="openKbModal()"><i class="fas fa-plus"></i> Add Entry</button>
+          </div>
+
+          <!-- Preset KB info banner -->
+          <div id="preset-banner" style="background:linear-gradient(135deg,#fdf6e3,#fff);border:1px solid #ffe082;border-radius:10px;padding:14px 16px;margin-bottom:16px;display:flex;gap:12px;align-items:flex-start;">
+            <span style="font-size:20px;">📚</span>
+            <div>
+              <strong style="font-size:13px;color:#8a6200;">Built-in Preset Answers</strong>
+              <p style="font-size:12px;color:#8a6200;margin-top:2px;line-height:1.6;">
+                The chat widget has <strong id="preset-count">20</strong> built-in preset answers (services, placement, cost, contact, etc.) baked into <code>senior-officer-chat.js</code>.
+                Add <strong>Custom Entries</strong> below to override or extend them — custom entries are searched first.
+              </p>
+            </div>
+          </div>
+
+          <div class="card" style="padding:0;overflow:hidden;">
+            <table class="kb-table">
+              <thead>
+                <tr>
+                  <th>Keywords</th>
+                  <th>Answer Preview</th>
+                  <th style="width:100px;">Source</th>
+                  <th style="width:90px;">Actions</th>
+                </tr>
+              </thead>
+              <tbody id="kb-tbody">
+                <tr><td colspan="4"><div class="empty-state"><i class="fas fa-book"></i><p>Loading…</p></div></td></tr>
+              </tbody>
+            </table>
+          </div>
+
+          <!-- Preset entries table (always visible) -->
+          <div style="margin-top:16px;">
+            <div style="font-size:13px;font-weight:600;color:var(--text-muted);margin-bottom:10px;display:flex;align-items:center;gap:8px;">
+              <i class="fas fa-layer-group" style="color:var(--gold);"></i> Built-in Preset Answers (read-only — edit in senior-officer-chat.js)
+            </div>
+            <div class="card" style="padding:0;overflow:hidden;">
+              <table class="kb-table">
+                <thead>
+                  <tr>
+                    <th>Keywords</th>
+                    <th>Answer Preview</th>
+                  </tr>
+                </thead>
+                <tbody id="preset-tbody"></tbody>
+              </table>
+            </div>
+          </div>
+        </div>
+
+        <!-- ── CHAT LOGS ── -->
+        <div class="panel" id="panel-logs">
+          <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:16px;">
+            <div>
+              <h2 style="font-size:16px;font-weight:600;">Chat Logs</h2>
+              <p style="font-size:12px;color:var(--text-muted);margin-top:2px;">Recent questions from visitors. Useful for improving the KB.</p>
+            </div>
+            <button class="btn btn-outline btn-sm" onclick="loadLogs()"><i class="fas fa-refresh"></i> Refresh</button>
+          </div>
+          <div id="logs-list"><div class="empty-state"><i class="fas fa-comments"></i><p>Loading logs…</p></div></div>
+          <p style="font-size:12px;color:var(--text-muted);margin-top:10px;">
+            💡 <strong>Tip:</strong> Questions answered by AI (AI badge) that come up often should be added to the Knowledge Base to reduce API costs.
+          </p>
+        </div>
+
+      </div><!-- /content-area -->
+    </div><!-- /main-wrap -->
+  </div><!-- /shell -->
+</div><!-- /app-screen -->
+
+<!-- ── KB MODAL ── -->
+<div class="modal-overlay" id="kbModal">
+  <div class="modal">
+    <div class="modal-header">
+      <h3 id="kbModalTitle">Add Knowledge Base Entry</h3>
+      <button class="modal-close" onclick="closeKbModal()"><i class="fas fa-times"></i></button>
+    </div>
+    <div class="modal-body">
+      <input type="hidden" id="kb-edit-id">
+      <div class="field">
+        <label>Keywords (comma separated)</label>
+        <input type="text" id="kb-keywords" placeholder="cost, free, price, fee">
+        <div class="hint">Words/phrases that trigger this answer. The more, the better.</div>
+      </div>
+      <div class="field">
+        <label>Answer</label>
+        <textarea id="kb-answer" style="min-height:140px;" placeholder="💰 Senior care costs vary by type of care, location, and level of support…&#10;&#10;Use **bold** for emphasis and [link text](url) for links."></textarea>
+        <div class="hint">Supports **bold**, *italic*, [links](url), and line breaks.</div>
+      </div>
+      <div class="field">
+        <label>Category <span style="font-weight:400;color:var(--text-muted);">(optional)</span></label>
+        <input type="text" id="kb-category" placeholder="e.g. Placement, Pricing, Careers">
+      </div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-outline" onclick="closeKbModal()">Cancel</button>
+      <button class="btn btn-primary" onclick="saveKbEntry()"><i class="fas fa-save"></i> Save Entry</button>
+    </div>
+  </div>
+</div>
+
+<!-- TOAST -->
+<div id="toast"></div>
+
+<script>
+  /* ── PRESET KB (mirrors senior-officer-chat.js built-ins) ── */
+  const PRESET_KB = [
+    { keywords: ['hello','hi','hey','good morning','good afternoon','good evening','helo','hii','start'], answer: '👋 Welcome to **Mercy Senior Solutions**! I\'m your Senior Officer assistant. I can help you with:\n- 🏠 Senior placement (assisted living, memory care, skilled nursing)\n- 💚 Caregiver services\n- 🩺 Healthcare provider consulting\n- 📅 Scheduling a free consultation' },
+    { keywords: ['service','services','offer','offerings','what do you do','help with','care options','types of care'], answer: '🏠 Mercy Senior Solutions helps families find the right senior care, including **senior placement** (assisted living, memory care, independent living, skilled nursing, adult family homes, respite care), **caregiver services**, and **healthcare consulting**. We also offer a **free consultation**.' },
+    { keywords: ['placement','senior placement','assisted living','memory care','independent living','skilled nursing','adult family home','respite care','find a facility','nursing home'], answer: '🏠 We specialize in **senior placement** — matching your loved one with the right assisted living, memory care, independent living, or skilled nursing community. We consider care needs, budget, location, and personality to shortlist the best options — at **no cost to families**.' },
+    { keywords: ['memory care','dementia','alzheimer','alzheimers','confusion','wandering'], answer: '🧠 **Memory care** communities provide specialized support for those living with Alzheimer\'s, dementia, and other cognitive conditions — secure environments with trained staff and structured daily routines.' },
+    { keywords: ['caregiver','caregiver services','home care','in-home care','in home','hire caregiver','private caregiver','companion','home health'], answer: '💚 Our **caregiver services** connect families with vetted, compassionate caregivers for in-home support — daily living assistance, companionship, medication reminders, and more.' },
+    { keywords: ['consulting','healthcare consulting','consultant','providers','provider network','facility consulting','business consulting','partner with'], answer: '🩺 Our **healthcare consulting** services support providers, facilities, and agencies with senior-care operations, placement partnerships, and growth strategies.' },
+    { keywords: ['cost','price','pricing','how much','fee','charge','expensive','rates','afford','budget'], answer: '💰 Senior care costs vary widely depending on the type of care, location, and level of support needed. The good news: our **placement services are free for families** — the communities pay us.' },
+    { keywords: ['insurance','medicare','medicaid','covered','coverage','pay','paying'], answer: '📋 Coverage depends on the care type and community: **Medicare** covers short-term skilled nursing & rehab stays, **Medicaid** may cover long-term care at qualifying communities, and long-term care insurance & private pay vary by policy and facility.' },
+    { keywords: ['book','booking','schedule','appointment','consultation','free consult','call me','set up','speak to','talk to a'], answer: '📅 We\'d love to help! To schedule a **free consultation**, simply call (341) 618-9792 or use the **Contact form** on our site and a Senior Officer will follow up with you.' },
+    { keywords: ['location','address','where are you','based','serve','serving','cities','areas','find','near me','california','state'], answer: '📍 Mercy Senior Solutions is **based in California** and serves families and facilities throughout the state. Because we\'re a placement & consulting company (not a single facility), we help you find communities in the locations that work best for you.' },
+    { keywords: ['contact','email','phone','call','reach','message','get in touch','talk'], answer: '📞 You can reach us at:\n- **Phone:** (341) 618-9792\n- **Email:** info@mercyseniorsolutions.com\n- **Contact page:** [Send a message](contact.html)' },
+    { keywords: ['hours','open','opening','close','closing','time','when are you','business hours'], answer: '🕐 Our Senior Officers are available during regular business hours, and you can always leave a message through the **Contact form** — we\'ll follow up on the next business day.' },
+    { keywords: ['emergency','urgent','crisis','asap','right away','immediately','emergency care'], answer: '⚠️ If this is a **medical emergency**, please call 911 or go to your nearest emergency room right away. For urgent placement or care needs, call our office at (341) 618-9792.' },
+    { keywords: ['careers','career','job','jobs','employment','hiring','work for','apply','position','open role'], answer: '💼 Thank you for your interest in joining Mercy Senior Solutions! Visit our [Careers page](careers.html) to see current openings and submit an application.' },
+    { keywords: ['provider','providers','join our network','partner','facility','community partner','refer clients'], answer: '🤝 Are you a care provider or facility? We partner with communities and agencies across California to connect families with quality care. Visit our [Providers page](providers.html) to start the conversation.' },
+    { keywords: ['review','testimonial','feedback','rating','experience','referral','refer'], answer: '⭐ We\'d love your feedback! Read what families say on our [Testimonials page](testimonials.html), and if you know someone who could use our help, we\'d be honored to assist them too.' },
+    { keywords: ['resources','guides','blog','articles','tips','learn','educational'], answer: '📚 We\'ve put together helpful guides and resources for families and caregivers — from planning senior care to understanding care levels. Browse our [Resources page](resources.html).' },
+    { keywords: ['real person','human','are you a bot','are you real','who are you','your name','ai','robot'], answer: '🤖 I\'m the **Senior Officer virtual assistant** for Mercy Senior Solutions — an AI designed to help you quickly. When you\'re ready to talk with a real person, just call (341) 618-9792.' },
+    { keywords: ['privacy','confidential','personal info','secure','private','data','share my info'], answer: '🔒 Your privacy matters to us. Any information you share is treated confidentially and used only to help you find the right care. We never sell your personal information.' },
+    { keywords: ['thank','thanks','thank you','thx','appreciate','great help','awesome'], answer: '😊 You\'re so welcome! It\'s our pleasure to help. If you have any more questions, I\'m always here — and don\'t forget, a free consultation is just a call away at (341) 618-9792.' },
+  ];
+
+  /* ── HELPERS ── */
+  function showLogin(msg) {
+    document.getElementById('login-screen').style.display='flex';
+    document.getElementById('app-screen').style.display='none';
+    if(msg) document.getElementById('loginError').textContent=msg;
+  }
+  function showApp() {
+    document.getElementById('login-screen').style.display='none';
+    document.getElementById('app-screen').style.display='block';
+  }
+  function toast(msg, ok=true) {
+    const el=document.getElementById('toast');
+    el.textContent=msg;
+    el.style.background=ok?'#333':'#c00';
+    el.classList.add('show');
+    setTimeout(()=>el.classList.remove('show'),2800);
+  }
+  async function doLogin() {
+    const { auth, signInWithEmailAndPassword } = window._fb;
+    const email=document.getElementById('loginEmail').value.trim();
+    const pass=document.getElementById('loginPass').value;
+    document.getElementById('loginError').textContent='';
+    try { await signInWithEmailAndPassword(auth, email, pass); }
+    catch(e){ document.getElementById('loginError').textContent='Login failed: '+e.message; }
+  }
+  async function doLogout() {
+    await window._fb.signOut(window._fb.auth);
+    showLogin();
+  }
+
+  /* ── PANELS ── */
+  function showPanel(name) {
+    document.querySelectorAll('.panel').forEach(p=>p.classList.remove('active'));
+    document.querySelectorAll('.nav-item').forEach(n=>n.classList.remove('active'));
+    document.getElementById('panel-'+name).classList.add('active');
+    document.querySelector(`.nav-item[data-panel="${name}"]`)?.classList.add('active');
+    const titles={dashboard:'Dashboard',settings:'AI Provider & API',prompt:'AI Personality',kb:'Knowledge Base',logs:'Chat Logs'};
+    document.getElementById('panelTitle').textContent=titles[name]||name;
+  }
+  document.querySelectorAll('.nav-item[data-panel]').forEach(el=>{
+    el.addEventListener('click',()=>showPanel(el.dataset.panel));
+  });
+
+  /* ── PROVIDER TABS ── */
+  let activeProvider = 'gemini';
+  function switchProvider(p) {
+    activeProvider = p;
+    document.querySelectorAll('.provider-tab').forEach(t=>t.classList.toggle('active', t.dataset.provider===p));
+    document.querySelectorAll('.provider-section').forEach(s=>s.classList.toggle('active', s.id==='prov-'+p));
+  }
+
+  /* ── LOAD ALL ── */
+  async function loadAll() {
+    loadDashboard();
+    loadApiSettings();
+    loadPromptSettings();
+    loadKb();
+    loadPresetKb();
+    loadLogs();
+  }
+
+  /* ── DASHBOARD ── */
+  async function loadDashboard() {
+    const {db,getDocs,getDoc,collection,doc}=window._fb;
+    const [kbSnap,logSnap,cfg]=await Promise.all([
+      getDocs(collection(db,'aiKnowledge')),
+      getDocs(collection(db,'aiChatLogs')),
+      getDoc(doc(db,'settings','aiChat'))
+    ]);
+    document.getElementById('stat-kb').textContent = kbSnap.size + ' custom + ' + PRESET_KB.length + ' preset';
+    document.getElementById('stat-logs').textContent=logSnap.size;
+    const d=cfg.exists()?cfg.data():{};
+    const provider = d.aiProvider || 'gemini';
+    const providerLabels = { gemini: '✨ Gemini', openai: '🤖 OpenAI', claude: '🧠 Claude', groq: '⚡ Groq' };
+    const modelMap = { gemini: d.geminiModel, openai: d.openaiModel, claude: d.claudeModel, groq: d.groqModel };
+    const modelStr = modelMap[provider] || '—';
+    document.getElementById('stat-model').textContent = providerLabels[provider] || provider;
+    document.getElementById('stat-model-sub').textContent = modelStr;
+
+    // Update topbar pill
+    const pill = document.getElementById('active-provider-display');
+    pill.style.display = 'flex';
+    document.getElementById('active-provider-name').textContent = (providerLabels[provider] || provider) + ' · ' + modelStr;
+
+    const enabled=typeof d.enabled==='boolean'?d.enabled:true;
+    const statusEl=document.getElementById('stat-status');
+    statusEl.textContent=enabled?'Enabled':'Disabled';
+    statusEl.style.color=enabled?'#28a745':'#dc3545';
+    const chatPill=document.getElementById('chat-status-pill');
+    chatPill.style.background=enabled?'#e8f5e9':'#fce4e4';
+    chatPill.style.color=enabled?'#2e7d32':'#c00';
+    chatPill.innerHTML=`<i class="fas fa-circle" style="font-size:8px;margin-right:4px;"></i>Chat ${enabled?'Online':'Offline'}`;
+  }
+
+  /* ── API SETTINGS ── */
+  async function loadApiSettings() {
+    const {db,getDoc,doc}=window._fb;
+    const snap=await getDoc(doc(db,'settings','aiChat'));
+    if(!snap.exists()) return;
+    const d=snap.data();
+    if(d.geminiKey)   document.getElementById('cfg-gemini-key').value=d.geminiKey;
+    if(d.geminiModel) document.getElementById('cfg-gemini-model').value=d.geminiModel;
+    if(d.openaiKey)   document.getElementById('cfg-openai-key').value=d.openaiKey;
+    if(d.openaiModel) document.getElementById('cfg-openai-model').value=d.openaiModel;
+    if(d.claudeKey)   document.getElementById('cfg-claude-key').value=d.claudeKey;
+    if(d.claudeModel) document.getElementById('cfg-claude-model').value=d.claudeModel;
+    if(d.groqKey)     document.getElementById('cfg-groq-key').value=d.groqKey;
+    if(d.groqModel)   document.getElementById('cfg-groq-model').value=d.groqModel;
+    if(typeof d.enabled==='boolean') document.getElementById('cfg-enabled').checked=d.enabled;
+    if(d.aiProvider) { activeProvider=d.aiProvider; switchProvider(d.aiProvider); }
+  }
+
+  async function saveApiSettings() {
+    const {db,doc,setDoc}=window._fb;
+    const enabled=document.getElementById('cfg-enabled').checked;
+
+    const data = {
+      aiProvider: activeProvider,
+      enabled,
+      geminiKey:    document.getElementById('cfg-gemini-key').value.trim(),
+      geminiModel:  document.getElementById('cfg-gemini-model').value,
+      openaiKey:    document.getElementById('cfg-openai-key').value.trim(),
+      openaiModel:  document.getElementById('cfg-openai-model').value,
+      claudeKey:    document.getElementById('cfg-claude-key').value.trim(),
+      claudeModel:  document.getElementById('cfg-claude-model').value,
+      groqKey:      document.getElementById('cfg-groq-key').value.trim(),
+      groqModel:    document.getElementById('cfg-groq-model').value,
+    };
+
+    // Validate that the active provider has a key
+    const keyMap = { gemini: data.geminiKey, openai: data.openaiKey, claude: data.claudeKey, groq: data.groqKey };
+    if(!keyMap[activeProvider]){
+      toast(`Please enter an API key for ${activeProvider}`, false);
+      return;
+    }
+
+    await setDoc(doc(db,'settings','aiChat'), data, {merge:true});
+    toast('✅ Settings saved! Active provider: ' + activeProvider);
+    loadDashboard();
+  }
+
+  async function testApiKey(provider) {
+    const providerActual = provider || activeProvider;
+    toast('Testing ' + providerActual + ' key…');
+
+    try {
+      if(providerActual === 'gemini') {
+        const key   = document.getElementById('cfg-gemini-key').value.trim();
+        const model = document.getElementById('cfg-gemini-model').value || 'gemini-2.0-flash';
+        if(!key){ toast('Enter a Gemini API key first', false); return; }
+        const r = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/${model}:generateContent?key=${key}`,{
+          method:'POST', headers:{'Content-Type':'application/json'},
+          body: JSON.stringify({contents:[{role:'user',parts:[{text:'Say OK in one word'}]}]})
+        });
+        const d = await r.json();
+        if(d.candidates) toast('✅ Gemini works! Response: ' + d.candidates[0].content.parts[0].text);
+        else toast('❌ Gemini error: '+(d.error?.message||'Unknown'), false);
+
+      } else if(providerActual === 'openai') {
+        const key   = document.getElementById('cfg-openai-key').value.trim();
+        const model = document.getElementById('cfg-openai-model').value || 'gpt-4o-mini';
+        if(!key){ toast('Enter an OpenAI API key first', false); return; }
+        const r = await fetch('https://api.openai.com/v1/chat/completions',{
+          method:'POST',
+          headers:{'Content-Type':'application/json','Authorization':'Bearer '+key},
+          body: JSON.stringify({model, messages:[{role:'user',content:'Say OK in one word'}], max_tokens:10})
+        });
+        const d = await r.json();
+        if(d.choices) toast('✅ OpenAI works! Response: ' + d.choices[0].message.content);
+        else toast('❌ OpenAI error: '+(d.error?.message||'Unknown'), false);
+
+      } else if(providerActual === 'claude') {
+        toast('⚠️ Claude requires a backend proxy for browser testing. Save the key and it will be used by the widget if you have a proxy set up.', false);
+
+      } else if(providerActual === 'groq') {
+        const key   = document.getElementById('cfg-groq-key').value.trim();
+        const model = document.getElementById('cfg-groq-model').value || 'llama-3.3-70b-versatile';
+        if(!key){ toast('Enter a Groq API key first', false); return; }
+        const r = await fetch('https://api.groq.com/openai/v1/chat/completions',{
+          method:'POST',
+          headers:{'Content-Type':'application/json','Authorization':'Bearer '+key},
+          body: JSON.stringify({model, messages:[{role:'user',content:'Say OK in one word'}], max_tokens:10})
+        });
+        const d = await r.json();
+        if(d.choices) toast('✅ Groq works! Response: ' + d.choices[0].message.content);
+        else toast('❌ Groq error: '+(d.error?.message||'Unknown'), false);
+      }
+    } catch(e) {
+      toast('❌ Network error: ' + e.message, false);
+    }
+  }
+
+  /* ── PROMPT SETTINGS ── */
+  async function loadPromptSettings() {
+    const {db,getDoc,doc}=window._fb;
+    const snap=await getDoc(doc(db,'settings','aiChat'));
+    if(!snap.exists()) return;
+    const d=snap.data();
+    if(d.systemPrompt) document.getElementById('cfg-systemprompt').value=d.systemPrompt;
+    if(d.botName) document.getElementById('cfg-botname').value=d.botName;
+    if(d.kbThreshold){
+      document.getElementById('cfg-threshold').value=d.kbThreshold;
+      document.getElementById('thresh-display').textContent=d.kbThreshold;
+    }
+  }
+  async function savePromptSettings() {
+    const {db,doc,setDoc}=window._fb;
+    const systemPrompt=document.getElementById('cfg-systemprompt').value.trim();
+    const botName=document.getElementById('cfg-botname').value.trim();
+    const kbThreshold=parseFloat(document.getElementById('cfg-threshold').value);
+    if(!systemPrompt){toast('System prompt cannot be empty', false);return;}
+    await setDoc(doc(db,'settings','aiChat'),{systemPrompt,botName,kbThreshold},{merge:true});
+    toast('✅ AI personality saved!');
+  }
+
+  /* ── KNOWLEDGE BASE ── */
+  async function loadKb() {
+    const {db,getDocs,collection}=window._fb;
+    const snap=await getDocs(collection(db,'aiKnowledge'));
+    const tbody=document.getElementById('kb-tbody');
+    if(snap.empty){
+      tbody.innerHTML=`<tr><td colspan="4"><div class="empty-state"><i class="fas fa-plus-circle"></i><p>No custom entries yet.</p><p style="font-size:12px;margin-top:6px;">The built-in preset answers are shown below. Add custom entries to override them.</p></div></td></tr>`;
+      return;
+    }
+    let html='';
+    snap.forEach(d=>{
+      const e=d.data();
+      const kws=(e.keywords||[]).map(k=>`<span class="kw-pill">${k}</span>`).join('');
+      const preview=(e.answer||'').replace(/\*\*/g,'').replace(/\n/g,' ').substring(0,80)+'…';
+      html+=`<tr>
+        <td>${kws}</td>
+        <td><div class="answer-preview">${preview}</div></td>
+        <td><span class="source-badge custom">Custom</span></td>
+        <td>
+          <button class="btn btn-outline btn-sm" onclick="editKbEntry('${d.id}')"><i class="fas fa-edit"></i></button>
+          <button class="btn btn-danger btn-sm" style="margin-left:4px;" onclick="deleteKbEntry('${d.id}')"><i class="fas fa-trash"></i></button>
+        </td>
+      </tr>`;
+    });
+    tbody.innerHTML=html;
+    document.getElementById('stat-kb').textContent = snap.size + ' custom + ' + PRESET_KB.length + ' preset';
+  }
+
+  function loadPresetKb() {
+    const tbody = document.getElementById('preset-tbody');
+    let html = '';
+    PRESET_KB.forEach(e => {
+      const kws = e.keywords.slice(0,4).map(k=>`<span class="kw-pill preset">${k}</span>`).join('');
+      const preview = e.answer.replace(/\*\*/g,'').replace(/\n/g,' ').substring(0,90)+'…';
+      html += `<tr>
+        <td>${kws}${e.keywords.length>4?`<span class="kw-pill preset">+${e.keywords.length-4}</span>`:''}</td>
+        <td><div class="answer-preview">${preview}</div></td>
+      </tr>`;
+    });
+    tbody.innerHTML = html;
+    document.getElementById('preset-count').textContent = PRESET_KB.length;
+  }
+
+  function openKbModal() {
+    document.getElementById('kb-edit-id').value='';
+    document.getElementById('kb-keywords').value='';
+    document.getElementById('kb-answer').value='';
+    document.getElementById('kb-category').value='';
+    document.getElementById('kbModalTitle').textContent='Add Knowledge Base Entry';
+    document.getElementById('kbModal').classList.add('open');
+  }
+  function closeKbModal(){ document.getElementById('kbModal').classList.remove('open'); }
+
+  async function editKbEntry(id) {
+    const {db,getDoc,doc}=window._fb;
+    const snap=await getDoc(doc(db,'aiKnowledge',id));
+    if(!snap.exists()) return;
+    const d=snap.data();
+    document.getElementById('kb-edit-id').value=id;
+    document.getElementById('kb-keywords').value=(d.keywords||[]).join(', ');
+    document.getElementById('kb-answer').value=d.answer||'';
+    document.getElementById('kb-category').value=d.category||'';
+    document.getElementById('kbModalTitle').textContent='Edit KB Entry';
+    document.getElementById('kbModal').classList.add('open');
+  }
+
+  async function saveKbEntry() {
+    const {db,doc,addDoc,setDoc,collection,serverTimestamp}=window._fb;
+    const id=document.getElementById('kb-edit-id').value;
+    const keywords=document.getElementById('kb-keywords').value.split(',').map(s=>s.trim().toLowerCase()).filter(Boolean);
+    const answer=document.getElementById('kb-answer').value.trim();
+    const category=document.getElementById('kb-category').value.trim();
+    if(!keywords.length||!answer){toast('Fill in keywords and answer', false);return;}
+    const data={keywords,answer,category,updatedAt:serverTimestamp()};
+    if(id) await setDoc(doc(db,'aiKnowledge',id),data,{merge:true});
+    else   await addDoc(collection(db,'aiKnowledge'),{...data,createdAt:serverTimestamp()});
+    toast('✅ KB entry saved!');
+    closeKbModal();
+    loadKb();
+  }
+
+  async function deleteKbEntry(id) {
+    if(!confirm('Delete this knowledge base entry?')) return;
+    const {db,doc,deleteDoc}=window._fb;
+    await deleteDoc(doc(db,'aiKnowledge',id));
+    toast('Deleted.');
+    loadKb();
+  }
+
+  /* ── CHAT LOGS ── */
+  async function loadLogs() {
+    const {db,getDocs,collection,query,orderBy,limit}=window._fb;
+    const snap=await getDocs(query(collection(db,'aiChatLogs'),orderBy('createdAt','desc'),limit(50)));
+    const container=document.getElementById('logs-list');
+    if(snap.empty){
+      container.innerHTML='<div class="empty-state"><i class="fas fa-comments"></i><p>No chat logs yet. Logs appear here once visitors use the chat widget.</p></div>';
+      return;
+    }
+    let html='';
+    snap.forEach(d=>{
+      const e=d.data();
+      const date=e.createdAt?.toDate?new Date(e.createdAt.toDate()).toLocaleString():'—';
+      const provider = e.provider || 'ai';
+      const sourceBadge=e.source==='kb'
+        ?'<span class="log-source-badge">📚 Knowledge Base</span>'
+        :`<span class="log-source-badge ai">✨ ${provider.charAt(0).toUpperCase()+provider.slice(1)} AI</span>`;
+      html+=`<div class="log-item">
+        <div class="log-meta"><span>${date}</span>${sourceBadge}</div>
+        <div class="log-q">Q: ${e.question||'—'}</div>
+        <div class="log-a">A: ${(e.answer||'').substring(0,150)}…</div>
+      </div>`;
+    });
+    container.innerHTML=html;
+  }
+</script>
+
+<script src="senior-officer-chat.js"></script>
+</body>
+</html>
